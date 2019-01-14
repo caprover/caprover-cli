@@ -51,7 +51,7 @@ Captain definition file for a nodejs application is:
 
 ```
  {
-  "schemaVersion" :1 ,
+  "schemaVersion" :2 ,
   "templateId" :"node/8.7.0"
  }
 ```
