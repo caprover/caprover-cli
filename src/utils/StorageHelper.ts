@@ -16,36 +16,7 @@ export default class StorageHelper {
 	private data: ConfigStore;
 
 	constructor() {
-		this.data = new ConfigStore('captainduckduck');
-		this.migrateData();
-	}
-
-	migrateData() {
-		const self = this;
-		const data = this.data;
-		const oldMachines: any[] = data.get('captainMachines') || [];
-		const oldApps: IOldSavedApp[] = data.get('apps') || [];
-		oldMachines.forEach((m) => {
-			self.saveMachine({
-				authToken: m.authToken,
-				baseUrl: m.baseUrl,
-				name: m.name
-			});
-		});
-
-		oldApps.forEach((app) => {
-			self.saveDeployedDirectory({
-				appName: app.appName,
-				cwd: app.cwd,
-				machineNameToDeploy: app.machineToDeploy.name,
-				deploySource: {
-					branchToPush: app.branchToPush
-				}
-			});
-		});
-
-		data.delete('captainMachines');
-		data.delete('apps');
+		this.data = new ConfigStore('caprover');
 	}
 
 	getMachines(): IMachine[] {
