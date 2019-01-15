@@ -39,16 +39,6 @@ export function validateDefinitionFile() {
 					'**** ERROR: captain-definition needs schemaVersion. Please see docs! ****',
 					true
 				);
-			} else if (!contentsJson.templateId && !contentsJson.dockerfileLines) {
-				StdOutUtil.printError(
-					'**** ERROR: captain-definition needs templateId or dockerfileLines. Please see docs! ****',
-					true
-				);
-			} else if (contentsJson.templateId && contentsJson.dockerfileLines) {
-				StdOutUtil.printError(
-					'**** ERROR: captain-definition needs templateId or dockerfileLines, NOT BOTH! Please see docs! ****',
-					true
-				);
 			} else {
 				return true;
 			}
@@ -81,6 +71,10 @@ export async function ensureAuthentication(machine: IMachine) {
 	if (!allApps) {
 		const loggedInStatus = await requestLogin(machine);
 		allApps = await CliApiManager.get(machine).getAllApps();
+	}
+
+	if (allApps && allApps.appDefinitions) {
+		allApps = allApps.appDefinitions
 	}
 
 	return allApps

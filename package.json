@@ -1,6 +1,6 @@
 {
   "name": "caprover",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "CLI tool for CapRover. See CapRover.com for more details.",
   "main": "./built/commands/caprover.js",
   "scripts": {
