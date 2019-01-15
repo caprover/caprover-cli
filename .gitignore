@@ -1,3 +1,8 @@
+####################
+#### IMPORTANT #####
+####################
+# Make sure to update .npmignore when updating this file.
+
 /node_modules
 /built
 .idea
