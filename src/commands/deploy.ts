@@ -69,6 +69,13 @@ async function deploy(options: any) {
 		allApps = await ensureAuthentication(deployParams.captainMachine);
 	}
 
+	let confirmMessage = 'Please confirm so that deployment process can start.'
+	if (!options.tarFile) {
+			confirmMessage =
+					'Note that uncommitted files and files in gitignore (if any) will not be pushed to server. \n  ' +
+					confirmMessage
+	}
+
 	const allParametersAreSupplied =
 		!!deployParams.appName &&
 		!!deployParams.captainMachine &&
@@ -125,8 +132,7 @@ async function deploy(options: any) {
 			{
 				type: 'confirm',
 				name: 'confirmedToDeploy',
-				message:
-					'Note that uncommitted files and files in gitignore (if any) will not be pushed to server. \n  Please confirm so that deployment process can start.',
+				message: confirmMessage,
 				default: true,
 				when: (answers: IHashMapGeneric<string>) =>
 					!!deployParams.appName &&
