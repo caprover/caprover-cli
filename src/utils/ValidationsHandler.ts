@@ -19,33 +19,46 @@ export function validateIsGitRepository() {
 }
 
 export function validateDefinitionFile() {
-	const captainDefinitionExists = fs.pathExistsSync('./captain-definition');
+
+	const captainDefinitionExists = fs.pathExistsSync('./captain-definition')
 
 	if (!captainDefinitionExists) {
-		StdOutUtil.printError('\n**** ERROR: captain-definition file cannot be found. Please see docs! ****\n', true);
-	} else {
-		const contents = fs.readFileSync('./captain-definition', 'utf8');
-		let contentsJson = null;
-
-		try {
-			contentsJson = JSON.parse(contents);
-		} catch (e) {
-			StdOutUtil.printError(`**** ERROR: captain-definition file is not a valid JSON! ****\n Error:${e}`, true);
+		if (fs.pathExistsSync('./Dockerfile')) {
+			StdOutUtil.printMessage(
+				'**** Warning **** No captain-definition was found in main directory. Falling back to Dockerfile.'
+			)
+		} else {
+			StdOutUtil.printMessage(
+				'**** Warning **** No captain-definition was found in main directory. Unless you have specified a special path for your captain-definition, this build will fail'
+			)
 		}
+		return true
+	}
 
-		if (contentsJson) {
-			if (!contentsJson.schemaVersion) {
-				StdOutUtil.printError(
-					'**** ERROR: captain-definition needs schemaVersion. Please see docs! ****',
-					true
-				);
-			} else {
-				return true;
-			}
+	const contents = fs.readFileSync('./captain-definition', 'utf8')
+	let contentsJson = null
+
+	try {
+		contentsJson = JSON.parse(contents)
+	} catch (e) {
+		StdOutUtil.printError(
+			`**** ERROR: captain-definition file is not a valid JSON! ****\n Error:${e}`,
+			true
+		)
+	}
+
+	if (contentsJson) {
+		if (!contentsJson.schemaVersion) {
+			StdOutUtil.printError(
+				'**** ERROR: captain-definition needs schemaVersion. Please see docs! ****',
+				true
+			)
+		} else {
+			return true
 		}
 	}
 
-	return false;
+	return false
 }
 
 export function isIpAddress(ipaddress: string) {

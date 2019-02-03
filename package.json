@@ -1,6 +1,6 @@
 {
   "name": "caprover",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "CLI tool for CapRover. See CapRover.com for more details.",
   "main": "./built/commands/caprover.js",
   "scripts": {
@@ -52,7 +52,6 @@
     "configstore": "^4.0.0",
     "fs-extra": "^7.0.1",
     "inquirer": "^6.2.1",
-    "npm": "^6.5.0",
     "ora": "^3.0.0",
     "progress": "^2.0.3",
     "request": "^2.88.0",
