@@ -44,8 +44,8 @@ program
 program
 	.command('deploy')
 	.description(
-		"Deploy your app (current directory) to a specific CapRover machine. You'll be prompted to choose your CapRover machine.\n\n" +
-			'For use in scripts, i.e. non-interactive mode, you can use --host --pass --appName and -- branch flags.'
+		"Deploy your app (current directory) to a specific CapRover machine. You'll be prompted to choose your CapRover machine. " +
+			'For use in scripts, i.e. non-interactive mode, you can use --host --pass --appName along with --tarFile or -- branch flags.'
 	)
 	.option('-d, --default', 'Use previously entered values for the current directory, avoid asking.')
 	.option('-t, --tarFile <value>', 'Specify the tar file to be uploaded (rather than using git archive)')
@@ -65,3 +65,7 @@ program.on('command:*', () => {
 });
 
 program.parse(process.argv);
+
+if (!process.argv.slice(2).length) {
+  program.outputHelp();
+}
