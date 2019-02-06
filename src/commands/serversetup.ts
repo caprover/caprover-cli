@@ -63,6 +63,11 @@ const questions = [
 			} catch (e) {
 				// User may have used a different default password
 				if (e.captainStatus === ErrorFactory.STATUS_WRONG_PASSWORD) return '';
+
+				if ((e + '').indexOf('Found. Redirecting to https://') >= 0) {
+					StdOutUtil.printError('\n\n**** You may have already setup the server! Use caprover login to log into an existing server.')
+				}
+
 				StdOutUtil.errorHandler(e);
 			}
 
