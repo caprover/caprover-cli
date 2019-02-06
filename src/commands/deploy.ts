@@ -43,7 +43,18 @@ async function deploy(options: any) {
 		deployParams.deploySource.tarFilePath = options.tarFile;
 	}
 
-	if (!deployParams.deploySource.tarFilePath) {
+	if (options.imageName) {
+		deployParams.deploySource.imageName = options.imageName;
+	}
+
+	if ((options.branch ? 1 : 0) + (options.tarFile ? 1 : 0) + (options.imageName ? 1 : 0) > 1) {
+		StdOutUtil.printError('Only one of tarFile, imageName, or branch can be present in deploy', true)
+	}
+
+	const explicitUploadDataWasNotProvided =
+	 !deployParams.deploySource.tarFilePath && !deployParams.deploySource.imageName;
+
+	if (explicitUploadDataWasNotProvided) {
 		if (!validateIsGitRepository() || !validateDefinitionFile()) {
 			return;
 		}
@@ -70,7 +81,8 @@ async function deploy(options: any) {
 	}
 
 	let confirmMessage = 'Please confirm so that deployment process can start.'
-	if (!options.tarFile) {
+
+	if (explicitUploadDataWasNotProvided) {
 			confirmMessage =
 					'Note that uncommitted files and files in gitignore (if any) will not be pushed to server. \n  ' +
 					confirmMessage
@@ -79,7 +91,9 @@ async function deploy(options: any) {
 	const allParametersAreSupplied =
 		!!deployParams.appName &&
 		!!deployParams.captainMachine &&
-		(!!deployParams.deploySource.branchToPush || !!deployParams.deploySource.tarFilePath);
+		(!!deployParams.deploySource.branchToPush
+			|| !!deployParams.deploySource.tarFilePath
+			|| !!deployParams.deploySource.imageName);
 
 	if (!allParametersAreSupplied) {
 		const questions = [
@@ -111,6 +125,7 @@ async function deploy(options: any) {
 				when: (answers: IHashMapGeneric<string>) =>
 					!deployParams.deploySource.branchToPush &&
 					!deployParams.deploySource.tarFilePath &&
+					!deployParams.deploySource.imageName &&
 					!!deployParams.captainMachine
 			},
 			{
@@ -126,7 +141,7 @@ async function deploy(options: any) {
 					return appNameEntered;
 				},
 				when: (answers: IHashMapGeneric<string>) =>
-					(!!deployParams.deploySource.branchToPush || !!deployParams.deploySource.tarFilePath) &&
+					(!!deployParams.deploySource.branchToPush || !!deployParams.deploySource.tarFilePath|| !!deployParams.deploySource.imageName) &&
 					!deployParams.appName
 			},
 			{
@@ -137,7 +152,9 @@ async function deploy(options: any) {
 				when: (answers: IHashMapGeneric<string>) =>
 					!!deployParams.appName &&
 					!!deployParams.captainMachine &&
-					(!!deployParams.deploySource.branchToPush || !!deployParams.deploySource.tarFilePath)
+					(!!deployParams.deploySource.branchToPush 
+						|| !!deployParams.deploySource.tarFilePath
+						|| !!deployParams.deploySource.imageName)
 			}
 		];
 		const answersToIgnore = (await inquirer.prompt(questions)) as IHashMapGeneric<string>;

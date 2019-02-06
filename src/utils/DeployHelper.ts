@@ -92,10 +92,11 @@ export default class DeployHelper {
 		const appName = this.deployParams.appName;
 		const branchToPush = this.deployParams.deploySource.branchToPush;
 		const tarFilePath = this.deployParams.deploySource.tarFilePath;
+		const imageName = this.deployParams.deploySource.imageName;
 		const machineToDeploy = this.deployParams.captainMachine;
 		const deploySource = this.deployParams.deploySource;
 
-		if (!appName || (!branchToPush && !tarFilePath) || !machineToDeploy) {
+		if (!appName || !machineToDeploy) {
 			StdOutUtil.printError(
 				'Default deploy failed. Missing appName or branchToPush/tarFilePath or machineToDeploy.',
 				true
@@ -103,10 +104,11 @@ export default class DeployHelper {
 			return;
 		}
 
-		if (branchToPush && tarFilePath) {
-			StdOutUtil.printError('Default deploy failed. branchToPush/tarFilePath cannot both be present.', true);
+		if ((branchToPush ? 1 : 0) + (imageName ? 1 : 0) + (tarFilePath ? 1 : 0) !== 1) {
+			StdOutUtil.printError('Default deploy failed. imageName/branchToPush/tarFilePath cannot all be present.', true);
 			return;
 		}
+		let gitHash = '';
 
 		let tarFileCreatedByCli = false;
 		const tarFileNameToDeploy = tarFilePath ? tarFilePath : 'temporary-captain-to-deploy.tar';
@@ -115,7 +117,6 @@ export default class DeployHelper {
 			? tarFileNameToDeploy // absolute path
 			: path.join(process.cwd(), tarFileNameToDeploy); // relative path
 
-		let gitHash = '';
 
 		if (branchToPush) {
 			tarFileCreatedByCli = true;
@@ -128,10 +129,14 @@ export default class DeployHelper {
 		StdOutUtil.printMessage(`Deploying ${appName} to ${machineToDeploy.name}`);
 
 		try {
-			StdOutUtil.printMessage(`Uploading the file to ${machineToDeploy.baseUrl}`);
 
-			await CliApiManager.get(machineToDeploy).uploadAppData(appName, this.getFileStream(tarFileFullPath));
-
+			if (imageName) {
+				await CliApiManager.get(machineToDeploy).uploadCaptainDefinitionContent(appName, { schemaVersion: 2, imageName: imageName }, '', true);
+			} else {
+				StdOutUtil.printMessage(`Uploading the file to ${machineToDeploy.baseUrl}`);
+				await CliApiManager.get(machineToDeploy).uploadAppData(appName, this.getFileStream(tarFileFullPath));
+			}
+			
 			StdOutUtil.printMessage(`Upload done.`);
 
 			StorageHelper.get().saveDeployedDirectory({

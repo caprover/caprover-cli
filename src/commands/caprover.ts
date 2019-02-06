@@ -48,11 +48,12 @@ program
 			'For use in scripts, i.e. non-interactive mode, you can use --host --pass --appName along with --tarFile or -- branch flags.'
 	)
 	.option('-d, --default', 'Use previously entered values for the current directory, avoid asking.')
-	.option('-t, --tarFile <value>', 'Specify the tar file to be uploaded (rather than using git archive)')
 	.option('-h, --host <value>', 'Specify th URL of the CapRover machine in command line')
 	.option('-a, --appName <value>', 'Specify Name of the app to be deployed in command line')
 	.option('-p, --pass <value>', 'Specify password for CapRover in command line')
 	.option('-b, --branch <value>', 'Specify branch name (default master)')
+	.option('-t, --tarFile <value>', 'Specify the tar file to be uploaded (rather than using git archive)')
+	.option('-i, --imageName <value>', 'Specify the imageName to be deployed. The image should either exist on server, or it has to be public, or on a private repository that CapRover has access to.')
 	.action((options: any) => {
 		deploy(options);
 	});

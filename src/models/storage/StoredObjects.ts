@@ -14,6 +14,7 @@ export interface IOldSavedApp {
 export interface IDeploySource {
 	branchToPush?: string;
 	tarFilePath?: string;
+	imageName?: string;
 }
 
 export interface IDeployedDirectory {
