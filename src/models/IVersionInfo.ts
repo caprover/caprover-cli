@@ -1,5 +1,5 @@
 export interface IVersionInfo {
-  currentVersion: string;
-  latestVersion: string;
-  canUpdate: boolean;
+    currentVersion: string
+    latestVersion: string
+    canUpdate: boolean
 }

@@ -1,27 +1,27 @@
-const ora = require('ora');
+const ora = require('ora')
 
 class SpinnerHelper {
-	private spinner: any;
+    private spinner: any
 
-	start(message: string) {
-		this.spinner = ora(message).start();
-	}
+    start(message: string) {
+        this.spinner = ora(message).start()
+    }
 
-	setColor(color: string) {
-		this.spinner.color = color;
-	}
+    setColor(color: string) {
+        this.spinner.color = color
+    }
 
-	stop() {
-		this.spinner.stop();
-	}
+    stop() {
+        this.spinner.stop()
+    }
 
-	succeed() {
-		this.spinner.succeed();
-	}
+    succeed() {
+        this.spinner.succeed()
+    }
 
-	fail() {
-		this.spinner.fail();
-	}
+    fail() {
+        this.spinner.fail()
+    }
 }
 
-export default new SpinnerHelper();
+export default new SpinnerHelper()
