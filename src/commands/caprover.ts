@@ -2,6 +2,20 @@
 
 const packagejson = require('../../package.json')
 import * as updateNotifier from 'update-notifier'
+
+const versionOfNode = Number(process.version.split('.')[0])
+
+if (versionOfNode < 6) {
+    console.log(
+        'Unsupported version of node. You need to update your local NodeJS version.'
+    )
+    process.exit(1)
+} else if (versionOfNode < 8) {
+    console.log(
+        'Your NodeJS is too old. CapRover is tested on the latest NodeJS engine. Update your local NodeJS version for a better experience.'
+    )
+}
+
 updateNotifier({ pkg: packagejson }).notify({ isGlobal: true })
 
 import StdOutUtil from '../utils/StdOutUtil'
