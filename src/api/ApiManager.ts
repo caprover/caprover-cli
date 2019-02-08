@@ -99,10 +99,10 @@ export default class ApiManager {
 			.then(http.fetch(http.GET, '/user/apps/appData/' + appName, {}));
 	}
 
-	uploadAppData(appName: string, file: fs.ReadStream) {
+	uploadAppData(appName: string, file: fs.ReadStream, gitHash: string) {
 		const http = this.http;
 		return Promise.resolve() //
-			.then(http.fetch(http.POST_DATA, '/user/apps/appData/' + appName + '?detached=1', { sourceFile: file }));
+			.then(http.fetch(http.POST_DATA, '/user/apps/appData/' + appName + '?detached=1', { sourceFile: file, gitHash: gitHash }));
 	}
 
 	uploadCaptainDefinitionContent(

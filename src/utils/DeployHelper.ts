@@ -134,7 +134,7 @@ export default class DeployHelper {
 				await CliApiManager.get(machineToDeploy).uploadCaptainDefinitionContent(appName, { schemaVersion: 2, imageName: imageName }, '', true);
 			} else {
 				StdOutUtil.printMessage(`Uploading the file to ${machineToDeploy.baseUrl}`);
-				await CliApiManager.get(machineToDeploy).uploadAppData(appName, this.getFileStream(tarFileFullPath));
+				await CliApiManager.get(machineToDeploy).uploadAppData(appName, this.getFileStream(tarFileFullPath), gitHash);
 			}
 			
 			StdOutUtil.printMessage(`Upload done.`);
