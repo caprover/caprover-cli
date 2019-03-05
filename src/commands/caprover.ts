@@ -62,8 +62,12 @@ program
     .description(
         'Performs necessary actions and prepares your CapRover server.'
     )
-    .action(() => {
-        serversetup()
+    .option(
+        '-c, --configFile <value>',
+        'Specify path of the file where all server parameters are defined in a YAML file. This is only for automation purposes. See docs.'
+    )
+    .action((options: any) => {
+        serversetup(options)
     })
 
 program
