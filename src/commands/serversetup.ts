@@ -11,9 +11,10 @@ import CliHelper from '../utils/CliHelper'
 import StorageHelper from '../utils/StorageHelper'
 import ErrorFactory from '../utils/ErrorFactory'
 import SpinnerHelper from '../utils/SpinnerHelper'
-import { fstat, existsSync } from 'fs'
+import { fstat, existsSync, readFileSync } from 'fs'
 import { readJsonSync, pathExistsSync } from 'fs-extra'
 import { join } from 'path'
+import * as yaml from 'js-yaml'
 
 let newPasswordFirstTry: string | undefined = undefined
 let lastWorkingPassword: string = Constants.DEFAULT_PASSWORD
@@ -294,7 +295,15 @@ async function serversetup(options: any) {
         if (!pathExistsSync(filePath))
             StdOutUtil.printError('File not found: ' + filePath, true)
 
-        const data = readJsonSync(filePath)
+        const fileContent = readFileSync(filePath, 'utf8')
+
+        let data: any = undefined
+
+        if (filePath.endsWith('.yml') || filePath.endsWith('.yaml')) {
+            data = yaml.safeLoad(fileContent)
+        } else {
+            data = JSON.parse(fileContent)
+        }
 
         const errorForMachine = getErrorForMachineName(data.machineName)
         if (errorForMachine && errorForMachine !== true) {
