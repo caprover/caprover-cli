@@ -38,8 +38,12 @@ program
     .description(
         'Login to a CapRover machine. You can be logged in to multiple machines simultaneously.'
     )
-    .action(() => {
-        login()
+    .option(
+        '-c, --configFile <value>',
+        'Specify path of the file where all server parameters are defined in a .yaml or .json file. This is only for automation purposes. See docs.'
+    )
+    .action((options: any) => {
+        login(options)
     })
 
 program
@@ -64,7 +68,7 @@ program
     )
     .option(
         '-c, --configFile <value>',
-        'Specify path of the file where all server parameters are defined in a YAML file. This is only for automation purposes. See docs.'
+        'Specify path of the file where all server parameters are defined in a .yaml or .json file. This is only for automation purposes. See docs.'
     )
     .action((options: any) => {
         serversetup(options)

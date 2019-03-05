@@ -12,7 +12,7 @@ import StorageHelper from '../utils/StorageHelper'
 import ErrorFactory from '../utils/ErrorFactory'
 import SpinnerHelper from '../utils/SpinnerHelper'
 import { fstat, existsSync } from 'fs'
-import { readJsonSync } from 'fs-extra'
+import { readJsonSync, pathExistsSync } from 'fs-extra'
 import { join } from 'path'
 
 let newPasswordFirstTry: string | undefined = undefined
@@ -291,7 +291,7 @@ async function serversetup(options: any) {
         // read config file and parse it.
         // validate IP, captainMachineName, emailAddress, newPassword, oldPassword(?), baseUrl
 
-        if (!existsSync(filePath))
+        if (!pathExistsSync(filePath))
             StdOutUtil.printError('File not found: ' + filePath, true)
 
         const data = readJsonSync(filePath)
