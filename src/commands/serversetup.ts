@@ -295,14 +295,14 @@ async function serversetup(options: any) {
         if (!pathExistsSync(filePath))
             StdOutUtil.printError('File not found: ' + filePath, true)
 
-        const fileContent = readFileSync(filePath, 'utf8')
+        const fileContent = readFileSync(filePath, 'utf8').trim()
 
         let data: any = undefined
 
-        if (filePath.endsWith('.yml') || filePath.endsWith('.yaml')) {
-            data = yaml.safeLoad(fileContent)
-        } else {
+        if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
             data = JSON.parse(fileContent)
+        } else {
+            data = yaml.safeLoad(fileContent)
         }
 
         const errorForMachine = getErrorForMachineName(data.machineName)

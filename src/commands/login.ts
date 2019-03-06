@@ -107,10 +107,10 @@ async function login(options: any) {
             StdOutUtil.printError('File not found: ' + filePath, true)
         let fileContent = readFileSync(filePath, 'utf8')
 
-        if (filePath.endsWith('yml') || filePath.endsWith('.yaml')) {
-            answers = yaml.safeLoad(fileContent)
-        } else {
+        if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
             answers = JSON.parse(fileContent)
+        } else {
+            answers = yaml.safeLoad(fileContent)
         }
     } else {
         answers = await inquirer.prompt(questions)
