@@ -102,7 +102,9 @@ async function login(options: any) {
     let answers: IHashMapGeneric<string>
 
     if (options.configFile) {
-        const filePath = join(process.cwd(), options.configFile)
+        const filePath = (options.configFile || '').startsWith('/')
+            ? options.configFile
+            : join(process.cwd(), options.configFile)
         if (!pathExistsSync(filePath))
             StdOutUtil.printError('File not found: ' + filePath, true)
         let fileContent = readFileSync(filePath, 'utf8')

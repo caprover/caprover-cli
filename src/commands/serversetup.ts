@@ -288,7 +288,9 @@ async function serversetup(options: any) {
     if (!options.configFile) {
         const answersIgnore = await inquirer.prompt(questions)
     } else {
-        const filePath = join(process.cwd(), options.configFile)
+        const filePath = (options.configFile || '').startsWith('/')
+            ? options.configFile
+            : join(process.cwd(), options.configFile)
         // read config file and parse it.
         // validate IP, captainMachineName, emailAddress, newPassword, oldPassword(?), baseUrl
 
