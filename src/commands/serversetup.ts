@@ -207,7 +207,7 @@ const questions = [
     },
     {
         type: 'input',
-        name: 'captainRootDomain',
+        name: 'rootDomain',
         message:
             'Enter a root domain for this CapRover server. For example, enter test.yourdomain.com if you' +
             ' setup your DNS to point *.test.yourdomain.com to ip address of your server.',
@@ -259,7 +259,7 @@ const questions = [
     },
     {
         type: 'input',
-        name: 'emailAddress',
+        name: 'emailForHttps',
         message: "Enter your 'valid' email address to enable HTTPS: ",
         filter: async (value: string) => {
             const emailAddressFromUser = value.trim()
@@ -297,7 +297,14 @@ async function serversetup(options: any) {
 
         const fileContent = readFileSync(filePath, 'utf8').trim()
 
-        let data: any = undefined
+        let data: {
+            machineName: string
+            ipAddress: string
+            newPassword: string
+            rootDomain: string
+            emailForHttps: string
+            currentPassword?: string
+        }
 
         if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
             data = JSON.parse(fileContent)
@@ -311,11 +318,12 @@ async function serversetup(options: any) {
         }
 
         captainMachine.authToken =
-            (await getAuthTokenFromIp(data.caproverIp)) || ''
+            (await getAuthTokenFromIp(data.ipAddress)) || ''
         if (!captainMachine.authToken) {
-            await tryNewPassword(data.currentPassword)
+            await tryNewPassword(data.currentPassword!)
         }
         await updateRootDomain(data.rootDomain)
+        newPasswordFirstTry = data.newPassword
         await enableSslAndChangePassword(data.emailForHttps)
     }
 
