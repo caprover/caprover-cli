@@ -67,8 +67,8 @@ For automation purposes, you can create a temporary config file like:
 {
   "hasRootHttps": "true",
   "caproverPassword": "captain42",
-  "caproverUrl": "https://captain.server.demo.caprover.com",
-  "caproverName": "demo-test-1"
+  "caproverUrl": "https://captain.root.domain.com",
+  "caproverName": "testing-1"
 }
 ```
 Then run:
