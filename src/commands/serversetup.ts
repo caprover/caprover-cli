@@ -15,6 +15,7 @@ import { fstat, existsSync, readFileSync } from 'fs'
 import { readJsonSync, pathExistsSync } from 'fs-extra'
 import { join } from 'path'
 import * as yaml from 'js-yaml'
+import { IServerSetupParams } from '../models/IConfigParams';
 
 let newPasswordFirstTry: string | undefined = undefined
 let lastWorkingPassword: string = Constants.DEFAULT_PASSWORD
@@ -299,14 +300,7 @@ async function serversetup(options: any) {
 
         const fileContent = readFileSync(filePath, 'utf8').trim()
 
-        let data: {
-            machineName: string
-            ipAddress: string
-            newPassword: string
-            rootDomain: string
-            emailForHttps: string
-            currentPassword?: string
-        }
+        let data: IServerSetupParams
 
         if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
             data = JSON.parse(fileContent)

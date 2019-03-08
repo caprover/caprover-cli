@@ -12,6 +12,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { pathExistsSync } from 'fs-extra'
 import * as yaml from 'js-yaml'
+import { ILoginParams } from '../models/IConfigParams'
 
 const SAMPLE_DOMAIN = Constants.SAMPLE_DOMAIN
 const cleanUpUrl = Utils.cleanUpUrl
@@ -99,7 +100,7 @@ async function login(options: any) {
             },
         },
     ]
-    let answers: IHashMapGeneric<string>
+    let answers: ILoginParams
 
     if (options.configFile) {
         const filePath = (options.configFile || '').startsWith('/')
