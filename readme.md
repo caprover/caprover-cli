@@ -67,7 +67,7 @@ For automation purposes, you can create a temporary config file like:
 {
   "hasRootHttps": "true",
   "caproverPassword": "captain42",
-  "caproverUrl": "https://captain.root.domain.com",
+  "caproverUrl": "captain.root.domain.com",
   "caproverName": "testing-1"
 }
 ```
