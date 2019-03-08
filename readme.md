@@ -27,6 +27,24 @@ caprover serversetup
 Follow the steps as instructed, enter IP address of server. Enter the root domain to be used with this CapRover instance. If you don't know what CapRover root domain is, please visit www.CapRover.com for documentation. This is a very crucial step. After that, you'll be asked to enter your email address. This should be a valid email address as it will be used in your SSL certificate. After HTTPS is enabled, you'll be asked to change your password. And... Your are done! Go to Deploy section below to read more about app deployment.
 
 
+For automation purposes, you can create a temporary config file like:
+
+```
+{
+  "machineName": "my-machine-123-123-123-123",
+  "ipAddress": "123.123.123.123",
+  "newPassword": "rAnDoMpAsSwOrD",
+  "rootDomain": "root.domain.com",
+  "emailForHttps": "email@gmail.com",
+  "currentPassword": "captain42"
+}
+```
+Then run:
+```
+caprover login -c /path/to/temp-config.json 
+```
+Note: you can also use either YAML or JSON.
+
 ### Login
 
 *If you've done the "Server Setup" process through the command line. You can skip "Login" step because "server setup" automatically logs you in as the last step of setup.*
@@ -42,6 +60,22 @@ caprover login
 If operation finishes successfully, you will be prompted with a success message.
 
 NOTE: You can be logged in to several CapRover servers at the same time. This is particularly useful if you have separate staging and production servers.
+
+For automation purposes, you can create a temporary config file like:
+
+```
+{
+  "hasRootHttps": "true",
+  "caproverPassword": "captain42",
+  "caproverUrl": "https://captain.server.demo.caprover.com",
+  "caproverName": "demo-test-1"
+}
+```
+Then run:
+```
+caprover login -c /path/to/temp-config.json 
+```
+Note: you can also use either YAML or JSON.
 
 ### Deploy
 
