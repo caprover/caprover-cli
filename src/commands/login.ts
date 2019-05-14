@@ -6,7 +6,6 @@ import StorageHelper from '../utils/StorageHelper'
 import Constants from '../utils/Constants'
 import Utils from '../utils/Utils'
 import CliHelper from '../utils/CliHelper'
-import { IHashMapGeneric } from '../models/IHashMapGeneric'
 import CliApiManager from '../api/CliApiManager'
 import { readFileSync } from 'fs'
 import { join } from 'path'
@@ -22,33 +21,24 @@ function getErrorForDomain(value: string) {
         return 'Enter a valid URL'
     }
 
-    if (!cleanUpUrl(value)) return 'This is an invalid URL: ' + value
+    const cleaned = cleanUpUrl(value)
+    if (!cleaned) {
+        return 'This is an invalid URL: ' + value
+    }
 
-    let found = undefined
-    StorageHelper.get()
-        .getMachines()
-        .map(machine => {
-            if (cleanUpUrl(machine.baseUrl) === cleanUpUrl(value)) {
-                found = machine.name
-            }
-        })
-
+    const found = StorageHelper.get().getMachines().find(machine => cleanUpUrl(machine.baseUrl) === cleaned)
     if (found) {
-        return `${value} already exist as ${found} in your currently logged in machines. If you want to replace the existing entry, you have to first use <logout> command, and then re-login.`
+        return `"${cleaned}" already exist as "${found.name}" in your currently logged in machines. If you want to replace the existing entry, you have to first use <logout> command, and then re-login.`
     }
 
-    if (value && value.trim()) {
-        return true
-    }
-
-    return 'Please enter a valid address.'
+    return true
 }
 
 function getErrorForName(value: string) {
     value = value.trim()
 
     if (StorageHelper.get().findMachine(value)) {
-        return `${value} already exist. If you want to replace the existing entry, you have to first use <logout> command, and then re-login.`
+        return `"${value}" already exist. If you want to replace the existing entry, you have to first use <logout> command, and then re-login.`
     }
 
     if (CliHelper.get().isNameValid(value)) {
@@ -66,8 +56,7 @@ async function login(options: any) {
             type: 'input',
             default: SAMPLE_DOMAIN,
             name: 'caproverUrl',
-            message:
-                '\nEnter address of the CapRover machine. \nIt is captain.[your-captain-root-domain] :',
+            message: 'Enter address of the CapRover machine. It is [captain.]your-captain-root-domain:',
             validate: (value: string) => {
                 return getErrorForDomain(value)
             },
@@ -86,7 +75,6 @@ async function login(options: any) {
                 if (value && value.trim()) {
                     return true
                 }
-
                 return 'Please enter your password.'
             },
         },
@@ -134,17 +122,11 @@ async function login(options: any) {
             baseUrl,
             name: caproverName,
         }).getAuthToken(caproverPassword)
-
-        StdOutUtil.printGreenMessage(`\nLogged in successfully to ${baseUrl}`)
-        StdOutUtil.printGreenMessage(
-            `Authorization token is now saved as ${caproverName} \n`
-        )
+        StdOutUtil.printGreenMessage(`\nLogged in successfully to "${baseUrl}"`)
+        StdOutUtil.printGreenMessage(`Authorization token is now saved as "${caproverName}"\n`)
     } catch (error) {
         const errorMessage = error.message ? error.message : error
-
-        StdOutUtil.printError(
-            `Something bad happened. Cannot save "${caproverName}" \n${errorMessage}`
-        )
+        StdOutUtil.printError(`Something bad happened. Cannot save "${caproverName}"\n${errorMessage}`)
     }
 }
 

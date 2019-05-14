@@ -1,3 +1,7 @@
+import Constants from './Constants'
+
+const ADMIN_DOMAIN = Constants.ADMIN_DOMAIN
+
 export default {
     copyObject<T>(obj: T): T {
         return JSON.parse(JSON.stringify(obj)) as T
@@ -26,22 +30,20 @@ export default {
         if (!urlInput || !urlInput.length) return null
 
         let cleanedUrl = urlInput
+            .replace('http://', '')
+            .replace('https://', '')
+            .trim()
 
         if (cleanedUrl.indexOf('#') >= 0)
             cleanedUrl = cleanedUrl.substr(0, cleanedUrl.indexOf('#'))
 
-        const hasSlashAtTheEnd =
-            cleanedUrl.substr(cleanedUrl.length - 1, 1) === '/'
+        if (cleanedUrl.substr(cleanedUrl.length - 1, 1) === '/')
+            cleanedUrl = cleanedUrl.substr(0, cleanedUrl.length - 1) // Remove the slash at the end
+        
+        if (!cleanedUrl) return null
 
-        if (hasSlashAtTheEnd) {
-            // Remove the slash at the end
-            cleanedUrl = cleanedUrl.substr(0, cleanedUrl.length - 1)
-        }
-
-        cleanedUrl = cleanedUrl
-            .replace('http://', '')
-            .replace('https://', '')
-            .trim()
+        if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`))
+            cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
 
         return cleanedUrl
     },

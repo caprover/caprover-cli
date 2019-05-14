@@ -96,7 +96,10 @@ program
         '-p, --pass <value>',
         'Specify password for CapRover in command line'
     )
-    .option('-b, --branch <value>', 'Specify branch name (default master)')
+    .option(
+        '-b, --branch <value>',
+        'Specify branch name (default master)'
+    )
     .option(
         '-t, --tarFile <value>',
         'Specify the tar file to be uploaded (rather than using git archive)'
