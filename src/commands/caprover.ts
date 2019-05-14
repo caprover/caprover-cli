@@ -19,6 +19,7 @@ if (versionOfNode < 6) {
 updateNotifier({ pkg: packagejson }).notify({ isGlobal: true })
 
 import StdOutUtil from '../utils/StdOutUtil'
+import Constants from '../utils/Constants'
 import * as program from 'commander'
 
 // Command actions
@@ -40,7 +41,25 @@ program
     )
     .option(
         '-c, --configFile <value>',
-        'Specify path of the file where all server parameters are defined in a .yaml or .json file. This is only for automation purposes. See docs.'
+        'Specify path of the file where all parameters are defined in a .yaml or .json file.\n' +
+        '                                  See others options to know config file parameters\' names.\n' +
+        '                                  This is mainly for automation purposes, see docs.'
+    )
+    .option(
+        '-u, --caproverUrl <value>',
+        `Address of the CapRover machine: it is "[${Constants.ADMIN_DOMAIN}.]your-captain-root-domain".`
+    )
+    .option(
+        '-s, --hasRootHttps',
+        'HTTPS is activated for CapRover machine.'
+    )
+    .option(
+        '-p, --caproverPassword <value>',
+        'CapRover machine password.'
+    )
+    .option(
+        '-n, --caproverName <value>',
+        'Name with whom the Captain machine login credentials are stored locally.'
     )
     .action((options: any) => {
         login(options)
@@ -49,14 +68,18 @@ program
 program
     .command('list')
     .alias('ls')
-    .description('List all CapRover machines currently logged in.')
+    .description(
+        'List all CapRover machines currently logged in.'
+    )
     .action(() => {
         list()
     })
 
 program
     .command('logout')
-    .description('Logout from a specific CapRover machine.')
+    .description(
+        'Logout from a specific CapRover machine.'
+    )
     .action(() => {
         logout()
     })
@@ -78,7 +101,7 @@ program
     .command('deploy')
     .description(
         "Deploy your app (current directory) to a specific CapRover machine. You'll be prompted to choose your CapRover machine. " +
-            'For use in scripts, i.e. non-interactive mode, you can use --host --pass --appName along with --tarFile or -- branch flags.'
+        'For use in scripts, i.e. non-interactive mode, you can use --host --pass --appName along with --tarFile or -- branch flags.'
     )
     .option(
         '-d, --default',
