@@ -46,7 +46,7 @@ function getErrorForName(value: string) {
 }
 
 async function login(options: any) {
-    StdOutUtil.printMessage('Login to a CapRover Machine')
+    StdOutUtil.printMessage('Login to a CapRover machine')
 
     const questions = [{
         type: 'input',

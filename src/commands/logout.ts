@@ -1,44 +1,37 @@
 #!/usr/bin/env node
 
-import * as inquirer from 'inquirer'
 import StdOutUtil from '../utils/StdOutUtil'
 import CliHelper from '../utils/CliHelper'
+import getParams, { ParamType } from '../utils/CommandHelper';
+import StorageHelper from '../utils/StorageHelper';
 
-function generateQuestions() {
-    const listOfMachines = CliHelper.get().getMachinesAsOptions()
+async function logout(options: any) {
+    StdOutUtil.printMessage('Logout from a CapRover machine and clear auth info')
 
-    return [
-        {
-            type: 'list',
-            name: 'captainNameToLogout',
-            message: 'Select the Captain Machine you want to logout from:',
-            choices: listOfMachines,
-        },
-        {
-            type: 'confirm',
-            name: 'confirmedToLogout',
-            message:
-                'Are you sure you want to logout from this Captain machine?',
-            default: false,
-            when: (answers: any) => answers.captainNameToLogout,
-        },
-    ]
-}
+    const questions = [{
+        type: 'list',
+        name: 'caproverName',
+        message: 'Select the CapRover machine you want to logout from:',
+        choices: CliHelper.get().getMachinesAsOptions()
+    }, {
+        type: 'confirm',
+        name: 'confirmedToLogout',
+        message: 'Are you sure you want to logout from this CapRover machine?',
+        default: false,
+        when: (answers: any) => answers.caproverName,
+    }]
 
-async function logout() {
-    const questions = generateQuestions()
+    const params = await getParams(options, questions)
 
-    StdOutUtil.printMessage('Logout from a Captain Machine and clear auth info')
-
-    const answers = await inquirer.prompt(questions)
-    const { captainNameToLogout, confirmedToLogout } = answers
-
-    if (!captainNameToLogout || !confirmedToLogout) {
+    if (!params.caproverName || !params.caproverName.value || (params.confirmedToLogout && !params.confirmedToLogout.value)) {
         StdOutUtil.printMessage('\nOperation cancelled by the user...\n')
         return
+    } else if (params.caproverName.from !== ParamType.Question) {
+        if (!StorageHelper.get().findMachine(params.caproverName.value))
+            StdOutUtil.printError(`"${params.caproverName.value}" CapRover machine not exist.`, true)
     }
 
-    CliHelper.get().logoutMachine(captainNameToLogout)
+    CliHelper.get().logoutMachine(params.caproverName.value)
 }
 
 export default logout

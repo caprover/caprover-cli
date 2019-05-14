@@ -80,8 +80,18 @@ program
     .description(
         'Logout from a specific CapRover machine.'
     )
-    .action(() => {
-        logout()
+    .option(
+        '-c, --configFile <value>',
+        'Specify path of the file where all parameters are defined in a .yaml or .json file.\n' +
+        '                                  See others options to know config file parameters\' names.\n' +
+        '                                  This is mainly for automation purposes, see docs.'
+    )
+    .option(
+        '-n, --caproverName <value>',
+        'Name of the CapRover machine to logout from.'
+    )
+    .action((options: any) => {
+        logout(options)
     })
 
 program
