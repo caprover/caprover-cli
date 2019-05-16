@@ -41,17 +41,13 @@ program
     )
     .option(
         '-c, --configFile <value>',
-        'Specify path of the file where all parameters are defined in a .yaml or .json file.\n' +
+        'Specify path of the file where all parameters are defined in JSON or YAML format.\n' +
         '                                  See others options to know config file parameters\' names.\n' +
         '                                  This is mainly for automation purposes, see docs.'
     )
     .option(
         '-u, --caproverUrl <value>',
-        `Address of the CapRover machine: it is "[${Constants.ADMIN_DOMAIN}.]your-captain-root-domain".`
-    )
-    .option(
-        '-s, --hasRootHttps',
-        'HTTPS is activated for CapRover machine.'
+        `CapRover machine URL address: it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root-domain".`
     )
     .option(
         '-p, --caproverPassword <value>',
@@ -59,7 +55,7 @@ program
     )
     .option(
         '-n, --caproverName <value>',
-        'Name with whom the Captain machine login credentials are stored locally.'
+        'Name with whom the CapRover machine login credentials are stored locally.'
     )
     .action((options: any) => {
         login(options)
@@ -82,9 +78,9 @@ program
     )
     .option(
         '-c, --configFile <value>',
-        'Specify path of the file where all parameters are defined in a .yaml or .json file.\n' +
-        '                                  See others options to know config file parameters\' names.\n' +
-        '                                  This is mainly for automation purposes, see docs.'
+        'Specify path of the file where all parameters are defined in JSON or YAML format.\n' +
+        '                              See others options to know config file parameters\' names.\n' +
+        '                              This is mainly for automation purposes, see docs.'
     )
     .option(
         '-n, --caproverName <value>',

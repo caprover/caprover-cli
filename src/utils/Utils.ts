@@ -29,6 +29,8 @@ export default {
     cleanUpUrl(urlInput: string) {
         if (!urlInput || !urlInput.length) return null
 
+        const http = urlInput.startsWith('http://')
+
         let cleanedUrl = urlInput
             .replace('http://', '')
             .replace('https://', '')
@@ -45,6 +47,6 @@ export default {
         if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`))
             cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
 
-        return cleanedUrl
+        return (http ? 'http://' : 'https://') + cleanedUrl
     },
 }

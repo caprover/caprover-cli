@@ -52,13 +52,8 @@ async function login(options: any) {
         type: 'input',
         default: SAMPLE_DOMAIN,
         name: 'caproverUrl',
-        message: `Enter address of the CapRover machine. It is "[${ADMIN_DOMAIN}.]your-captain-root-domain":`,
+        message: `Enter the CapRover machine URL address, it is "[http[s]://][${ADMIN_DOMAIN}.]your-captain-root-domain":`,
         validate: getErrorForDomain
-    }, {
-        type: 'confirm',
-        name: 'hasRootHttps',
-        message: 'Is HTTPS activated for this CapRover machine?',
-        default: true,
     }, {
         type: 'password',
         name: 'caproverPassword',
@@ -75,20 +70,18 @@ async function login(options: any) {
     const params = await getParams(options, questions)
 
     const loginParams: ILoginParams = {
-        caproverUrl: params.caproverUrl.value,
-        hasRootHttps: params.hasRootHttps.value,
+        caproverUrl: <string>cleanUpUrl(params.caproverUrl.value),
         caproverPassword: params.caproverPassword.value,
         caproverName: params.caproverName.value
     }
-    const baseUrl = (loginParams.hasRootHttps ? 'https://' : 'http://') + cleanUpUrl(loginParams.caproverUrl)
 
     try {
         const tokenToIgnore = await CliApiManager.get({
             authToken: '',
-            baseUrl,
+            baseUrl: loginParams.caproverUrl,
             name: loginParams.caproverName,
         }).getAuthToken(loginParams.caproverPassword)
-        StdOutUtil.printGreenMessage(`\nLogged in successfully to "${baseUrl}".`)
+        StdOutUtil.printGreenMessage(`\nLogged in successfully to "${loginParams.caproverUrl}".`)
         StdOutUtil.printGreenMessage(`Authorization token is now saved as "${loginParams.caproverName}".\n`)
     } catch (error) {
         const errorMessage = error.message ? error.message : error

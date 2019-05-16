@@ -8,7 +8,6 @@ export interface IServerSetupParams {
 }
 
 export interface ILoginParams {
-    hasRootHttps: string
     caproverPassword: string
     caproverUrl: string
     caproverName: string
