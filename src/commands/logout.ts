@@ -1,37 +1,43 @@
-#!/usr/bin/env node
-
 import StdOutUtil from '../utils/StdOutUtil'
 import CliHelper from '../utils/CliHelper'
-import getParams, { ParamType } from '../utils/CommandHelper';
-import StorageHelper from '../utils/StorageHelper';
+import { getErrorForMachineName, userCancelOperation } from '../utils/ValidationsHandler';
+import Command, { IParams, IOption, ICommandLineOptions, ParamType } from './Command'
 
-async function logout(options: any) {
-    StdOutUtil.printMessage('Logout from a CapRover machine and clear auth info')
+export default class List extends Command {
+    protected command = 'logout'
 
-    const questions = [{
-        type: 'list',
-        name: 'caproverName',
-        message: 'Select the CapRover machine you want to logout from:',
-        choices: CliHelper.get().getMachinesAsOptions()
-    }, {
-        type: 'confirm',
-        name: 'confirmedToLogout',
-        message: 'Are you sure you want to logout from this CapRover machine?',
-        default: false,
-        when: (answers: any) => answers.caproverName,
-    }]
+    protected description = 'Logout from a CapRover machine and clear auth info.'
 
-    const params = await getParams(options, questions)
+    private machines = CliHelper.get().getMachinesAsOptions()
 
-    if (!params.caproverName || !params.caproverName.value || (params.confirmedToLogout && !params.confirmedToLogout.value)) {
-        StdOutUtil.printMessage('\nOperation cancelled by the user...\n')
-        return
-    } else if (params.caproverName.from !== ParamType.Question) {
-        if (!StorageHelper.get().findMachine(params.caproverName.value))
-            StdOutUtil.printError(`"${params.caproverName.value}" CapRover machine not exist.`, true)
+    protected options= (params?: IParams): IOption[] => [
+        Command.CONFIG_FILE_OPTION_DEFAULT,
+        {
+            name: 'caproverName',
+            char: 'n',
+            type: 'list',
+            message: (answers: any) => answers ? 'select the CapRover machine name you want to logout from:' : 'CapRover machine name to logout from',
+            choices: this.machines,
+            filter: (name: string) => params && !params.caproverName ? userCancelOperation(!name, true) || name : name.trim(),
+            validate: (name: string) => getErrorForMachineName(name, true)
+        },
+        {
+            name: 'confirmedToLogout',
+            type: 'confirm',
+            message: () => 'are you sure you want to logout from this CapRover machine?', // Use function to not append ':' on question message generation
+            default: false,
+            hide: true,
+            when: (answers: any) => answers.caproverName
+        }
+    ]
+
+    protected async preAction(cmdLineoptions: ICommandLineOptions): Promise<ICommandLineOptions> {
+        StdOutUtil.printMessage('Logout from a CapRover machine...\n')
+        return cmdLineoptions
     }
 
-    CliHelper.get().logoutMachine(params.caproverName.value)
+    protected async action(params: IParams): Promise<void> {
+        userCancelOperation(params.confirmedToLogout && params.confirmedToLogout.from === ParamType.Question && !params.confirmedToLogout.value)
+        CliHelper.get().logoutMachine(params.caproverName.value)
+    }
 }
-
-export default logout
