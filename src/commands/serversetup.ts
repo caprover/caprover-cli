@@ -3,7 +3,7 @@
 import * as inquirer from 'inquirer'
 import Constants from '../utils/Constants'
 import StdOutUtil from '../utils/StdOutUtil'
-import { isIpAddress } from '../utils/ValidationsHandler'
+import { isIpAddress, isNameValid } from '../utils/ValidationsHandler'
 import { IMachine } from '../models/storage/StoredObjects'
 import CliApiManager from '../api/CliApiManager'
 import Utils from '../utils/Utils'
@@ -143,7 +143,7 @@ function getErrorForMachineName(newMachineName: string) {
         return `${newMachineName} already exist. If you want to replace the existing entry, you have to first use <logout> command, and then re-login.`
     }
 
-    if (CliHelper.get().isNameValid(newMachineName)) {
+    if (isNameValid(newMachineName)) {
         captainMachine.name = newMachineName
         return true
     }

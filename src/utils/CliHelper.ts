@@ -1,6 +1,12 @@
+import * as inquirer from 'inquirer'
 import StorageHelper from './StorageHelper'
-import { IMachine } from '../models/storage/StoredObjects'
 import StdOutUtil from './StdOutUtil'
+import Constants from './Constants'
+import { getErrorForMachineName, getErrorForDomain, getErrorForPassword } from './ValidationsHandler';
+import { IMachine } from '../models/storage/StoredObjects'
+import { IAppDef } from '../models/AppDef';
+import CliApiManager from '../api/CliApiManager';
+import { IOption, IParams } from '../commands/Command';
 
 export default class CliHelper {
     static instance: CliHelper
@@ -10,90 +16,135 @@ export default class CliHelper {
         return CliHelper.instance
     }
 
-    isNameValid(value: string) {
-        value = value || ''
-        if (!!value && value.match(/^[-\d\w]+$/i) && value.indexOf('--') < 0) {
-            return true
-        }
-        return false
-    }
-
-    getAppsAsOptions(apps: any[]) {
-        const firstItemInOption = [
+    getAppsAsOptions(apps: IAppDef[]) {
+        return [
             {
-                name: '-- CANCEL --',
+                name: Constants.CANCEL_STRING,
                 value: '',
-                short: '',
+                short: ''
             },
-        ]
-        const listOfApps = apps.map(app => {
-            return {
+            ...apps.filter(app => !app.isAppBuilding).map(app => ({
                 name: `${app.appName}`,
                 value: `${app.appName}`,
-                short: `${app.appName}`,
-            }
-        })
-
-        return [...firstItemInOption, ...listOfApps]
+                short: `${app.appName}`
+            }))
+        ]
     }
 
     getMachinesAsOptions() {
-        const machines = StorageHelper.get().getMachines()
-        const firstItemInOption = [
+        return [
             {
-                name: '-- CANCEL --',
+                name: Constants.CANCEL_STRING,
                 value: '',
-                short: '',
+                short: ''
             },
-        ]
-        const listOfMachines = machines.map(machine => {
-            return {
-                name: `${machine.name} at ${machine.baseUrl}`,
+            ...StorageHelper.get().getMachines().map(machine => ({
+                name: `${StdOutUtil.getColoredMachine(machine)}`,
                 value: `${machine.name}`,
-                short: `${machine.name} at ${machine.baseUrl}`,
-            }
-        })
+                short: `${machine.name}`
+            }))
+        ]
+    }
 
-        return [...firstItemInOption, ...listOfMachines]
+    async loginMachine(machine: IMachine, password: string) {
+        try {
+            const tokenToIgnore = await CliApiManager.get(machine).getAuthToken(password)
+            StdOutUtil.printGreenMessage(`Logged in successfully.`)
+            StdOutUtil.printMessage(`Authorization token is now saved as ${StdOutUtil.getColoredMachine(machine)}.\n`)
+        } catch (error) {
+            const errorMessage = error.message ? error.message : error
+            StdOutUtil.printError(`Something bad happened: cannot save ${StdOutUtil.getColoredMachine(machine)}.\n${errorMessage}\n`)
+        }
     }
 
     logoutMachine(machineName: string) {
         const removedMachine = StorageHelper.get().removeMachine(machineName)
-        StdOutUtil.printMessage(
-            `You are now logged out from ${removedMachine.name} at ${
-                removedMachine.baseUrl
-            }...\n`
-        )
+        StdOutUtil.printMessage(`You are now logged out from ${StdOutUtil.getColoredMachine(removedMachine)}.\n`)
     }
 
     findDefaultCaptainName() {
-        let currentSuffix = StorageHelper.get().getMachines().length + 1
-        const self = this
-
-        while (!self.isSuffixValid(currentSuffix)) {
-            currentSuffix++
-        }
-
-        return self.getCaptainFullName(currentSuffix)
+        let currentSuffix = 1
+        const machines = StorageHelper.get().getMachines().map(machine => machine.name)
+        while (machines.includes(this.getCaptainFullName(currentSuffix))) currentSuffix++
+        return this.getCaptainFullName(currentSuffix)
     }
 
     getCaptainFullName(suffix: number) {
-        const formatSuffix = suffix < 10 ? `0${suffix}` : suffix
-
-        return `captain-${formatSuffix}`
+        return `captain-${suffix < 10 ? '0' : ''}${suffix}`
     }
 
-    isSuffixValid(suffixNumber: number) {
-        const self = this
-        let valid = true
-        StorageHelper.get()
-            .getMachines()
-            .map((machine: IMachine) => {
-                if (machine.name === self.getCaptainFullName(suffixNumber)) {
-                    valid = false
+    async ensureAuthentication(url?: string, password?: string, machineName?: string): Promise<IMachine> {
+        if (url) { // Auth to url
+            const machine: IMachine = { baseUrl: url, name: '', authToken: '' }
+            if (machineName) { // With machine name: also store credentials
+                let err = getErrorForDomain(url)
+                if (err !== true) { // Error for domain: can't store credentials
+                    StdOutUtil.printWarning(`\nCan't store store login credentials: ${err || 'error!'}\n`)
+                } else {
+                    err = getErrorForMachineName(machineName)
+                    if (err !== true) { // Error for machine name: can't store credentials
+                        StdOutUtil.printWarning(`\nCan't store store login credentials: ${err || 'error!'}\n`)
+                    } else {
+                        machine.name = machineName
+                    }
                 }
-            })
+            }
+            if (password) { // If password provided
+                await CliApiManager.get(machine).getAuthToken(password) // Do auth
+            }
+            return machine
+        } else if (machineName) { // Auth to stored machine name
+            const machine = StorageHelper.get().findMachine(machineName) // Get stored machine
+            if (!machine) throw `Can't find stored machine "${machineName}"` // No stored machine: throw
+            try {
+                await CliApiManager.get(machine).getAllApps() // Get data with stored token
+            } catch (e) { // Error getting data: token expired
+                StdOutUtil.printWarning(`Your auth token for ${StdOutUtil.getColoredMachine(machine)} is not valid anymore, try to login again...`)
+                StorageHelper.get().removeMachine(machineName) // Remove saved credentials
+                machine.authToken = '' // Remove expired token
+                if (password) { // If password provided
+                    await CliApiManager.get(machine).getAuthToken(password) // Do auth
+                }
+            }
+            return machine
+        }
+        throw 'Too few arguments, no url or machine name'
+    }
 
-        return valid
+    getEnsureAuthenticationOption(params?: IParams, done?: (machine: IMachine) => void): IOption {
+        let machine: IMachine
+        return {
+            name: 'ensureAuthenticationPlaceholder',
+            message: 'CapRover machine password',
+            type: 'password',
+            hide: true,
+            when: async answers => {
+                StdOutUtil.printMessage('Ensuring authentication...')
+                const url: string | undefined = params && params.caproverUrl && params.caproverUrl.value || answers.caproverUrl
+                const password: string | undefined = params && params.caproverPassword && params.caproverPassword.value || answers.caproverPassword
+                const name: string | undefined = params && params.caproverName && params.caproverName.value || answers.caproverName
+                try {
+                    machine = await CliHelper.get().ensureAuthentication(url, password, name)
+                    if (machine.authToken) {
+                        if (done) await done(machine)
+                        return false
+                    }
+                } catch (e) {
+                    StdOutUtil.printError(`\nSomething bad happened during authentication to ${url ? StdOutUtil.getColoredMachineUrl(url) : StdOutUtil.getColoredMachineName(name || '')}.\n${e.message || e}`, true)
+                }
+                return true
+            },
+            validate: async (password: string) => {
+                const err = getErrorForPassword(password)
+                if (err !== true) return err
+                try {
+                    await CliApiManager.get(machine).getAuthToken(password) // Do auth
+                    if (done) await done(machine)
+                } catch (e) {
+                    StdOutUtil.printError(`\nSomething bad happened during authentication to ${StdOutUtil.getColoredMachineUrl(machine.baseUrl)}.\n${e.message || e}`, true)
+                }
+                return true
+            }
+        }
     }
 }
