@@ -1,216 +1,196 @@
-#!/usr/bin/env node
-
 import * as inquirer from 'inquirer'
+import Constants from '../utils/Constants';
+import Utils from '../utils/Utils';
 import StdOutUtil from '../utils/StdOutUtil'
-import {
-    validateIsGitRepository,
-    validateDefinitionFile,
-    ensureAuthentication,
-} from '../utils/ValidationsHandler'
-import {
-    IMachine,
-    IDeployedDirectory,
-    IDeploySource,
-    IDeployParams,
-} from '../models/storage/StoredObjects'
 import StorageHelper from '../utils/StorageHelper'
 import CliHelper from '../utils/CliHelper'
-import { IHashMapGeneric } from '../models/IHashMapGeneric'
 import DeployHelper from '../utils/DeployHelper'
 import CliApiManager from '../api/CliApiManager'
+import { validateIsGitRepository, validateDefinitionFile, getErrorForDomain, getErrorForPassword, getErrorForMachineName, userCancelOperation, getErrorForAppName, getErrorForBranchName } from '../utils/ValidationsHandler'
+import { IAppDef } from '../models/AppDef';
+import { IMachine, IDeployedDirectory, IDeployParams } from '../models/storage/StoredObjects'
+import Command, { IParams, IOption, ParamType, ICommandLineOptions } from './Command'
 
-async function deploy(options: any) {
-    const possibleApp = StorageHelper.get()
-        .getDeployedDirectories()
-        .find((dir: IDeployedDirectory) => dir.cwd === process.cwd())
+export default class Deploy extends Command {
+    protected command = 'deploy'
 
-    StdOutUtil.printMessage('Preparing deployment to Captain...\n')
+    protected usage = '[options]\n' +
+        '       deploy -d\n' +
+        '       deploy -c file\n' +
+        '       deploy [-c file] [-n name] [-a app] [-b branch | -t tarFile | -i image]\n' +
+        '       deploy [-c file] -u url [-p password] [-n name] [-a app] [-b branch | -t tarFile | -i image]\n' +
+        '  Use --caproverName to use an already logged in CapRover machine\n' +
+        '  Use --caproverUrl and --caproverPassword to login on the fly to a CapRover machine, if also --caproverName is present, login credetials are stored locally\n' +
+        '  Use one among --branch, --tarFile, --imageName'
 
-    let deployParams: IDeployParams = { deploySource: {} }
+    protected description = 'Deploy your app to a specific CapRover machine. You\'ll be prompted for missing parameters.'
 
-    if (options.default) {
-        deployParams = {
-            captainMachine: possibleApp
-                ? StorageHelper.get().findMachine(
-                      possibleApp.machineNameToDeploy
-                  )
-                : undefined,
-            deploySource: possibleApp ? possibleApp.deploySource : {},
-            appName: possibleApp ? possibleApp.appName : undefined,
-        }
-    } else if (possibleApp) {
-        StdOutUtil.printMessage(
-            `\n\n**********\n\nProtip: You seem to have deployed ${
-                possibleApp.appName
-            } from this directory in the past, use --default flag to avoid having to re-enter the information.\n\n**********\n\n`
-        )
-    }
+    private machines = CliHelper.get().getMachinesAsOptions()
 
-    if (options.appName) {
-        deployParams.appName = options.appName
-    }
+    private apps: IAppDef[] = []
 
-    if (options.branch) {
-        deployParams.deploySource.branchToPush = options.branch
-    }
+    private machine: IMachine
 
-    if (options.tarFile) {
-        deployParams.deploySource.tarFilePath = options.tarFile
-    }
-
-    if (options.imageName) {
-        deployParams.deploySource.imageName = options.imageName
-    }
-
-    if (
-        (options.branch ? 1 : 0) +
-            (options.tarFile ? 1 : 0) +
-            (options.imageName ? 1 : 0) >
-        1
-    ) {
-        StdOutUtil.printError(
-            'Only one of tarFile, imageName, or branch can be present in deploy',
-            true
-        )
-    }
-
-    const explicitUploadDataWasNotProvided =
-        !deployParams.deploySource.tarFilePath &&
-        !deployParams.deploySource.imageName
-
-    if (explicitUploadDataWasNotProvided) {
-        if (!validateIsGitRepository() || !validateDefinitionFile()) {
-            return
-        }
-    }
-
-    if (options.pass || options.host) {
-        if (options.pass && options.host) {
-            deployParams.captainMachine = {
-                authToken: '',
-                baseUrl: options.host,
-                name: '',
+    protected options = (params?: IParams): IOption[] => [
+        {
+            name: 'default',
+            char: 'd',
+            type: 'confirm',
+            message: 'use previously entered values for the current directory, no others options are considered',
+            when: false
+        },
+        Command.CONFIG_FILE_OPTION_DEFAULT,
+        {
+            name: 'caproverUrl',
+            char: 'u',
+            type: 'input',
+            message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
+            when: false,
+            filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url, // If not cleaned url, leeave url to fail validation with correct error
+            validate: (url: string) => getErrorForDomain(url, true)
+        },
+        {
+            name: 'caproverPassword',
+            char: 'p',
+            type: 'password',
+            message: 'CapRover machine password',
+            when: !!(params && params.caproverUrl),
+            validate: (password: string) => getErrorForPassword(password)
+        },
+        {
+            name: 'caproverName',
+            char: 'n',
+            message: params ? 'select the CapRover machine name you want to deploy to' : 'CaptRover machine name, to load/store credentials',
+            type: 'list',
+            choices: this.machines,
+            when: params && !params.caproverUrl,
+            filter: (name: string) => params && !params.caproverName ? userCancelOperation(!name, true) || name : name.trim(),
+            validate: params && !params.caproverUrl ? (name: string) => getErrorForMachineName(name, true) : undefined
+        },
+        CliHelper.get().getEnsureAuthenticationOption(params, async (machine: IMachine) => {
+            this.machine = machine
+            try {
+                this.apps = (await CliApiManager.get(machine).getAllApps()).appDefinitions || []
+            } catch (e) {
+                StdOutUtil.printError(`\nSomething bad happened during deployment to ${StdOutUtil.getColoredMachineUrl(machine.baseUrl)}.\n${e.message || e}`, true)
             }
-            await CliApiManager.get(deployParams.captainMachine).getAuthToken(
-                options.pass
-            )
-        } else {
-            StdOutUtil.printError(
-                'host and pass should be either both defined or both undefined',
-                true
-            )
-            return
+        }),
+        {
+            name: 'caproverApp',
+            char: 'a',
+            message: params ? 'select the app name you want to deploy to' : 'app name to deploy to',
+            type: 'list',
+            choices: (answers: any) => CliHelper.get().getAppsAsOptions(this.apps),
+            filter: (app: string) => params && !params.caproverApp ? userCancelOperation(!app, true) || app : app.trim()
+        },
+        {
+            name: 'branch',
+            char: 'b',
+            message: 'git branch name to be deployed' + (!params ? ', current directory must be git root directory' : ''),
+            type: 'input',
+            default: params && 'master',
+            when: params && !params.tarFile && !params.imageName,
+            validate: (branch: string) => getErrorForBranchName(branch)
+        },
+        {
+            name: 'tarFile',
+            char: 't',
+            message: 'tar file to be uploaded, must contain captain-definition file',
+            type: 'input',
+            when: false
+        },
+        {
+            name: 'imageName',
+            char: 'i',
+            message: 'image name to be deployed, it should either exist on server, or it has to be public, or on a private repository that CapRover has access to',
+            type: 'input',
+            when: false
+        },
+        {
+            name: 'confirmedToDeploy',
+            type: 'confirm',
+            message: answers => ((params && params.branch) || answers.branch ? 'note that uncommitted and gitignored files (if any) will not be pushed to server! A' : 'a') + 're you sure you want to deploy?',
+            default: true,
+            hide: true,
+            when: answers => answers.caproverName || answers.caproverApp || answers.branch
         }
-    }
+    ]
 
-    // Show questions for what is being missing in deploy params
-    let allApps: any = undefined
-    if (deployParams.captainMachine) {
-        allApps = await ensureAuthentication(deployParams.captainMachine)
-    }
+    protected async preAction(cmdLineoptions: ICommandLineOptions): Promise<ICommandLineOptions> {
+        StdOutUtil.printMessage('Preparing deployment to CapRover...\n')
 
-    let confirmMessage = 'Please confirm so that deployment process can start.'
-
-    if (explicitUploadDataWasNotProvided) {
-        confirmMessage =
-            'Note that uncommitted files and files in gitignore (if any) will not be pushed to server. \n  ' +
-            confirmMessage
-    }
-
-    const allParametersAreSupplied =
-        !!deployParams.appName &&
-        !!deployParams.captainMachine &&
-        (!!deployParams.deploySource.branchToPush ||
-            !!deployParams.deploySource.tarFilePath ||
-            !!deployParams.deploySource.imageName)
-
-    if (!allParametersAreSupplied) {
-        const questions = [
-            {
-                type: 'list',
-                name: 'captainNameToDeploy',
-                default: possibleApp ? possibleApp.machineNameToDeploy : '',
-                message: 'Select the Captain Machine you want to deploy to:',
-                choices: CliHelper.get().getMachinesAsOptions(),
-                when: () => !deployParams.captainMachine,
-                filter: async (capName: string) => {
-                    deployParams.captainMachine = StorageHelper.get().findMachine(
-                        capName
-                    )
-                    if (deployParams.captainMachine)
-                        allApps = await ensureAuthentication(
-                            deployParams.captainMachine
-                        )
-                    return capName
-                },
-            },
-            {
-                type: 'input',
-                default:
-                    possibleApp && possibleApp.deploySource.branchToPush
-                        ? possibleApp.deploySource.branchToPush
-                        : 'master',
-                name: 'branchToPush',
-                message: "Enter the 'git' branch you would like to deploy:",
-                filter: async (branchToPushEntered: string) => {
-                    deployParams.deploySource.branchToPush = branchToPushEntered
-                    return branchToPushEntered
-                },
-                when: (answers: IHashMapGeneric<string>) =>
-                    !deployParams.deploySource.branchToPush &&
-                    !deployParams.deploySource.tarFilePath &&
-                    !deployParams.deploySource.imageName &&
-                    !!deployParams.captainMachine,
-            },
-            {
-                type: 'list',
-                default: possibleApp ? possibleApp.appName : '',
-                name: 'appName',
-                message:
-                    'Enter the Captain app name this directory will be deployed to:',
-                choices: (answers: IHashMapGeneric<string>) => {
-                    return CliHelper.get().getAppsAsOptions(allApps)
-                },
-                filter: async (appNameEntered: string) => {
-                    deployParams.appName = appNameEntered
-                    return appNameEntered
-                },
-                when: (answers: IHashMapGeneric<string>) =>
-                    (!!deployParams.deploySource.branchToPush ||
-                        !!deployParams.deploySource.tarFilePath ||
-                        !!deployParams.deploySource.imageName) &&
-                    !deployParams.appName,
-            },
-            {
-                type: 'confirm',
-                name: 'confirmedToDeploy',
-                message: confirmMessage,
-                default: true,
-                when: (answers: IHashMapGeneric<string>) =>
-                    !!deployParams.appName &&
-                    !!deployParams.captainMachine &&
-                    (!!deployParams.deploySource.branchToPush ||
-                        !!deployParams.deploySource.tarFilePath ||
-                        !!deployParams.deploySource.imageName),
-            },
-        ]
-        const answersToIgnore = (await inquirer.prompt(
-            questions
-        )) as IHashMapGeneric<string>
-
-        if (!answersToIgnore.confirmedToDeploy) {
-            StdOutUtil.printMessage('\nOperation cancelled by the user...\n')
-            process.exit(0)
-            return
+        const possibleApp = StorageHelper.get().getDeployedDirectories().find((dir: IDeployedDirectory) => dir.cwd === process.cwd())
+        if (cmdLineoptions.default) {
+            if (possibleApp && possibleApp.machineNameToDeploy) {
+                const deployParams: IDeployParams = {
+                    captainMachine: StorageHelper.get().findMachine(possibleApp.machineNameToDeploy),
+                    deploySource: possibleApp.deploySource,
+                    appName: possibleApp.appName
+                }
+                if (!deployParams.captainMachine) {
+                    StdOutUtil.printError(`You have to first login to ${StdOutUtil.getColoredMachineName(possibleApp.machineNameToDeploy)} CapRover machine to use previously saved deploy options from this directory with --default.\n`, true)
+                }
+                await this.deploy(deployParams)
+                process.exit(0)
+            } else {
+                StdOutUtil.printError(`Can't find previously saved deploy options from this directory, can't use --default.\n`, true)
+            }
+        } else if (possibleApp && possibleApp.machineNameToDeploy && StorageHelper.get().findMachine(possibleApp.machineNameToDeploy)) {
+            StdOutUtil.printTip('**** Protip ****')
+            StdOutUtil.printMessage(`You seem to have deployed ${StdOutUtil.getColoredMachineName(possibleApp.appName)} from this directory in the past, use --default flag to avoid having to re-enter the information.\n`)
         }
+
+        return cmdLineoptions
     }
 
-    try {
-        await new DeployHelper(deployParams) //
-            .startDeploy()
-    } catch (e) {
-        StdOutUtil.printError(e.message, true)
+    protected async preQuestions(params: IParams, questions: inquirer.Question[]): Promise<inquirer.Question[]> {
+        if ((params.branch ? 1 : 0) + (params.tarFile ? 1 : 0) + (params.imageName ? 1 : 0) > 1) {
+            /* const m = StorageHelper.get().findMachine('urza')
+            if (m) {
+                m.authToken = ''
+                StorageHelper.get().saveMachine(m)
+            } */
+            StdOutUtil.printError('Only one of branch, tarFile or imageName can be present in deploy.\n', true)
+        }
+        if (!params.tarFile && !params.imageName) {
+            validateIsGitRepository()
+            validateDefinitionFile()
+        }
+        return questions
+    }
+
+    protected async action(params: IParams): Promise<void> {
+        userCancelOperation(params.confirmedToDeploy && params.confirmedToDeploy.from === ParamType.Question && !params.confirmedToDeploy.value)
+
+        if (params.caproverApp && params.caproverApp.from !== ParamType.Question) {
+            const err = getErrorForAppName(this.apps, params.caproverApp.value)
+            if (err !== true) StdOutUtil.printError(`${err || 'Error!'}\n`, true)
+        }
+
+        await this.deploy({
+            captainMachine: this.machine,
+            deploySource: {
+                branchToPush: params.branch && params.branch.value,
+                tarFilePath: params.tarFile && params.tarFile.value,
+                imageName: params.imageName && params.imageName.value
+            },
+            appName: params.caproverApp.value
+        }, this.apps.find(app => app.appName === params.caproverApp.value))
+    }
+
+    private async deploy(deployParams: IDeployParams, app?: IAppDef) {
+        try {
+            if (await new DeployHelper(app && app.hasDefaultSubDomainSsl).startDeploy(deployParams)) {
+                StorageHelper.get().saveDeployedDirectory({
+                    appName: deployParams.appName || '',
+                    cwd: process.cwd(),
+                    deploySource: deployParams.deploySource,
+                    machineNameToDeploy: deployParams.captainMachine ? deployParams.captainMachine.name : '',
+                })
+            }
+        } catch (error) {
+            const errorMessage = error.message ? error.message : error
+            StdOutUtil.printError(`\nSomething bad happened: cannot deploy ${StdOutUtil.getColoredAppName(deployParams.appName || '')} at ${StdOutUtil.getColoredMachineName(deployParams.captainMachine ? deployParams.captainMachine.name || deployParams.captainMachine.baseUrl : '')}.\n${errorMessage}\n`, true)
+        }
     }
 }
-
-export default deploy
