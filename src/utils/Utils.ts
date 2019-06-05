@@ -1,8 +1,9 @@
+import * as url from 'url'
 import Constants from './Constants'
 
 const ADMIN_DOMAIN = Constants.ADMIN_DOMAIN
 
-export default {
+const util = {
     copyObject<T>(obj: T): T {
         return JSON.parse(JSON.stringify(obj)) as T
     },
@@ -26,27 +27,25 @@ export default {
         return new RegExp(pattern, 'g')
     },
 
-    cleanUpUrl(urlInput: string) {
-        if (!urlInput || !urlInput.length) return null
+    cleanDomain(urlInput: string): string | undefined {
+        if (!urlInput || !urlInput.length) return undefined
+        try {
+            let u = url.parse(urlInput)
+            if (!u.protocol) u = url.parse(`//${urlInput}`, false, true)
+            return u.hostname
+        } catch (e) {
+            return undefined
+        }
+    },
 
-        const http = urlInput.startsWith('http://')
-
-        let cleanedUrl = urlInput
-            .replace('http://', '')
-            .replace('https://', '')
-            .trim()
-
-        if (cleanedUrl.indexOf('#') >= 0)
-            cleanedUrl = cleanedUrl.substr(0, cleanedUrl.indexOf('#'))
-
-        if (cleanedUrl.substr(cleanedUrl.length - 1, 1) === '/')
-            cleanedUrl = cleanedUrl.substr(0, cleanedUrl.length - 1) // Remove the slash at the end
-        
-        if (!cleanedUrl) return null
-
-        if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`))
-            cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
-
+    cleanAdminDomainUrl(urlInput: string): string | undefined {
+        if (!urlInput || !urlInput.length) return undefined
+        const http = urlInput.toLowerCase().startsWith('http://') // If no protocol, defaults to https
+        let cleanedUrl = util.cleanDomain(urlInput)
+        if (!cleanedUrl) return undefined
+        if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`)) cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
         return (http ? 'http://' : 'https://') + cleanedUrl
     },
 }
+
+export default util
