@@ -23,58 +23,18 @@ import Constants from '../utils/Constants'
 import * as program from 'commander'
 
 // Command actions
-import login from './login'
-import list from './list'
-import logout from './logout'
-import deploy from './deploy'
+import Command from './Command';
+import Login from './login'
+import List from './list'
+import Logout from './logout'
+import Deploy from './deploy'
 import serversetup from './serversetup'
 
 // Setup
 program.version(packagejson.version).description(packagejson.description)
-
-// Commands
-
-program
-    .command('login')
+    .command('serversetup')
     .description(
-        'Login to a CapRover machine. You can be logged in to multiple machines simultaneously.'
-    )
-    .option(
-        '-c, --configFile <value>',
-        'Specify path of the file where all parameters are defined in JSON or YAML format.\n' +
-        '                                  See others options to know config file parameters\' names.\n' +
-        '                                  This is mainly for automation purposes, see docs.'
-    )
-    .option(
-        '-u, --caproverUrl <value>',
-        `CapRover machine URL address: it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root-domain".`
-    )
-    .option(
-        '-p, --caproverPassword <value>',
-        'CapRover machine password.'
-    )
-    .option(
-        '-n, --caproverName <value>',
-        'Name with whom the CapRover machine login credentials are stored locally.'
-    )
-    .action((options: any) => {
-        login(options)
-    })
-
-program
-    .command('list')
-    .alias('ls')
-    .description(
-        'List all CapRover machines currently logged in.'
-    )
-    .action(() => {
-        list()
-    })
-
-program
-    .command('logout')
-    .description(
-        'Logout from a specific CapRover machine.'
+        'Performs necessary actions to prepare CapRover machine to your server.'
     )
     .option(
         '-c, --configFile <value>',
@@ -82,73 +42,23 @@ program
         '                              See others options to know config file parameters\' names.\n' +
         '                              This is mainly for automation purposes, see docs.'
     )
-    .option(
-        '-n, --caproverName <value>',
-        'Name of the CapRover machine to logout from.'
-    )
-    .action((options: any) => {
-        logout(options)
-    })
-
-program
-    .command('serversetup')
-    .description(
-        'Performs necessary actions and prepares your CapRover server.'
-    )
-    .option(
-        '-c, --configFile <value>',
-        'Specify path of the file where all server parameters are defined in a .yaml or .json file. This is only for automation purposes. See docs.'
-    )
     .action((options: any) => {
         serversetup(options)
     })
 
-program
-    .command('deploy')
-    .description(
-        "Deploy your app (current directory) to a specific CapRover machine. You'll be prompted to choose your CapRover machine. " +
-        'For use in scripts, i.e. non-interactive mode, you can use --host --pass --appName along with --tarFile or -- branch flags.'
-    )
-    .option(
-        '-d, --default',
-        'Use previously entered values for the current directory, avoid asking.'
-    )
-    .option(
-        '-h, --host <value>',
-        'Specify th URL of the CapRover machine in command line'
-    )
-    .option(
-        '-a, --appName <value>',
-        'Specify Name of the app to be deployed in command line'
-    )
-    .option(
-        '-p, --pass <value>',
-        'Specify password for CapRover in command line'
-    )
-    .option(
-        '-b, --branch <value>',
-        'Specify branch name (default master)'
-    )
-    .option(
-        '-t, --tarFile <value>',
-        'Specify the tar file to be uploaded (rather than using git archive)'
-    )
-    .option(
-        '-i, --imageName <value>',
-        'Specify the imageName to be deployed. The image should either exist on server, or it has to be public, or on a private repository that CapRover has access to.'
-    )
-    .action((options: any) => {
-        deploy(options)
-    })
+// Commands
+const commands: Command[] = [
+    new Login(program),
+    new List(program),
+    new Logout(program),
+    new Deploy(program)
+]
+commands.forEach(c => c.build())
 
 // Error on unknown commands
 program.on('command:*', () => {
     const wrongCommands = program.args.join(' ')
-
-    StdOutUtil.printError(
-        `\nInvalid command: ${wrongCommands}\nSee --help for a list of available commands.`,
-        true
-    )
+    StdOutUtil.printError(`Invalid command: ${wrongCommands}\nSee --help for a list of available commands.\n`, true)
 })
 
 program.parse(process.argv)
