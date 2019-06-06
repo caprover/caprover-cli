@@ -4,12 +4,14 @@ import { readFileSync } from 'fs'
 import * as yaml from 'js-yaml'
 import { CommanderStatic } from "commander"
 import * as inquirer from 'inquirer'
+import Constants from '../utils/Constants'
 import StdOutUtil from '../utils/StdOutUtil'
 
 export interface IOption extends inquirer.Question {
     char?: string
     aliases?: {name?: string, char?: string}[]
-    hide?: boolean
+    hide?: boolean,
+    tap?: (param?: IParam) => void
 }
 
 export interface ICommandLineOptions {
@@ -46,15 +48,17 @@ export default abstract class Command {
 
     private optionsNames: string[] = []
 
-    protected static readonly CONFIG_FILE_OPTION_NAME: string = 'configFile'
+    protected static CONFIG_FILE_OPTION_NAME: string = Constants.COMMON_KEYS.conf
 
-    protected static readonly CONFIG_FILE_OPTION_DEFAULT: IOption = {
+    protected static CONFIG_FILE_OPTION_DEFAULT: IOption = {
         name: Command.CONFIG_FILE_OPTION_NAME,
         char: 'c',
         message: 'path of the file where all parameters are defined in JSON or YAML format\n' +
                  'see others options to know config file parameters\' names\n' +
                  'this is mainly for automation purposes, see docs'
     }
+
+    protected configFileProvided = false
 
     constructor(program: CommanderStatic) {
         if (!program) throw 'program is null';
@@ -75,6 +79,18 @@ export default abstract class Command {
 
     private getOptions(params?: IParams): IOption[] {
         return Command.getValue(this.options, params) || []
+    }
+
+    protected param(params: IParams | undefined, name: string): IParam | undefined {
+        return params && params[name]
+    }
+
+    protected paramValue<T>(params: IParams | undefined, name: string): T | undefined {
+        return params && params[name] && params[name].value
+    }
+
+    protected paramFrom(params: IParams | undefined, name: string): ParamType | undefined {
+        return params && params[name] && params[name].from
     }
 
     public build() {
@@ -109,10 +125,6 @@ export default abstract class Command {
         return cmdLineoptions
     }
 
-    protected async preQuestions(params: IParams, questions: inquirer.Question[]): Promise<inquirer.Question[]> {
-        return questions
-    }
-
     private async getParams(cmdLineOptions: ICommandLineOptions): Promise<IParams> {
         const params: IParams = {}
 
@@ -121,20 +133,26 @@ export default abstract class Command {
             const filePath = (file || '').startsWith('/') ? file : join(process.cwd(), file)
             if (!pathExistsSync(filePath)) StdOutUtil.printError(`File not found: ${filePath}\n`, true)
 
-            const fileContent = readFileSync(filePath, 'utf8').trim()
-            if (fileContent && fileContent.length) {
-                let config
-                if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
-                    config = JSON.parse(fileContent)
-                } else {
-                    config = yaml.safeLoad(fileContent)
+            let config
+            try {
+                const fileContent = readFileSync(filePath, 'utf8').trim()
+                if (fileContent && fileContent.length) {
+                    if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
+                        config = JSON.parse(fileContent)
+                    } else {
+                        config = yaml.safeLoad(fileContent)
+                    }
                 }
-                for (const cfg in config) {
-                    if (this.optionsNames.includes(cfg)) {
-                        params[cfg] = {
-                            value: config[cfg],
-                            from: ParamType.Config
-                        }
+            } catch (error) {
+                StdOutUtil.printError(`Error reading config file: ${error.message || error}\n`, true)
+            }
+            
+            this.configFileProvided = true
+            for (const cfg in config) {
+                if (this.optionsNames.includes(cfg)) {
+                    params[cfg] = {
+                        value: config[cfg],
+                        from: ParamType.Config
                     }
                 }
             }
@@ -152,36 +170,34 @@ export default abstract class Command {
         }
         
         const options = this.getOptions(params).filter(opt => opt && opt.name)
-        let questions: inquirer.Question[] = []
+        let q = false
         for (const option of options) {
-            const param = params[option.name || '']
+            const name = option.name!
+            let param = params[name]
             if (param) { // Filter and validate already provided params
                 if (option.filter) {
                     param.value = await option.filter(param.value)
                 }
                 if (option.validate) {
                     const err = await option.validate(param.value)
-                    if (err !== true) StdOutUtil.printError(`${err || 'Error!'}\n`, true)
+                    if (err !== true) StdOutUtil.printError(`${q ? '\n': ''}${err || 'Error!'}\n`, true)
                 }
-            } else if (option.name !== Command.CONFIG_FILE_OPTION_NAME) { // Questions for missing params
+            } else if (name !== Command.CONFIG_FILE_OPTION_NAME) { // Questions for missing params
                 if (!Command.isFunction(option.message)) option.message += ':'
-                questions.push(option)
-            }
-        }
-
-        questions = await this.preQuestions(params, questions)
-        if (questions && questions.length) { // Prompt questions
-            const answers: {[opt: string]: any} = await inquirer.prompt(questions)
-            StdOutUtil.printMessage('')
-            for (const ans in answers) {
-                if (this.optionsNames.includes(ans)) {
-                    params[ans] = {
-                        value: answers[ans],
+                const answer = await inquirer.prompt([option])
+                if (name in answer) {
+                    q = true
+                    param = params[name] = {
+                        value: answer[name],
                         from: ParamType.Question
                     }
                 }
             }
+            if (option.tap) {
+                await option.tap(param)
+            }
         }
+        if (q) StdOutUtil.printMessage('')
 
         return params
     }

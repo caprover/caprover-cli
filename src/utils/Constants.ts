@@ -9,5 +9,13 @@ export default {
     SAMPLE_DOMAIN,
     SAMPLE_IP,
     DEFAULT_PASSWORD,
-    CANCEL_STRING
+    CANCEL_STRING,
+    SETUP_PORT,
+    COMMON_KEYS: {
+        conf: 'configFile',
+        url: 'caproverUrl',
+        pwd: 'caproverPassword',
+        name: 'caproverName',
+        app: 'caproverApp'
+    }
 }
