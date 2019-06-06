@@ -4,6 +4,10 @@ import Constants from './Constants'
 const ADMIN_DOMAIN = Constants.ADMIN_DOMAIN
 
 const util = {
+    extendCommonKeys<T extends {[key: string]: string}>(keys: T): typeof Constants.COMMON_KEYS & T {
+        return Object.assign({}, Constants.COMMON_KEYS, keys)
+    },
+
     copyObject<T>(obj: T): T {
         return JSON.parse(JSON.stringify(obj)) as T
     },
@@ -38,13 +42,13 @@ const util = {
         }
     },
 
-    cleanAdminDomainUrl(urlInput: string): string | undefined {
+    cleanAdminDomainUrl(urlInput: string, https?: boolean): string | undefined {
         if (!urlInput || !urlInput.length) return undefined
         const http = urlInput.toLowerCase().startsWith('http://') // If no protocol, defaults to https
         let cleanedUrl = util.cleanDomain(urlInput)
         if (!cleanedUrl) return undefined
         if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`)) cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
-        return (http ? 'http://' : 'https://') + cleanedUrl
+        return (https || (https === undefined && !http) ? 'https://' : 'http://') + cleanedUrl
     },
 }
 

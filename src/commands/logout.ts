@@ -1,7 +1,10 @@
 import StdOutUtil from '../utils/StdOutUtil'
+import Constants from '../utils/Constants'
 import CliHelper from '../utils/CliHelper'
 import { getErrorForMachineName, userCancelOperation } from '../utils/ValidationsHandler';
-import Command, { IParams, IOption, ICommandLineOptions, ParamType } from './Command'
+import Command, { IParams, IOption, ICommandLineOptions, ParamType, IParam } from './Command'
+
+const K = Constants.COMMON_KEYS
 
 export default class List extends Command {
     protected command = 'logout'
@@ -10,15 +13,15 @@ export default class List extends Command {
 
     private machines = CliHelper.get().getMachinesAsOptions()
 
-    protected options= (params?: IParams): IOption[] => [
+    protected options = (params?: IParams): IOption[] => [
         Command.CONFIG_FILE_OPTION_DEFAULT,
         {
-            name: 'caproverName',
+            name: K.name,
             char: 'n',
             type: 'list',
-            message: (answers: any) => answers ? 'select the CapRover machine name you want to logout from:' : 'CapRover machine name to logout from',
+            message: params ? 'select the CapRover machine name you want to logout from' : 'CapRover machine name to logout from',
             choices: this.machines,
-            filter: (name: string) => params && !params.caproverName ? userCancelOperation(!name, true) || name : name.trim(),
+            filter: (name: string) => !this.param(params, K.name) ? userCancelOperation(!name, true) || name : name.trim(),
             validate: (name: string) => getErrorForMachineName(name, true)
         },
         {
@@ -27,7 +30,8 @@ export default class List extends Command {
             message: () => 'are you sure you want to logout from this CapRover machine?', // Use function to not append ':' on question message generation
             default: false,
             hide: true,
-            when: (answers: any) => answers.caproverName
+            when: () => this.paramFrom(params, K.name) === ParamType.Question,
+            tap: (param: IParam) => param && userCancelOperation(!param.value)
         }
     ]
 
@@ -37,7 +41,6 @@ export default class List extends Command {
     }
 
     protected async action(params: IParams): Promise<void> {
-        userCancelOperation(params.confirmedToLogout && params.confirmedToLogout.from === ParamType.Question && !params.confirmedToLogout.value)
-        CliHelper.get().logoutMachine(params.caproverName.value)
+        CliHelper.get().logoutMachine(this.param(params, K.name)!.value)
     }
 }

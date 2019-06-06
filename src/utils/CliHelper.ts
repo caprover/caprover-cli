@@ -118,17 +118,14 @@ export default class CliHelper {
             message: 'CapRover machine password',
             type: 'password',
             hide: true,
-            when: async answers => {
+            when: async () => {
                 StdOutUtil.printMessage('Ensuring authentication...')
-                const url: string | undefined = params && params.caproverUrl && params.caproverUrl.value || answers.caproverUrl
-                const password: string | undefined = params && params.caproverPassword && params.caproverPassword.value || answers.caproverPassword
-                const name: string | undefined = params && params.caproverName && params.caproverName.value || answers.caproverName
+                const url: string | undefined = params && params.caproverUrl && params.caproverUrl.value
+                const password: string | undefined = params && params.caproverPassword && params.caproverPassword.value
+                const name: string | undefined = params && params.caproverName && params.caproverName.value
                 try {
                     machine = await CliHelper.get().ensureAuthentication(url, password, name)
-                    if (machine.authToken) {
-                        if (done) await done(machine)
-                        return false
-                    }
+                    return !machine.authToken
                 } catch (e) {
                     StdOutUtil.printError(`\nSomething bad happened during authentication to ${url ? StdOutUtil.getColoredMachineUrl(url) : StdOutUtil.getColoredMachineName(name || '')}.\n${e.message || e}`, true)
                 }
@@ -139,12 +136,12 @@ export default class CliHelper {
                 if (err !== true) return err
                 try {
                     await CliApiManager.get(machine).getAuthToken(password) // Do auth
-                    if (done) await done(machine)
                 } catch (e) {
                     StdOutUtil.printError(`\nSomething bad happened during authentication to ${StdOutUtil.getColoredMachineUrl(machine.baseUrl)}.\n${e.message || e}`, true)
                 }
                 return true
-            }
+            },
+            tap: async () => done && await done(machine)
         }
     }
 }

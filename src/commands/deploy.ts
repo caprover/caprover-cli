@@ -1,4 +1,3 @@
-import * as inquirer from 'inquirer'
 import Constants from '../utils/Constants';
 import Utils from '../utils/Utils';
 import StdOutUtil from '../utils/StdOutUtil'
@@ -9,7 +8,14 @@ import CliApiManager from '../api/CliApiManager'
 import { validateIsGitRepository, validateDefinitionFile, getErrorForDomain, getErrorForPassword, getErrorForMachineName, userCancelOperation, getErrorForAppName, getErrorForBranchName } from '../utils/ValidationsHandler'
 import { IAppDef } from '../models/AppDef';
 import { IMachine, IDeployedDirectory, IDeployParams } from '../models/storage/StoredObjects'
-import Command, { IParams, IOption, ParamType, ICommandLineOptions } from './Command'
+import Command, { IParams, IOption, ParamType, ICommandLineOptions, IParam } from './Command'
+
+const K = Utils.extendCommonKeys({
+    default: 'default',
+    branch: 'branch',
+    tar: 'tarFile',
+    img: 'imageName'
+})
 
 export default class Deploy extends Command {
     protected command = 'deploy'
@@ -31,9 +37,9 @@ export default class Deploy extends Command {
 
     private machine: IMachine
 
-    protected options = (params?: IParams): IOption[] => [
+    protected options = (params?: IParams): IOption[] => this.preQuestions(params) || [
         {
-            name: 'default',
+            name: K.default,
             char: 'd',
             type: 'confirm',
             message: 'use previously entered values for the current directory, no others options are considered',
@@ -41,7 +47,7 @@ export default class Deploy extends Command {
         },
         Command.CONFIG_FILE_OPTION_DEFAULT,
         {
-            name: 'caproverUrl',
+            name: K.url,
             char: 'u',
             type: 'input',
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
@@ -50,22 +56,22 @@ export default class Deploy extends Command {
             validate: (url: string) => getErrorForDomain(url, true)
         },
         {
-            name: 'caproverPassword',
+            name: K.pwd,
             char: 'p',
             type: 'password',
             message: 'CapRover machine password',
-            when: !!(params && params.caproverUrl),
+            when: !!this.param(params, K.url),
             validate: (password: string) => getErrorForPassword(password)
         },
         {
-            name: 'caproverName',
+            name: K.name,
             char: 'n',
             message: params ? 'select the CapRover machine name you want to deploy to' : 'CaptRover machine name, to load/store credentials',
             type: 'list',
             choices: this.machines,
-            when: params && !params.caproverUrl,
-            filter: (name: string) => params && !params.caproverName ? userCancelOperation(!name, true) || name : name.trim(),
-            validate: params && !params.caproverUrl ? (name: string) => getErrorForMachineName(name, true) : undefined
+            when: !this.param(params, K.url),
+            filter: (name: string) => !this.param(params, K.name) ? userCancelOperation(!name, true) || name : name.trim(),
+            validate: !this.param(params, K.url) ? (name: string) => getErrorForMachineName(name, true) : undefined
         },
         CliHelper.get().getEnsureAuthenticationOption(params, async (machine: IMachine) => {
             this.machine = machine
@@ -76,31 +82,32 @@ export default class Deploy extends Command {
             }
         }),
         {
-            name: 'caproverApp',
+            name: K.app,
             char: 'a',
             message: params ? 'select the app name you want to deploy to' : 'app name to deploy to',
             type: 'list',
-            choices: (answers: any) => CliHelper.get().getAppsAsOptions(this.apps),
-            filter: (app: string) => params && !params.caproverApp ? userCancelOperation(!app, true) || app : app.trim()
+            choices: () => CliHelper.get().getAppsAsOptions(this.apps),
+            filter: (app: string) => !this.param(params, K.app) ? userCancelOperation(!app, true) || app : app.trim(),
+            validate: (app: string) => getErrorForAppName(this.apps, app)
         },
         {
-            name: 'branch',
+            name: K.branch,
             char: 'b',
             message: 'git branch name to be deployed' + (!params ? ', current directory must be git root directory' : ''),
             type: 'input',
             default: params && 'master',
-            when: params && !params.tarFile && !params.imageName,
+            when: !this.param(params, K.tar) && !this.param(params, K.img),
             validate: (branch: string) => getErrorForBranchName(branch)
         },
         {
-            name: 'tarFile',
+            name: K.tar,
             char: 't',
             message: 'tar file to be uploaded, must contain captain-definition file',
             type: 'input',
             when: false
         },
         {
-            name: 'imageName',
+            name: K.img,
             char: 'i',
             message: 'image name to be deployed, it should either exist on server, or it has to be public, or on a private repository that CapRover has access to',
             type: 'input',
@@ -109,10 +116,11 @@ export default class Deploy extends Command {
         {
             name: 'confirmedToDeploy',
             type: 'confirm',
-            message: answers => ((params && params.branch) || answers.branch ? 'note that uncommitted and gitignored files (if any) will not be pushed to server! A' : 'a') + 're you sure you want to deploy?',
+            message: () => (this.param(params, K.branch) ? 'note that uncommitted and gitignored files (if any) will not be pushed to server! A' : 'a') + 're you sure you want to deploy?',
             default: true,
             hide: true,
-            when: answers => answers.caproverName || answers.caproverApp || answers.branch
+            when: () => (this.paramFrom(params, K.name) || this.paramFrom(params, K.app) || this.paramFrom(params, K.branch)) === ParamType.Question,
+            tap: (param: IParam) => param && userCancelOperation(!param.value)
         }
     ]
 
@@ -120,7 +128,7 @@ export default class Deploy extends Command {
         StdOutUtil.printMessage('Preparing deployment to CapRover...\n')
 
         const possibleApp = StorageHelper.get().getDeployedDirectories().find((dir: IDeployedDirectory) => dir.cwd === process.cwd())
-        if (cmdLineoptions.default) {
+        if (cmdLineoptions[K.default]) {
             if (possibleApp && possibleApp.machineNameToDeploy) {
                 const deployParams: IDeployParams = {
                     captainMachine: StorageHelper.get().findMachine(possibleApp.machineNameToDeploy),
@@ -143,8 +151,9 @@ export default class Deploy extends Command {
         return cmdLineoptions
     }
 
-    protected async preQuestions(params: IParams, questions: inquirer.Question[]): Promise<inquirer.Question[]> {
-        if ((params.branch ? 1 : 0) + (params.tarFile ? 1 : 0) + (params.imageName ? 1 : 0) > 1) {
+    protected preQuestions(params?: IParams): undefined {
+        if (!params) return
+        if ((this.param(params, K.branch) ? 1 : 0) + (this.param(params, K.tar) ? 1 : 0) + (this.param(params, K.img) ? 1 : 0) > 1) {
             /* const m = StorageHelper.get().findMachine('urza')
             if (m) {
                 m.authToken = ''
@@ -152,30 +161,23 @@ export default class Deploy extends Command {
             } */
             StdOutUtil.printError('Only one of branch, tarFile or imageName can be present in deploy.\n', true)
         }
-        if (!params.tarFile && !params.imageName) {
+        if (!this.param(params, K.tar) && !this.param(params, K.img)) {
             validateIsGitRepository()
             validateDefinitionFile()
         }
-        return questions
+        return
     }
 
     protected async action(params: IParams): Promise<void> {
-        userCancelOperation(params.confirmedToDeploy && params.confirmedToDeploy.from === ParamType.Question && !params.confirmedToDeploy.value)
-
-        if (params.caproverApp && params.caproverApp.from !== ParamType.Question) {
-            const err = getErrorForAppName(this.apps, params.caproverApp.value)
-            if (err !== true) StdOutUtil.printError(`${err || 'Error!'}\n`, true)
-        }
-
         await this.deploy({
             captainMachine: this.machine,
             deploySource: {
-                branchToPush: params.branch && params.branch.value,
-                tarFilePath: params.tarFile && params.tarFile.value,
-                imageName: params.imageName && params.imageName.value
+                branchToPush: this.paramValue(params, K.branch),
+                tarFilePath: this.paramValue(params, K.tar),
+                imageName: this.paramValue(params, K.img)
             },
-            appName: params.caproverApp.value
-        }, this.apps.find(app => app.appName === params.caproverApp.value))
+            appName: this.paramValue(params, K.app)
+        }, this.apps.find(app => app.appName === this.paramValue(params, K.app)))
     }
 
     private async deploy(deployParams: IDeployParams, app?: IAppDef) {

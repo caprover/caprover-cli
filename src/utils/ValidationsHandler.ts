@@ -104,7 +104,7 @@ export function getErrorForBranchName(value: string): true | string {
     return `Cannot find hash of last commit on branch "${value}".`
 }
 
-export function userCancelOperation(cancel: boolean, q?: boolean): boolean {
-    if (cancel) StdOutUtil.printMessageAndExit((q ? '\n\n' : '') + 'Operation cancelled by the user!' + (!q ? '\n' : ''))
+export function userCancelOperation(cancel: boolean, c?: boolean): boolean {
+    if (cancel) StdOutUtil.printMessageAndExit((c ? '\n' : '') + '\nOperation cancelled by the user!' + (!c ? '\n' : ''))
     return false
 }
