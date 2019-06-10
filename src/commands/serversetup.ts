@@ -1,337 +1,210 @@
-#!/usr/bin/env node
-
-import * as inquirer from 'inquirer'
 import Constants from '../utils/Constants'
 import StdOutUtil from '../utils/StdOutUtil'
-import { isIpAddress, isNameValid } from '../utils/ValidationsHandler'
-import { IMachine } from '../models/storage/StoredObjects'
-import CliApiManager from '../api/CliApiManager'
 import Utils from '../utils/Utils'
 import CliHelper from '../utils/CliHelper'
 import StorageHelper from '../utils/StorageHelper'
 import ErrorFactory from '../utils/ErrorFactory'
 import SpinnerHelper from '../utils/SpinnerHelper'
-import { fstat, existsSync, readFileSync } from 'fs'
-import { readJsonSync, pathExistsSync } from 'fs-extra'
-import { join } from 'path'
-import * as yaml from 'js-yaml'
-import { IServerSetupParams } from '../models/IConfigParams';
+import { getErrorForIP, getErrorForPassword, getErrorForEmail, getErrorForMachineName } from '../utils/ValidationsHandler'
+import { IMachine } from '../models/storage/StoredObjects'
+import CliApiManager from '../api/CliApiManager'
+import Command, { IParams, IOption, ICommandLineOptions, IParam, ParamType } from './Command';
 
-let newPasswordFirstTry: string | undefined = undefined
-let lastWorkingPassword: string = Constants.DEFAULT_PASSWORD
-let serverIpAddress = ''
+const K = Utils.extendCommonKeys({
+    ip: 'caproverIP',
+    root: 'caproverRootDomain',
+    newPwd: 'newPassword',
+    newPwdCheck: 'newPasswordCheck',
+    email: 'certificateEmail'
+})
 
-let captainMachine: IMachine = {
-    authToken: '',
-    baseUrl: '',
-    name: '',
-}
+export default class ServerSetup extends Command {
+    protected command = 'serversetup'
 
-async function getAuthTokenFromIp(ipFromUser: string) {
-    try {
-        // login using captain42. and set the ipAddressToServer
-        captainMachine.baseUrl = `http://${ipFromUser}:3000`
-        let authToken = await CliApiManager.get(captainMachine).getAuthToken(
-            lastWorkingPassword
-        )
-        serverIpAddress = ipFromUser
+    protected aliases = ['setup']
 
-        return authToken
-    } catch (e) {
-        // User may have used a different default password
-        if (e.captainStatus === ErrorFactory.STATUS_WRONG_PASSWORD) return ''
+    protected description = 'Performs necessary actions to prepare CapRover on your server.'
 
-        if ((e + '').indexOf('Found. Redirecting to https://') >= 0) {
-            StdOutUtil.printError(
-                '\n\n**** You may have already setup the server! Use caprover login to log into an existing server.'
-            )
+    private machine: IMachine = { authToken: '', baseUrl: '', name: '' }
+
+    private ip: string
+
+    private password: string = Constants.DEFAULT_PASSWORD
+
+    protected options = (params?: IParams): IOption[] => this.preQuestions(params) || [
+        Command.CONFIG_FILE_OPTION_DEFAULT,
+        {
+            name: 'hasInstalledCaptain',
+            type: 'confirm',
+            message: () => 'have you already started CapRover container on your server?', // Use function to not append ':' on question message generation
+            default: true,
+            hide: true,
+            when: !this.configFileProvided,
+            tap: (param?: IParam) => {
+                if (param && !param.value) {
+                    StdOutUtil.printError('\nCannot setup CapRover if container is not started!\n')
+                    StdOutUtil.printWarning('Start it by running the following line:')
+                    StdOutUtil.printMessage('mkdir /captain && docker run -p 80:80 -p 443:443 -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v /captain:/captain caprover/caprover')
+                    StdOutUtil.printMessageAndExit('\nPlease read tutorial on CapRover.com to learn how to install CapRover on a server.\n')
+                }
+            }
+        },
+        {
+            name: K.ip,
+            char: 'i',
+            type: 'input',
+            message: 'IP address of your server',
+            default: params && Constants.SAMPLE_IP,
+            filter: (ip: string) => ip.trim(),
+            validate: (ip: string) => getErrorForIP(ip),
+            tap: async (param: IParam) => {
+                this.ip = param.value
+                if (!this.param(params, K.pwd)) { // No password provided: try default password
+                    this.machine.authToken = await this.getAuthTokenFromIp(true)
+                }
+            }
+        },
+        {
+            name: K.pwd,
+            char: 'p',
+            type: 'password',
+            message: 'current CapRover password',
+            when: () => !this.machine.authToken, // The default password didn't work
+            validate: (password: string) => getErrorForPassword(password),
+            tap: async (param?: IParam) => {
+                if (param) { // Password provided
+                    this.password = param.value
+                    this.machine.authToken = await this.getAuthTokenFromIp()
+                }
+            }
+        },
+        {
+            name: K.root,
+            char: 'r',
+            type: 'input',
+            message: 'CapRover server root domain',
+            filter: (domain: string) => Utils.cleanDomain(domain),
+            validate: (domain: string) => domain ? true : 'Please enter a valid root domain, for example use "test.yourdomain.com" if you setup your DNS to point "*.test.yourdomain.com" to the ip address of your server.',
+            tap: async (param: IParam) => await this.updateRootDomain(param.value)
+        },
+        {
+            name: K.newPwd,
+            char: 'w',
+            type: 'password',
+            message: `new CapRover password (min ${Constants.MIN_CHARS_FOR_PASSWORD} characters)`,
+            when: () => this.password === Constants.DEFAULT_PASSWORD,
+            validate: (password: string) => getErrorForPassword(password, Constants.MIN_CHARS_FOR_PASSWORD)
+        },
+        {
+            name: K.newPwdCheck,
+            type: 'password',
+            message: 'enter new CapRover password again',
+            hide: true,
+            when: () => this.paramFrom(params, K.newPwd) === ParamType.Question,
+            validate: (password: string) => getErrorForPassword(password, this.paramValue<string>(params, K.newPwd))
+        },
+        {
+            name: K.email,
+            char: 'e',
+            type: 'input',
+            message: '"valid" email address to get certificate and enable HTTPS',
+            filter: (email: string) => email.trim(),
+            validate: (email: string) => getErrorForEmail(email),
+            tap: (param: IParam) => this.enableSslAndChangePassword(param.value, this.paramValue(params, K.newPwd))
+        },
+        {
+            name: K.name,
+            char: 'n',
+            type: 'input',
+            message: 'CapRover machine name, with whom the login credentials are stored locally',
+            default: params && CliHelper.get().findDefaultCaptainName(),
+            filter: (name: string) => name.trim(),
+            validate: (name: string) => getErrorForMachineName(name),
+            tap: (param?: IParam) => param && (this.machine.name = param.value)
         }
+    ]
 
-        StdOutUtil.errorHandler(e)
+    protected async preAction(cmdLineoptions: ICommandLineOptions): Promise<ICommandLineOptions> {
+        StdOutUtil.printMessage('Setup CapRover machine on your server...\n')
+        return cmdLineoptions
     }
-}
 
-async function tryNewPassword(password: string) {
-    try {
-        await CliApiManager.get(captainMachine).getAuthToken(password)
-        lastWorkingPassword = password
-        return ''
-    } catch (e) {
-        StdOutUtil.errorHandler(e)
-    }
-}
-
-async function updateRootDomain(captainRootDomainFromUser: string) {
-    try {
-        await CliApiManager.get(captainMachine).updateRootDomain(
-            captainRootDomainFromUser
-        )
-        captainMachine = Utils.copyObject(captainMachine)
-        captainMachine.baseUrl = `http://captain.${captainRootDomainFromUser}`
-    } catch (e) {
-        StdOutUtil.printError('\n\n')
-        if (e.captainStatus === ErrorFactory.VERIFICATION_FAILED) {
-            if (captainRootDomainFromUser.indexOf('/') >= 0) {
-                StdOutUtil.printError(
-                    'DO NOT include http in your base domain, it should be just plain domain, e.g., test.domain.com'
-                )
-            }
-
-            if (captainRootDomainFromUser.indexOf('*') >= 0) {
-                StdOutUtil.printError(
-                    'DO NOT include * in your base domain, it should be just plain domain, e.g., test.domain.com'
-                )
-            }
-
-            StdOutUtil.printError(
-                `\n\nCannot verify that http://captain.${captainRootDomainFromUser} points to your server IP.\n` +
-                    `\nAre you sure that you set *.${captainRootDomainFromUser} points to ${serverIpAddress}\n\n` +
-                    `Double check your DNS. If everything looks correct, note that, DNS changes take up to 24 hrs to work properly. Check with your Domain Provider.`
-            )
+    protected preQuestions(params?: IParams): undefined {
+        if (!params) return
+        if (this.param(params, K.name)) {
+            const err = getErrorForMachineName(this.param(params, K.name)!.value)
+            if (err !== true) StdOutUtil.printError(`${err || 'Error!'}\n`, true)
         }
-        StdOutUtil.errorHandler(e)
-    }
-}
-
-async function enableSslAndChangePassword(emailAddressFromUser: string) {
-    let forcedSsl = false
-    try {
-        SpinnerHelper.start('Enabling SSL... Takes a few seconds...')
-        await CliApiManager.get(captainMachine).enableRootSsl(
-            emailAddressFromUser
-        )
-
-        captainMachine = Utils.copyObject(captainMachine)
-        captainMachine.baseUrl = captainMachine.baseUrl.replace(
-            'http://',
-            'https://'
-        )
-
-        await CliApiManager.get(captainMachine).forceSsl(true)
-        forcedSsl = true
-        await CliApiManager.get(captainMachine).changePass(
-            lastWorkingPassword,
-            newPasswordFirstTry!
-        )
-        lastWorkingPassword = newPasswordFirstTry!
-        await CliApiManager.get(captainMachine).getAuthToken(
-            lastWorkingPassword
-        )
-        SpinnerHelper.stop()
-    } catch (e) {
-        if (forcedSsl) {
-            StdOutUtil.printError(
-                'Server is setup, but password was not changed due to an error. You cannot use serversetup again.'
-            )
-            StdOutUtil.printError(
-                `Instead, go to ${
-                    captainMachine.baseUrl
-                } and change your password on settings page.`
-            )
-            StdOutUtil.printError(
-                `Then, Use caprover login on your local machine to connect to your server.`
-            )
-        }
-        SpinnerHelper.fail()
-        StdOutUtil.errorHandler(e)
-    }
-}
-
-function getErrorForMachineName(newMachineName: string) {
-    let errorMessage = undefined
-    if (StorageHelper.get().findMachine(newMachineName)) {
-        return `${newMachineName} already exist. If you want to replace the existing entry, you have to first use <logout> command, and then re-login.`
+        return
     }
 
-    if (isNameValid(newMachineName)) {
-        captainMachine.name = newMachineName
-        return true
-    }
-
-    return 'Please enter a valid CapRover Name. Small letters, numbers, single hyphen.'
-}
-
-const questions = [
-    {
-        type: 'list',
-        name: 'hasInstalledCaptain',
-        message:
-            'Have you already installed CapRover on your server by running the following line:' +
-            '\nmkdir /captain && docker run -p 80:80 -p 443:443 -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock caprover/caprover ?',
-        default: 'Yes',
-        choices: ['Yes', 'No'],
-        filter: (value: string) => {
-            const answerFromUser = value.trim()
-
-            if (answerFromUser === 'Yes') return answerFromUser
-
-            StdOutUtil.printMessage(
-                '\n\nCannot start the setup process if CapRover is not installed.'
-            )
-
-            StdOutUtil.printMessageAndExit(
-                'Please read tutorial on CapRover.com to learn how to install CapRover on a server.'
-            )
-        },
-    },
-    {
-        type: 'input',
-        default: Constants.SAMPLE_IP,
-        name: 'captainAddress',
-        message: 'Enter IP address of your CapRover server:',
-        filter: async (value: string) => {
-            const ipFromUser = value.trim()
-
-            if (
-                ipFromUser === Constants.SAMPLE_IP ||
-                !isIpAddress(ipFromUser)
-            ) {
-                StdOutUtil.printError(
-                    `\nThis is an invalid IP Address: ${ipFromUser}`,
-                    true
-                )
+    private async getAuthTokenFromIp(firstTry?: boolean): Promise<string> {
+        try {
+            return await CliApiManager.get({
+                authToken: '',
+                baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
+                name: ''
+            }).getAuthToken(this.password)
+        } catch (e) {
+            if (firstTry && e.captainStatus === ErrorFactory.STATUS_WRONG_PASSWORD) return ''
+            if ((e + '').indexOf('Found. Redirecting to https://') >= 0) {
+                StdOutUtil.printWarning('\nYou may have already setup the server! Use caprover login to log into an existing server.')
             }
-
-            captainMachine.authToken =
-                (await getAuthTokenFromIp(ipFromUser)) || ''
-            return ipFromUser
-        },
-    },
-    {
-        type: 'password',
-        name: 'captainOriginalPassword',
-        message: 'Enter your current password:',
-        when: () => !captainMachine.authToken, // The default password didn't work
-        filter: async (value: string) => {
-            await tryNewPassword(value)
-        },
-    },
-    {
-        type: 'input',
-        name: 'rootDomain',
-        message:
-            'Enter a root domain for this CapRover server. For example, enter test.yourdomain.com if you' +
-            ' setup your DNS to point *.test.yourdomain.com to ip address of your server.',
-        filter: async (value: string) => {
-            const captainRootDomainFromUser = value.trim()
-
-            await updateRootDomain(captainRootDomainFromUser)
-
-            return captainRootDomainFromUser
-        },
-    },
-    {
-        type: 'password',
-        name: 'newPasswordFirstTry',
-        message: 'Enter a new password (min 8 characters):',
-        filter: (value: string) => {
-            newPasswordFirstTry = value
-
-            if (!newPasswordFirstTry) {
-                StdOutUtil.printError('Password empty.', true)
-                throw new Error('Password empty')
-            }
-
-            if (newPasswordFirstTry.length < 8) {
-                StdOutUtil.printError('Password too small.', true)
-                throw new Error('Password too small')
-            }
-
-            return value
-        },
-    },
-    {
-        type: 'password',
-        name: 'newPassword',
-        message: 'Enter your new password again:',
-        filter: async (value: string) => {
-            const confirmPasswordValueFromUser = value
-
-            if (newPasswordFirstTry !== confirmPasswordValueFromUser) {
-                StdOutUtil.printError(
-                    'Passwords do not match. Try serversetup again.',
-                    true
-                )
-                throw new Error('Password mismatch')
-            }
-
+            StdOutUtil.errorHandler(e)
             return ''
-        },
-    },
-    {
-        type: 'input',
-        name: 'emailForHttps',
-        message: "Enter your 'valid' email address to enable HTTPS: ",
-        filter: async (value: string) => {
-            const emailAddressFromUser = value.trim()
-
-            await enableSslAndChangePassword(emailAddressFromUser)
-
-            return emailAddressFromUser
-        },
-    },
-    {
-        type: 'input',
-        name: 'captainName',
-        message: 'Enter a name for this CapRover machine:',
-        default: CliHelper.get().findDefaultCaptainName(),
-        validate: (value: string) => {
-            const newMachineName = value.trim()
-
-            return getErrorForMachineName(newMachineName)
-        },
-    },
-]
-
-async function serversetup(options: any) {
-    StdOutUtil.printMessage('\nSetup your CapRover server\n')
-
-    if (!options.configFile) {
-        const answersIgnore = await inquirer.prompt(questions)
-    } else {
-        const filePath = (options.configFile || '').startsWith('/')
-            ? options.configFile
-            : join(process.cwd(), options.configFile)
-        // read config file and parse it.
-        // validate IP, captainMachineName, emailAddress, newPassword, oldPassword(?), baseUrl
-
-        if (!pathExistsSync(filePath))
-            StdOutUtil.printError('File not found: ' + filePath, true)
-
-        const fileContent = readFileSync(filePath, 'utf8').trim()
-
-        let data: IServerSetupParams
-
-        if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
-            data = JSON.parse(fileContent)
-        } else {
-            data = yaml.safeLoad(fileContent)
         }
-
-        const errorForMachine = getErrorForMachineName(data.machineName)
-        if (errorForMachine && errorForMachine !== true) {
-            StdOutUtil.printError(errorForMachine, true)
-        }
-
-        captainMachine.authToken =
-            (await getAuthTokenFromIp(data.ipAddress)) || ''
-        if (!captainMachine.authToken) {
-            await tryNewPassword(data.currentPassword!)
-        }
-        await updateRootDomain(data.rootDomain)
-        newPasswordFirstTry = data.newPassword
-        await enableSslAndChangePassword(data.emailForHttps)
     }
 
-    StorageHelper.get().saveMachine(captainMachine)
+    private async updateRootDomain(rootDomain: string) {
+        const adminDomain = Utils.cleanAdminDomainUrl(rootDomain, false)!
+        try {
+            await CliApiManager.get({
+                authToken: this.machine.authToken,
+                baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
+                name: ''
+            }).updateRootDomain(rootDomain)
+            this.machine.baseUrl = adminDomain
+        } catch (e) {
+            if (e.captainStatus === ErrorFactory.VERIFICATION_FAILED) {
+                StdOutUtil.printError(`\nCannot verify that ${StdOutUtil.getColoredMachineUrl(rootDomain)} points to your server IP.`)
+                StdOutUtil.printError(`Are you sure that you setup your DNS to point "*.${rootDomain}" to ${this.ip}?`)
+                StdOutUtil.printError(`Double check your DNS, if everything looks correct note that DNS changes take up to 24 hours to work properly. Check with your Domain Provider.`)
+            }
+            StdOutUtil.errorHandler(e)
+        }
+    }
 
-    StdOutUtil.printMessage(
-        `\n\nCapRover is available at ${captainMachine.baseUrl}`
-    )
+    private async enableSslAndChangePassword(email: string, newPassword?: string) {
+        let forcedSsl = false
+        try {
+            SpinnerHelper.start('Enabling SSL... Takes a few seconds...')
 
-    StdOutUtil.printMessage(
-        '\nFor more details and docs see http://www.CapRover.com\n\n'
-    )
+            await CliApiManager.get(this.machine).enableRootSsl(email)
+            this.machine.baseUrl = Utils.cleanAdminDomainUrl(this.machine.baseUrl, true)!
+            await CliApiManager.get(this.machine).forceSsl(true)
+            forcedSsl = true
+
+            if (newPassword !== undefined) {
+                await CliApiManager.get(this.machine).changePass(this.password, newPassword)
+                this.password = newPassword
+                await CliApiManager.get(this.machine).getAuthToken(this.password)
+            }
+
+            SpinnerHelper.stop()
+        } catch (e) {
+            if (forcedSsl) {
+                StdOutUtil.printError('\nServer is setup, but password was not changed due to an error. You cannot use serversetup again.')
+                StdOutUtil.printError(`Instead, go to ${StdOutUtil.getColoredMachineUrl(this.machine.baseUrl)} and change your password on settings page.`)
+                StdOutUtil.printError(`Then use <caprover login> command to connect to your server.`)
+            }
+            SpinnerHelper.fail()
+            StdOutUtil.errorHandler(e)
+        }
+    }
+
+    protected async action(params: IParams): Promise<void> {
+        StorageHelper.get().saveMachine(this.machine)
+        StdOutUtil.printGreenMessage(`CapRover server setup completed: it is available as ${StdOutUtil.getColoredMachine(this.machine)}\n`)
+        StdOutUtil.printMessage('For more details and docs see CapRover.com\n')
+    }
 }
-
-export default serversetup

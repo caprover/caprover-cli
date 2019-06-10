@@ -19,7 +19,6 @@ if (versionOfNode < 6) {
 updateNotifier({ pkg: packagejson }).notify({ isGlobal: true })
 
 import StdOutUtil from '../utils/StdOutUtil'
-import Constants from '../utils/Constants'
 import * as program from 'commander'
 
 // Command actions
@@ -28,26 +27,14 @@ import Login from './login'
 import List from './list'
 import Logout from './logout'
 import Deploy from './deploy'
-import serversetup from './serversetup'
+import ServerSetup from './serversetup'
 
 // Setup
 program.version(packagejson.version).description(packagejson.description)
-    .command('serversetup')
-    .description(
-        'Performs necessary actions to prepare CapRover machine to your server.'
-    )
-    .option(
-        '-c, --configFile <value>',
-        'Specify path of the file where all parameters are defined in JSON or YAML format.\n' +
-        '                              See others options to know config file parameters\' names.\n' +
-        '                              This is mainly for automation purposes, see docs.'
-    )
-    .action((options: any) => {
-        serversetup(options)
-    })
 
 // Commands
 const commands: Command[] = [
+    new ServerSetup(program),
     new Login(program),
     new List(program),
     new Logout(program),

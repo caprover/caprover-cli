@@ -38,12 +38,15 @@ export function validateDefinitionFile() {
     }
 }
 
-export function isIpAddress(ipaddress: string): boolean {
-    return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)
-}
-
 export function isNameValid(value: string): boolean {
     return !!(value && value.match(/^[-\d\w]+$/i) && !value.includes('--'))
+}
+
+export function getErrorForIP(value: string): true | string {
+    value = value.trim()
+    if (value === Constants.SAMPLE_IP) return 'Enter a valid IP.'
+    if (!Utils.isIpAddress(value)) return `This is an invalid IP: ${value}.`
+    return true
 }
 
 export function getErrorForDomain(value: string, skipAlreadyStored?: boolean): true | string {
@@ -63,9 +66,11 @@ export function getErrorForDomain(value: string, skipAlreadyStored?: boolean): t
     return true
 }
 
-export function getErrorForPassword(value: string): true | string {
-    if (value && value.trim()) return true
-    return 'Please enter password.'
+export function getErrorForPassword(value: string, constraint?: number | string): true | string {
+    if (!value || !value.trim()) return 'Please enter password.'
+    if (typeof constraint === 'number' && value.length < constraint) return `Password is too short, min ${constraint} characters.`
+    if (typeof constraint === 'string' && value !== constraint) return `Passwords do not match.`
+    return true
 }
 
 export function getErrorForMachineName(value: string, checkExisting?: boolean): true | string {
@@ -102,6 +107,12 @@ export function getErrorForBranchName(value: string): true | string {
         if (execSync(`git rev-parse ${value} 2>/dev/null`)) return true
     } catch (e) { }
     return `Cannot find hash of last commit on branch "${value}".`
+}
+
+export function getErrorForEmail(value: string): true | string {
+    if (!value || !value.trim()) return 'Please enter email.'
+    if (!Utils.isValidEmail(value)) return 'Please enter a valid email.'
+    return true
 }
 
 export function userCancelOperation(cancel: boolean, c?: boolean): boolean {

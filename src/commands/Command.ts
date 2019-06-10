@@ -102,7 +102,7 @@ export default abstract class Command {
         if (this.usage) cmd.usage(this.usage)
 
         let options = this.getOptions().filter(opt => opt && opt.name)
-        this.optionsNames = options.map(opt => opt.name || '')
+        this.optionsNames = options.map(opt => opt.name!)
 
         options = options.filter(opt => !opt.hide)
         const spaces = ' '.repeat(options.reduce((max, opt) => Math.max(max, Command.getCmdLineOptionString(opt).length), 0) + 4)

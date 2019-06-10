@@ -50,6 +50,15 @@ const util = {
         if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`)) cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
         return (https || (https === undefined && !http) ? 'https://' : 'http://') + cleanedUrl
     },
+
+    isIpAddress(ipaddress: string): boolean {
+        return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)
+    },
+
+    isValidEmail(email: string): boolean {
+        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
 }
 
 export default util

@@ -119,7 +119,7 @@ export default class Deploy extends Command {
             message: () => (this.param(params, K.branch) ? 'note that uncommitted and gitignored files (if any) will not be pushed to server! A' : 'a') + 're you sure you want to deploy?',
             default: true,
             hide: true,
-            when: () => (this.paramFrom(params, K.name) || this.paramFrom(params, K.app) || this.paramFrom(params, K.branch)) === ParamType.Question,
+            when: () => this.paramFrom(params, K.name) === ParamType.Question || this.paramFrom(params, K.app) === ParamType.Question || this.paramFrom(params, K.branch) === ParamType.Question,
             tap: (param: IParam) => param && userCancelOperation(!param.value)
         }
     ]
@@ -154,11 +154,6 @@ export default class Deploy extends Command {
     protected preQuestions(params?: IParams): undefined {
         if (!params) return
         if ((this.param(params, K.branch) ? 1 : 0) + (this.param(params, K.tar) ? 1 : 0) + (this.param(params, K.img) ? 1 : 0) > 1) {
-            /* const m = StorageHelper.get().findMachine('urza')
-            if (m) {
-                m.authToken = ''
-                StorageHelper.get().saveMachine(m)
-            } */
             StdOutUtil.printError('Only one of branch, tarFile or imageName can be present in deploy.\n', true)
         }
         if (!this.param(params, K.tar) && !this.param(params, K.img)) {

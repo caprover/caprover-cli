@@ -1,4 +1,3 @@
-import * as inquirer from 'inquirer'
 import StorageHelper from './StorageHelper'
 import StdOutUtil from './StdOutUtil'
 import Constants from './Constants'

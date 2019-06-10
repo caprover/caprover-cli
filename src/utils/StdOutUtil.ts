@@ -38,11 +38,11 @@ class StdOutUtils {
 
     errorHandler(error: any) {
         if (error.captainStatus) {
-            this.printError(`\nError Code: ${error.captainStatus}  Message:  ${error.captainMessage}`, true)
+            this.printError(`\nError Code: ${error.captainStatus}  Message: ${error.captainMessage}\n`, true)
         } else if (error.status) {
-            this.printError(`\nError status: ${error.status}  Message:  ${error.description || error.message}`, true)
+            this.printError(`\nError status: ${error.status}  Message: ${error.description || error.message}\n`, true)
         } else {
-            this.printError(`\nError: ${error}`, true)
+            this.printError(`\nError: ${error}\n`, true)
         }
     }
 
