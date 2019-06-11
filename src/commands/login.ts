@@ -3,7 +3,7 @@ import Constants from '../utils/Constants'
 import Utils from '../utils/Utils'
 import CliHelper from '../utils/CliHelper'
 import { getErrorForDomain, getErrorForPassword, getErrorForMachineName } from '../utils/ValidationsHandler';
-import Command, { IOption, IParams, ICommandLineOptions } from "./Command"
+import Command, { IOption, IParams, ICommandLineOptions } from './Command'
 
 const K = Utils.extendCommonKeys({
     https: 'hasRootHttps'
@@ -24,6 +24,7 @@ export default class Login extends Command {
         {
             name: K.url,
             char: 'u',
+            env: 'CAPROVER_URL',
             type: 'input',
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
             default: params && Constants.SAMPLE_DOMAIN,
@@ -33,6 +34,7 @@ export default class Login extends Command {
         {
             name: K.pwd,
             char: 'p',
+            env: 'CAPROVER_PASSWORD',
             type: 'password',
             message: 'CapRover machine password',
             validate: (password: string) => getErrorForPassword(password)
@@ -40,6 +42,7 @@ export default class Login extends Command {
         {
             name: K.name,
             char: 'n',
+            env: 'CAPROVER_NAME',
             type: 'input',
             message: 'CapRover machine name, with whom the login credentials are stored locally',
             default: params && CliHelper.get().findDefaultCaptainName(),

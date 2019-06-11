@@ -18,6 +18,7 @@ export default class List extends Command {
         {
             name: K.name,
             char: 'n',
+            env: 'CAPROVER_NAME',
             type: 'list',
             message: params ? 'select the CapRover machine name you want to logout from' : 'CapRover machine name to logout from',
             choices: this.machines,

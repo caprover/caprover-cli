@@ -34,11 +34,11 @@ export default class ServerSetup extends Command {
     protected options = (params?: IParams): IOption[] => [
         this.getDefaultConfigFileOption(() => this.preQuestions(params!)),
         {
-            name: 'hasInstalledCaptain',
+            name: 'assumeYes',
+            char: 'y',
             type: 'confirm',
-            message: () => 'have you already started CapRover container on your server?', // Use function to not append ':' on question message generation
-            default: true,
-            hide: true,
+            message: () => (params ? 'have you' : 'assume you have') + ' already started CapRover container on your server' + (params ? '?' : ''), // Use function to not append ':' on question message generation
+            default: params && true,
             when: !this.configFileProvided,
             tap: (param?: IParam) => {
                 if (param && !param.value) {
@@ -52,6 +52,7 @@ export default class ServerSetup extends Command {
         {
             name: K.ip,
             char: 'i',
+            env: 'CAPROVER_IP',
             type: 'input',
             message: 'IP address of your server',
             default: params && Constants.SAMPLE_IP,
@@ -67,6 +68,7 @@ export default class ServerSetup extends Command {
         {
             name: K.pwd,
             char: 'p',
+            env: 'CAPROVER_PASSWORD',
             type: 'password',
             message: 'current CapRover password',
             when: () => !this.machine.authToken, // The default password didn't work
@@ -81,6 +83,7 @@ export default class ServerSetup extends Command {
         {
             name: K.root,
             char: 'r',
+            env: 'CAPROVER_ROOT_DOMAIN',
             type: 'input',
             message: 'CapRover server root domain',
             filter: (domain: string) => Utils.cleanDomain(domain),
@@ -90,6 +93,7 @@ export default class ServerSetup extends Command {
         {
             name: K.newPwd,
             char: 'w',
+            env: 'CAPROVER_NEW_PASSWORD',
             type: 'password',
             message: `new CapRover password (min ${Constants.MIN_CHARS_FOR_PASSWORD} characters)`,
             when: () => this.password === Constants.DEFAULT_PASSWORD,
@@ -106,6 +110,7 @@ export default class ServerSetup extends Command {
         {
             name: K.email,
             char: 'e',
+            env: 'CAPROVER_CERTIFICATE_EMAIL',
             type: 'input',
             message: '"valid" email address to get certificate and enable HTTPS',
             filter: (email: string) => email.trim(),
@@ -115,6 +120,7 @@ export default class ServerSetup extends Command {
         {
             name: K.name,
             char: 'n',
+            env: 'CAPROVER_NAME',
             type: 'input',
             message: 'CapRover machine name, with whom the login credentials are stored locally',
             default: params && CliHelper.get().findDefaultCaptainName(),

@@ -2,13 +2,14 @@ import { join } from 'path'
 import { pathExistsSync } from 'fs-extra'
 import { readFileSync } from 'fs'
 import * as yaml from 'js-yaml'
-import { CommanderStatic } from "commander"
+import { CommanderStatic } from 'commander'
 import * as inquirer from 'inquirer'
 import Constants from '../utils/Constants'
 import StdOutUtil from '../utils/StdOutUtil'
 
 export interface IOption extends inquirer.Question {
     char?: string
+    env?: string,
     aliases?: {name?: string, char?: string}[]
     hide?: boolean,
     tap?: (param?: IParam) => void
@@ -21,7 +22,8 @@ export interface ICommandLineOptions {
 export enum ParamType {
     Config,
     CommandLine,
-    Question
+    Question,
+    Env
 }
 
 export interface IParam {
@@ -34,8 +36,6 @@ export interface IParams {
 }
 
 export default abstract class Command {
-    private program: CommanderStatic
-
     protected abstract command: string
 
     protected aliases?: string[] = undefined
@@ -46,15 +46,12 @@ export default abstract class Command {
 
     protected options?: IOption[] | ((params?: IParams) => IOption[])
 
-    private optionsNames: string[] = []
-
     protected configFileOptionName: string = Constants.COMMON_KEYS.conf
 
     protected configFileProvided = false
 
-    constructor(program: CommanderStatic) {
+    constructor(private program: CommanderStatic) {
         if (!program) throw 'program is null';
-        this.program = program
     }
 
     private static isFunction(value: any): boolean {
@@ -67,6 +64,10 @@ export default abstract class Command {
 
     private static getCmdLineOptionString(option: IOption): string {
         return (option.char ? `-${option.char}, ` : '') + `--${option.name}` + (option.type !== 'confirm' ? ' <value>' : '')
+    }
+
+    private static getCmdLineMessageString(option: IOption, spaces: string): string {
+        return ((Command.getValue(option.message) || '') + (option.env ? ` (env: ${option.env})` : '')).split('\n').reduce((acc, l) => !acc ? l.trim() : `${acc}\n${spaces}${l.trim()}`, '')
     }
 
     private getOptions(params?: IParams): IOption[] {
@@ -89,6 +90,7 @@ export default abstract class Command {
         return {
             name: this.configFileOptionName,
             char: 'c',
+            env: 'CAPROVER_CONFIG_FILE',
             message: 'path of the file where all parameters are defined in JSON or YAML format\n' +
                      'see others options to know config file parameters\' names\n' +
                      'this is mainly for automation purposes, see docs',
@@ -105,21 +107,18 @@ export default abstract class Command {
         if (this.usage) cmd.usage(this.usage)
 
         let options = this.getOptions().filter(opt => opt && opt.name)
-        this.optionsNames = options.map(opt => opt.name!)
+        const optionsNames = options.map(opt => opt.name!).filter(name => name !== this.configFileOptionName)
+        const envs = options.filter(opt => opt.env).map(opt => ({ name: opt.name!, env: opt.env! }))
 
         options = options.filter(opt => !opt.hide)
         const spaces = ' '.repeat(options.reduce((max, opt) => Math.max(max, Command.getCmdLineOptionString(opt).length), 0) + 4)
-        for (const option of options) {
-            cmd.option(
-                Command.getCmdLineOptionString(option),
-                (Command.getValue(option.message) || '').split('\n').reduce((acc, l) => !acc ? l.trim() : `${acc}\n${spaces}${l.trim()}`, ''),
-                Command.getValue(option.default)
-            )
-        }
+        options.forEach(option => {
+            cmd.option(Command.getCmdLineOptionString(option), Command.getCmdLineMessageString(option, spaces), Command.getValue(option.default))
+        })
 
         cmd.action(async (cmdLineOptions: ICommandLineOptions) => {
             cmdLineOptions = await this.preAction(cmdLineOptions)
-            this.action(await this.getParams(cmdLineOptions))
+            this.action(await this.getParams(cmdLineOptions, optionsNames, envs))
         })
     }
 
@@ -128,12 +127,28 @@ export default abstract class Command {
         return cmdLineoptions
     }
 
-    private async getParams(cmdLineOptions: ICommandLineOptions): Promise<IParams> {
+    private async getParams(cmdLineOptions: ICommandLineOptions, optionsNames: string[], envs: {name: string, env: string}[]): Promise<IParams> {
         const params: IParams = {}
 
-        if (cmdLineOptions && cmdLineOptions[this.configFileOptionName]) { // Read params from config file
-            const file = <string>cmdLineOptions[this.configFileOptionName]
-            const filePath = (file || '').startsWith('/') ? file : join(process.cwd(), file)
+        for (const env of envs) { // Read params from env variables
+            if (env.env in process.env) {
+                params[env.name] = {
+                    value: process.env[env.env],
+                    from: ParamType.Env
+                }
+            }
+        }
+
+        let file: string | null  = cmdLineOptions && this.configFileOptionName in cmdLineOptions ? <string>cmdLineOptions[this.configFileOptionName] : null
+        if (params[this.configFileOptionName]) {
+            if (file === null) {
+                file = params[this.configFileOptionName].value
+            }
+            delete params[this.configFileOptionName]
+        }
+
+        if (file) { // Read params from config file
+            const filePath = file.startsWith('/') ? file : join(process.cwd(), file)
             if (!pathExistsSync(filePath)) StdOutUtil.printError(`File not found: ${filePath}\n`, true)
 
             let config
@@ -152,7 +167,7 @@ export default abstract class Command {
             
             this.configFileProvided = true
             for (const cfg in config) {
-                if (this.optionsNames.includes(cfg)) {
+                if (optionsNames.includes(cfg)) {
                     params[cfg] = {
                         value: config[cfg],
                         from: ParamType.Config
@@ -163,7 +178,7 @@ export default abstract class Command {
 
         if (cmdLineOptions) { // Overwrite params from command line options
             for (const opt in cmdLineOptions) {
-                if (opt !== this.configFileOptionName && this.optionsNames.includes(opt)) {
+                if (optionsNames.includes(opt)) {
                     params[opt] = {
                         value: cmdLineOptions[opt],
                         from: ParamType.CommandLine

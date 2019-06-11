@@ -49,6 +49,7 @@ export default class Deploy extends Command {
         {
             name: K.url,
             char: 'u',
+            env: 'CAPROVER_URL',
             type: 'input',
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
             when: false,
@@ -58,6 +59,7 @@ export default class Deploy extends Command {
         {
             name: K.pwd,
             char: 'p',
+            env: 'CAPROVER_PASSWORD',
             type: 'password',
             message: 'CapRover machine password',
             when: !!this.param(params, K.url),
@@ -66,6 +68,7 @@ export default class Deploy extends Command {
         {
             name: K.name,
             char: 'n',
+            env: 'CAPROVER_NAME',
             message: params ? 'select the CapRover machine name you want to deploy to' : 'CaptRover machine name, to load/store credentials',
             type: 'list',
             choices: this.machines,
@@ -84,6 +87,7 @@ export default class Deploy extends Command {
         {
             name: K.app,
             char: 'a',
+            env: 'CAPROVER_APP',
             message: params ? 'select the app name you want to deploy to' : 'app name to deploy to',
             type: 'list',
             choices: () => CliHelper.get().getAppsAsOptions(this.apps),
@@ -93,6 +97,7 @@ export default class Deploy extends Command {
         {
             name: K.branch,
             char: 'b',
+            env: 'CAPROVER_BRANCH',
             message: 'git branch name to be deployed' + (!params ? ', current directory must be git root directory' : ''),
             type: 'input',
             default: params && 'master',
@@ -102,6 +107,7 @@ export default class Deploy extends Command {
         {
             name: K.tar,
             char: 't',
+            env: 'CAPROVER_TAR_FILE',
             message: 'tar file to be uploaded, must contain captain-definition file',
             type: 'input',
             when: false
@@ -109,6 +115,7 @@ export default class Deploy extends Command {
         {
             name: K.img,
             char: 'i',
+            env: 'CAPROVER_IMAGE_NAME',
             message: 'image name to be deployed, it should either exist on server, or it has to be public, or on a private repository that CapRover has access to',
             type: 'input',
             when: false
