@@ -14,7 +14,7 @@ export default class List extends Command {
     private machines = CliHelper.get().getMachinesAsOptions()
 
     protected options = (params?: IParams): IOption[] => [
-        Command.CONFIG_FILE_OPTION_DEFAULT,
+        this.getDefaultConfigFileOption(),
         {
             name: K.name,
             char: 'n',

@@ -15,7 +15,7 @@ export default class Login extends Command {
     protected description = 'Login to a CapRover machine. You can be logged in to multiple machines simultaneously.'
 
     protected options = (params?: IParams): IOption[] => [
-        Command.CONFIG_FILE_OPTION_DEFAULT,
+        this.getDefaultConfigFileOption(),
         {
             name: K.https, // Backward compatibility with config hasRootHttps parameter, eventually to remove when releasing v2
             hide: true,

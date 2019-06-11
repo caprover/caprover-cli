@@ -37,7 +37,7 @@ export default class Deploy extends Command {
 
     private machine: IMachine
 
-    protected options = (params?: IParams): IOption[] => this.preQuestions(params) || [
+    protected options = (params?: IParams): IOption[] => [
         {
             name: K.default,
             char: 'd',
@@ -45,7 +45,7 @@ export default class Deploy extends Command {
             message: 'use previously entered values for the current directory, no others options are considered',
             when: false
         },
-        Command.CONFIG_FILE_OPTION_DEFAULT,
+        this.getDefaultConfigFileOption(() => this.preQuestions(params!)),
         {
             name: K.url,
             char: 'u',
@@ -151,8 +151,7 @@ export default class Deploy extends Command {
         return cmdLineoptions
     }
 
-    protected preQuestions(params?: IParams): undefined {
-        if (!params) return
+    protected preQuestions(params: IParams) {
         if ((this.param(params, K.branch) ? 1 : 0) + (this.param(params, K.tar) ? 1 : 0) + (this.param(params, K.img) ? 1 : 0) > 1) {
             StdOutUtil.printError('Only one of branch, tarFile or imageName can be present in deploy.\n', true)
         }
@@ -160,7 +159,6 @@ export default class Deploy extends Command {
             validateIsGitRepository()
             validateDefinitionFile()
         }
-        return
     }
 
     protected async action(params: IParams): Promise<void> {

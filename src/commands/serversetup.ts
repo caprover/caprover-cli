@@ -31,8 +31,8 @@ export default class ServerSetup extends Command {
 
     private password: string = Constants.DEFAULT_PASSWORD
 
-    protected options = (params?: IParams): IOption[] => this.preQuestions(params) || [
-        Command.CONFIG_FILE_OPTION_DEFAULT,
+    protected options = (params?: IParams): IOption[] => [
+        this.getDefaultConfigFileOption(() => this.preQuestions(params!)),
         {
             name: 'hasInstalledCaptain',
             type: 'confirm',
@@ -129,13 +129,11 @@ export default class ServerSetup extends Command {
         return cmdLineoptions
     }
 
-    protected preQuestions(params?: IParams): undefined {
-        if (!params) return
+    protected preQuestions(params: IParams) {
         if (this.param(params, K.name)) {
             const err = getErrorForMachineName(this.param(params, K.name)!.value)
             if (err !== true) StdOutUtil.printError(`${err || 'Error!'}\n`, true)
         }
-        return
     }
 
     private async getAuthTokenFromIp(firstTry?: boolean): Promise<string> {

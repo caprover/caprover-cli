@@ -48,15 +48,7 @@ export default abstract class Command {
 
     private optionsNames: string[] = []
 
-    protected static CONFIG_FILE_OPTION_NAME: string = Constants.COMMON_KEYS.conf
-
-    protected static CONFIG_FILE_OPTION_DEFAULT: IOption = {
-        name: Command.CONFIG_FILE_OPTION_NAME,
-        char: 'c',
-        message: 'path of the file where all parameters are defined in JSON or YAML format\n' +
-                 'see others options to know config file parameters\' names\n' +
-                 'this is mainly for automation purposes, see docs'
-    }
+    protected configFileOptionName: string = Constants.COMMON_KEYS.conf
 
     protected configFileProvided = false
 
@@ -91,6 +83,17 @@ export default abstract class Command {
 
     protected paramFrom(params: IParams | undefined, name: string): ParamType | undefined {
         return params && params[name] && params[name].from
+    }
+
+    protected getDefaultConfigFileOption(tap?: (param?: IParam) => void): IOption {
+        return {
+            name: this.configFileOptionName,
+            char: 'c',
+            message: 'path of the file where all parameters are defined in JSON or YAML format\n' +
+                     'see others options to know config file parameters\' names\n' +
+                     'this is mainly for automation purposes, see docs',
+            tap
+        }
     }
 
     public build() {
@@ -128,8 +131,8 @@ export default abstract class Command {
     private async getParams(cmdLineOptions: ICommandLineOptions): Promise<IParams> {
         const params: IParams = {}
 
-        if (cmdLineOptions && cmdLineOptions[Command.CONFIG_FILE_OPTION_NAME]) { // Read params from config file
-            const file = <string>cmdLineOptions[Command.CONFIG_FILE_OPTION_NAME]
+        if (cmdLineOptions && cmdLineOptions[this.configFileOptionName]) { // Read params from config file
+            const file = <string>cmdLineOptions[this.configFileOptionName]
             const filePath = (file || '').startsWith('/') ? file : join(process.cwd(), file)
             if (!pathExistsSync(filePath)) StdOutUtil.printError(`File not found: ${filePath}\n`, true)
 
@@ -160,7 +163,7 @@ export default abstract class Command {
 
         if (cmdLineOptions) { // Overwrite params from command line options
             for (const opt in cmdLineOptions) {
-                if (opt !== Command.CONFIG_FILE_OPTION_NAME && this.optionsNames.includes(opt)) {
+                if (opt !== this.configFileOptionName && this.optionsNames.includes(opt)) {
                     params[opt] = {
                         value: cmdLineOptions[opt],
                         from: ParamType.CommandLine
@@ -182,7 +185,7 @@ export default abstract class Command {
                     const err = await option.validate(param.value)
                     if (err !== true) StdOutUtil.printError(`${q ? '\n': ''}${err || 'Error!'}\n`, true)
                 }
-            } else if (name !== Command.CONFIG_FILE_OPTION_NAME) { // Questions for missing params
+            } else if (name !== this.configFileOptionName) { // Questions for missing params
                 if (!Command.isFunction(option.message)) option.message += ':'
                 const answer = await inquirer.prompt([option])
                 if (name in answer) {
