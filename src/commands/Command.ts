@@ -7,11 +7,16 @@ import * as inquirer from 'inquirer'
 import Constants from '../utils/Constants'
 import StdOutUtil from '../utils/StdOutUtil'
 
-export interface IOption extends inquirer.Question {
+export interface IOptionAlias {
+    name: string,
     char?: string
     env?: string,
-    aliases?: {name?: string, char?: string}[]
-    hide?: boolean,
+    hide?: boolean
+}
+
+export interface IOption extends inquirer.Question, IOptionAlias {
+    name: string,
+    aliases?: IOptionAlias[]
     tap?: (param?: IParam) => void
 }
 
@@ -35,6 +40,14 @@ export interface IParams {
     [param: string]: IParam
 }
 
+function isFunction(value: any): boolean {
+    return value instanceof Function
+}
+
+function getValue<T>(value?: T | ((...args: any) => T), ...args: any): T | undefined {
+    return value instanceof Function ? value(...args) : value
+}
+
 export default abstract class Command {
     protected abstract command: string
 
@@ -50,28 +63,24 @@ export default abstract class Command {
 
     protected configFileProvided = false
 
+    protected optionAliasMessage: string = 'same as'
+
     constructor(private program: CommanderStatic) {
         if (!program) throw 'program is null';
     }
 
-    private static isFunction(value: any): boolean {
-        return value instanceof Function
+    private getCmdLineFlags(alias: IOptionAlias, type?: string): string {
+        return (alias.char ? `-${alias.char}, ` : '') + `--${alias.name}` + (type !== 'confirm' ? ' <value>' : '')
     }
 
-    private static getValue<T>(value?: T | ((...args: any) => T), ...args: any): T | undefined {
-        return value instanceof Function ? value(...args) : value
-    }
-
-    private static getCmdLineOptionString(option: IOption): string {
-        return (option.char ? `-${option.char}, ` : '') + `--${option.name}` + (option.type !== 'confirm' ? ' <value>' : '')
-    }
-
-    private static getCmdLineMessageString(option: IOption, spaces: string): string {
-        return ((Command.getValue(option.message) || '') + (option.env ? ` (env: ${option.env})` : '')).split('\n').reduce((acc, l) => !acc ? l.trim() : `${acc}\n${spaces}${l.trim()}`, '')
+    private getCmdLineDescription(option: IOption, spaces: string, alias?: IOptionAlias): string {
+        const msg = alias ? `${this.optionAliasMessage} --${option.name}` : getValue(option.message) || ''
+        const env = alias ? alias.env : option.env
+        return (msg + (env ? ` (env: ${env})` : '')).split('\n').reduce((acc, l) => !acc ? l.trim() : `${acc}\n${spaces}${l.trim()}`, '')
     }
 
     private getOptions(params?: IParams): IOption[] {
-        return Command.getValue(this.options, params) || []
+        return getValue(this.options, params) || []
     }
 
     protected param(params: IParams | undefined, name: string): IParam | undefined {
@@ -102,23 +111,23 @@ export default abstract class Command {
         if (!this.command) throw 'Empty command name';
 
         const cmd = this.program.command(this.command)
-        if (this.aliases && this.aliases.length) this.aliases.forEach(alias => alias ? cmd.alias(alias) : null)
+        if (this.aliases && this.aliases.length) this.aliases.forEach(alias => alias && cmd.alias(alias))
         if (this.description) cmd.description(this.description)
         if (this.usage) cmd.usage(this.usage)
 
         let options = this.getOptions().filter(opt => opt && opt.name)
-        const optionsNames = options.map(opt => opt.name!).filter(name => name !== this.configFileOptionName)
-        const envs = options.filter(opt => opt.env).map(opt => ({ name: opt.name!, env: opt.env! }))
+        const optionAliases: (IOptionAlias & {aliasTo: string})[] = options.reduce((acc, opt) => [...acc, {...opt, aliasTo: opt.name}, ...(opt.aliases || []).filter(alias => alias && alias.name).map(alias => ({...alias, aliasTo: opt.name}))], [])
 
         options = options.filter(opt => !opt.hide)
-        const spaces = ' '.repeat(options.reduce((max, opt) => Math.max(max, Command.getCmdLineOptionString(opt).length), 0) + 4)
-        options.forEach(option => {
-            cmd.option(Command.getCmdLineOptionString(option), Command.getCmdLineMessageString(option, spaces), Command.getValue(option.default))
+        const spaces = ' '.repeat(options.reduce((max, opt) => Math.max(max, this.getCmdLineFlags(opt, opt.type).length, (opt.aliases || []).filter(alias => alias && alias.name && !alias.hide).reduce((amax, a) => Math.max(amax, this.getCmdLineFlags(a, opt.type).length), 0)), 0) + 4)
+        options.forEach(opt => {
+            cmd.option(this.getCmdLineFlags(opt, opt.type), this.getCmdLineDescription(opt, spaces), getValue(opt.default))
+            if (opt.aliases) opt.aliases.filter(alias => alias && alias.name && !alias.hide).forEach(alias => cmd.option(this.getCmdLineFlags(alias, opt.type), this.getCmdLineDescription(opt, spaces, alias)))
         })
 
         cmd.action(async (cmdLineOptions: ICommandLineOptions) => {
             cmdLineOptions = await this.preAction(cmdLineOptions)
-            this.action(await this.getParams(cmdLineOptions, optionsNames, envs))
+            this.action(await this.getParams(cmdLineOptions, optionAliases))
         })
     }
 
@@ -127,31 +136,28 @@ export default abstract class Command {
         return cmdLineoptions
     }
 
-    private async getParams(cmdLineOptions: ICommandLineOptions, optionsNames: string[], envs: {name: string, env: string}[]): Promise<IParams> {
+    private async getParams(cmdLineOptions: ICommandLineOptions, optionAliases: (IOptionAlias & {aliasTo: string})[]): Promise<IParams> {
         const params: IParams = {}
 
-        for (const env of envs) { // Read params from env variables
-            if (env.env in process.env) {
-                params[env.name] = {
-                    value: process.env[env.env],
-                    from: ParamType.Env
-                }
-            }
-        }
+        // Read params from env variables
+        optionAliases.filter(opta => opta.env && opta.env in process.env).forEach(opta => params[opta.aliasTo] = {
+            value: process.env[opta.env!],
+            from: ParamType.Env
+        })
 
-        let file: string | null  = cmdLineOptions && this.configFileOptionName in cmdLineOptions ? <string>cmdLineOptions[this.configFileOptionName] : null
+        // Get config file name from env variables or command line options
+        let file: string | null = optionAliases.filter(opta => cmdLineOptions && opta.aliasTo === this.configFileOptionName && opta.name in cmdLineOptions).reduce((prev, opta) => <string>cmdLineOptions[opta.name], null)
         if (params[this.configFileOptionName]) {
-            if (file === null) {
-                file = params[this.configFileOptionName].value
-            }
+            if (file === null) file = params[this.configFileOptionName].value
             delete params[this.configFileOptionName]
         }
+        optionAliases = optionAliases.filter(opta => opta.aliasTo !== this.configFileOptionName)
 
         if (file) { // Read params from config file
             const filePath = file.startsWith('/') ? file : join(process.cwd(), file)
             if (!pathExistsSync(filePath)) StdOutUtil.printError(`File not found: ${filePath}\n`, true)
 
-            let config
+            let config: any
             try {
                 const fileContent = readFileSync(filePath, 'utf8').trim()
                 if (fileContent && fileContent.length) {
@@ -166,25 +172,17 @@ export default abstract class Command {
             }
             
             this.configFileProvided = true
-            for (const cfg in config) {
-                if (optionsNames.includes(cfg)) {
-                    params[cfg] = {
-                        value: config[cfg],
-                        from: ParamType.Config
-                    }
-                }
-            }
+            optionAliases.filter(opta => opta.name in config).forEach(opta => params[opta.aliasTo] = {
+                value: config[opta.name],
+                from: ParamType.Config
+            })
         }
 
         if (cmdLineOptions) { // Overwrite params from command line options
-            for (const opt in cmdLineOptions) {
-                if (optionsNames.includes(opt)) {
-                    params[opt] = {
-                        value: cmdLineOptions[opt],
-                        from: ParamType.CommandLine
-                    }
-                }
-            }
+            optionAliases.filter(opta => opta.name in cmdLineOptions).forEach(opta => params[opta.aliasTo] = {
+                value: cmdLineOptions[opta.name],
+                from: ParamType.CommandLine
+            })
         }
         
         const options = this.getOptions(params).filter(opt => opt && opt.name)
@@ -201,7 +199,7 @@ export default abstract class Command {
                     if (err !== true) StdOutUtil.printError(`${q ? '\n': ''}${err || 'Error!'}\n`, true)
                 }
             } else if (name !== this.configFileOptionName) { // Questions for missing params
-                if (!Command.isFunction(option.message)) option.message += ':'
+                if (!isFunction(option.message)) option.message += ':'
                 const answer = await inquirer.prompt([option])
                 if (name in answer) {
                     q = true
