@@ -5,7 +5,7 @@ import StdOutUtil from './StdOutUtil'
 import StorageHelper from './StorageHelper'
 import Constants from './Constants'
 import Utils from './Utils'
-import { IAppDef } from '../models/AppDef';
+import { IAppDef } from '../models/AppDef'
 
 export function validateIsGitRepository() {
     if (!fs.pathExistsSync('./.git')) {

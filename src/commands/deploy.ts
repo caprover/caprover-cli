@@ -1,12 +1,12 @@
-import Constants from '../utils/Constants';
-import Utils from '../utils/Utils';
+import Constants from '../utils/Constants'
+import Utils from '../utils/Utils'
 import StdOutUtil from '../utils/StdOutUtil'
 import StorageHelper from '../utils/StorageHelper'
 import CliHelper from '../utils/CliHelper'
 import DeployHelper from '../utils/DeployHelper'
 import CliApiManager from '../api/CliApiManager'
 import { validateIsGitRepository, validateDefinitionFile, getErrorForDomain, getErrorForPassword, getErrorForMachineName, userCancelOperation, getErrorForAppName, getErrorForBranchName } from '../utils/ValidationsHandler'
-import { IAppDef } from '../models/AppDef';
+import { IAppDef } from '../models/AppDef'
 import { IMachine, IDeployedDirectory, IDeployParams } from '../models/storage/StoredObjects'
 import Command, { IParams, IOption, ParamType, ICommandLineOptions, IParam } from './Command'
 
@@ -54,7 +54,7 @@ export default class Deploy extends Command {
             type: 'input',
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
             when: false,
-            filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url, // If not cleaned url, leeave url to fail validation with correct error
+            filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url, // If not cleaned url, leave url to fail validation with correct error
             validate: (url: string) => getErrorForDomain(url, true)
         },
         {
@@ -71,7 +71,7 @@ export default class Deploy extends Command {
             name: K.name,
             char: 'n',
             env: 'CAPROVER_NAME',
-            message: params ? 'select the CapRover machine name you want to deploy to' : 'CaptRover machine name, to load/store credentials',
+            message: params ? 'select the CapRover machine name you want to deploy to' : 'CapRover machine name, to load/store credentials',
             type: 'list',
             choices: this.machines,
             when: !this.param(params, K.url),

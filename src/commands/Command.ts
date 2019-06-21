@@ -1,4 +1,4 @@
-import { join } from 'path'
+import { isAbsolute, join } from 'path'
 import { pathExistsSync } from 'fs-extra'
 import { readFileSync } from 'fs'
 import * as yaml from 'js-yaml'
@@ -66,7 +66,7 @@ export default abstract class Command {
     protected optionAliasMessage: string = 'same as'
 
     constructor(private program: CommanderStatic) {
-        if (!program) throw 'program is null';
+        if (!program) throw 'program is null'
     }
 
     private getCmdLineFlags(alias: IOptionAlias, type?: string): string {
@@ -108,7 +108,7 @@ export default abstract class Command {
     }
 
     public build() {
-        if (!this.command) throw 'Empty command name';
+        if (!this.command) throw 'Empty command name'
 
         const cmd = this.program.command(this.command)
         if (this.aliases && this.aliases.length) this.aliases.forEach(alias => alias && cmd.alias(alias))
@@ -154,7 +154,7 @@ export default abstract class Command {
         optionAliases = optionAliases.filter(opta => opta.aliasTo !== this.configFileOptionName)
 
         if (file) { // Read params from config file
-            const filePath = file.startsWith('/') ? file : join(process.cwd(), file)
+            const filePath = isAbsolute(file) ? file : join(process.cwd(), file)
             if (!pathExistsSync(filePath)) StdOutUtil.printError(`File not found: ${filePath}\n`, true)
 
             let config: any
