@@ -97,7 +97,6 @@ export default class ServerSetup extends Command {
             name: K.newPwd,
             char: 'w',
             env: 'CAPROVER_NEW_PASSWORD',
-            aliases: [{name: 'newPassword', hide: true}],
             type: 'password',
             message: `new CapRover password (min ${Constants.MIN_CHARS_FOR_PASSWORD} characters)`,
             when: () => this.password === Constants.DEFAULT_PASSWORD,
