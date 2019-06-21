@@ -1,6 +1,6 @@
 import StdOutUtil from '../utils/StdOutUtil'
 import StorageHelper from '../utils/StorageHelper'
-import Command, { IParams, ICommandLineOptions } from './Command';
+import Command, { IParams, ICommandLineOptions } from './Command'
 
 export default class List extends Command {
     protected command = 'list'

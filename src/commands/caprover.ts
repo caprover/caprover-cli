@@ -22,12 +22,13 @@ import StdOutUtil from '../utils/StdOutUtil'
 import * as program from 'commander'
 
 // Command actions
-import Command from './Command';
+import Command from './Command'
 import Login from './login'
 import List from './list'
 import Logout from './logout'
 import Deploy from './deploy'
 import ServerSetup from './serversetup'
+import Api from './api'
 
 // Setup
 program.version(packagejson.version).description(packagejson.description)
@@ -38,7 +39,8 @@ const commands: Command[] = [
     new Login(program),
     new List(program),
     new Logout(program),
-    new Deploy(program)
+    new Deploy(program),
+    new Api(program)
 ]
 commands.forEach(c => c.build())
 

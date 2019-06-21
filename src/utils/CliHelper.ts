@@ -1,11 +1,11 @@
 import StorageHelper from './StorageHelper'
 import StdOutUtil from './StdOutUtil'
 import Constants from './Constants'
-import { getErrorForMachineName, getErrorForDomain, getErrorForPassword } from './ValidationsHandler';
+import { getErrorForMachineName, getErrorForDomain, getErrorForPassword } from './ValidationsHandler'
 import { IMachine } from '../models/storage/StoredObjects'
-import { IAppDef } from '../models/AppDef';
-import CliApiManager from '../api/CliApiManager';
-import { IOption, IParams } from '../commands/Command';
+import { IAppDef } from '../models/AppDef'
+import CliApiManager from '../api/CliApiManager'
+import { IOption, IParams } from '../commands/Command'
 
 export default class CliHelper {
     static instance: CliHelper
@@ -43,6 +43,25 @@ export default class CliHelper {
                 short: `${machine.name}`
             }))
         ]
+    }
+
+    getApiMethodsAsOptions() {
+        return [
+            {
+                name: Constants.CANCEL_STRING,
+                value: '',
+                short: ''
+            },
+            ...Constants.API_METHODS.map(method => ({
+                name: `${method}`,
+                value: `${method}`,
+                short: `${method}`
+            }))
+        ]
+    }
+
+    getApiMethodsDescription(): string {
+        return Constants.API_METHODS.reduce((acc, method) => (acc ? `${acc}, ` : '') + `"${method}"`, '')
     }
 
     async loginMachine(machine: IMachine, password: string) {

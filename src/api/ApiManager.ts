@@ -29,6 +29,12 @@ export default class ApiManager {
         })
     }
 
+    callApi(path: string, method: 'GET' | 'POST' | 'POST_DATA', data: any) {
+        const http = this.http
+
+        return Promise.resolve().then(http.fetch(method, path, data))
+    }
+
     destroy() {
         this.http.destroy()
     }

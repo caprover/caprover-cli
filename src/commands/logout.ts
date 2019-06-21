@@ -1,7 +1,7 @@
 import StdOutUtil from '../utils/StdOutUtil'
 import Constants from '../utils/Constants'
 import CliHelper from '../utils/CliHelper'
-import { getErrorForMachineName, userCancelOperation } from '../utils/ValidationsHandler';
+import { getErrorForMachineName, userCancelOperation } from '../utils/ValidationsHandler'
 import Command, { IParams, IOption, ICommandLineOptions, ParamType, IParam } from './Command'
 
 const K = Constants.COMMON_KEYS

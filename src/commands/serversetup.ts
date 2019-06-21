@@ -8,7 +8,7 @@ import SpinnerHelper from '../utils/SpinnerHelper'
 import { getErrorForIP, getErrorForPassword, getErrorForEmail, getErrorForMachineName } from '../utils/ValidationsHandler'
 import { IMachine } from '../models/storage/StoredObjects'
 import CliApiManager from '../api/CliApiManager'
-import Command, { IParams, IOption, ICommandLineOptions, IParam, ParamType } from './Command';
+import Command, { IParams, IOption, ICommandLineOptions, IParam, ParamType } from './Command'
 
 const K = Utils.extendCommonKeys({
     ip: 'caproverIP',

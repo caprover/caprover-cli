@@ -41,6 +41,7 @@ Commands:
   list|ls                      List all CapRover machines currently logged in.
   logout [options]             Logout from a CapRover machine and clear auth info.
   deploy [options]             Deploy your app to a specific CapRover machine. You'll be prompted for missing parameters.
+  api [options]                Call a generic API on a specific CapRover machine. Use carefully only if you really know what you are doing!
 ```
 
 ## Commands
@@ -83,7 +84,7 @@ For automation purposes, you can provide necessary data before to be prompted fo
 ```
 And then running:
 ```
-caprover login -c /path/to/config.json
+caprover serversetup -c /path/to/config.json
 ```
 *Note*: you can also use either YAML or JSON.
 
@@ -155,3 +156,29 @@ Run the following command and choose a CapRover machine:
 ```
 caprover logout
 ```
+
+### API
+
+Use this command to call a generic API on a CapRover machine, specifying API path, method (GET or POST), and data.  
+Run the following command and answer the questions:
+```
+caprover api
+```
+
+For automation purposes, you can provide necessary data before to be prompted for them, for example using a config file like:
+```json
+{
+  "caproverName": "server-1",
+  "path": "/user/apps/appDefinitions/unusedImages",
+  "method": "GET",
+  "data": {
+    "mostRecentLimit": "3"
+  }
+}
+```
+And then running (using environment variable for config file value):
+```
+CAPROVER_CONFIG_FILE='/path/to/config.json' caprover api
+```
+
+*Note*: use carefully only if you really know what you are doing!
