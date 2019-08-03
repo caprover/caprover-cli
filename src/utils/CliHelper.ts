@@ -99,7 +99,6 @@ export default class CliHelper {
                 await CliApiManager.get(machine).getAllApps() // Get data with stored token
             } catch (e) { // Error getting data: token expired
                 StdOutUtil.printWarning(`Your auth token for ${StdOutUtil.getColoredMachine(machine)} is not valid anymore, try to login again...`)
-                StorageHelper.get().removeMachine(machineName) // Remove saved credentials
                 machine.authToken = '' // Remove expired token
                 if (password) { // If password provided
                     await CliApiManager.get(machine).getAuthToken(password) // Do auth
