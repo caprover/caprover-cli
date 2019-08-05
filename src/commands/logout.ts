@@ -1,44 +1,47 @@
-#!/usr/bin/env node
-
-import * as inquirer from 'inquirer'
 import StdOutUtil from '../utils/StdOutUtil'
+import Constants from '../utils/Constants'
 import CliHelper from '../utils/CliHelper'
+import { getErrorForMachineName, userCancelOperation } from '../utils/ValidationsHandler';
+import Command, { IParams, IOption, ICommandLineOptions, ParamType, IParam } from './Command'
 
-function generateQuestions() {
-    const listOfMachines = CliHelper.get().getMachinesAsOptions()
+const K = Constants.COMMON_KEYS
 
-    return [
+export default class List extends Command {
+    protected command = 'logout'
+
+    protected description = 'Logout from a CapRover machine and clear auth info.'
+
+    private machines = CliHelper.get().getMachinesAsOptions()
+
+    protected options = (params?: IParams): IOption[] => [
+        this.getDefaultConfigFileOption(),
         {
+            name: K.name,
+            char: 'n',
+            env: 'CAPROVER_NAME',
             type: 'list',
-            name: 'captainNameToLogout',
-            message: 'Select the Captain Machine you want to logout from:',
-            choices: listOfMachines,
+            message: params ? 'select the CapRover machine name you want to logout from' : 'CapRover machine name to logout from',
+            choices: this.machines,
+            filter: (name: string) => !this.param(params, K.name) ? userCancelOperation(!name, true) || name : name.trim(),
+            validate: (name: string) => getErrorForMachineName(name, true)
         },
         {
-            type: 'confirm',
             name: 'confirmedToLogout',
-            message:
-                'Are you sure you want to logout from this Captain machine?',
+            type: 'confirm',
+            message: () => 'are you sure you want to logout from this CapRover machine?', // Use function to not append ':' on question message generation
             default: false,
-            when: (answers: any) => answers.captainNameToLogout,
-        },
+            hide: true,
+            when: () => this.paramFrom(params, K.name) === ParamType.Question,
+            tap: (param: IParam) => param && userCancelOperation(!param.value)
+        }
     ]
-}
 
-async function logout() {
-    const questions = generateQuestions()
-
-    StdOutUtil.printMessage('Logout from a Captain Machine and clear auth info')
-
-    const answers = await inquirer.prompt(questions)
-    const { captainNameToLogout, confirmedToLogout } = answers
-
-    if (!captainNameToLogout || !confirmedToLogout) {
-        StdOutUtil.printMessage('\nOperation cancelled by the user...\n')
-        return
+    protected async preAction(cmdLineoptions: ICommandLineOptions): Promise<ICommandLineOptions> {
+        StdOutUtil.printMessage('Logout from a CapRover machine...\n')
+        return cmdLineoptions
     }
 
-    CliHelper.get().logoutMachine(captainNameToLogout)
+    protected async action(params: IParams): Promise<void> {
+        CliHelper.get().logoutMachine(this.param(params, K.name)!.value)
+    }
 }
-
-export default logout

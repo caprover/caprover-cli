@@ -1,29 +1,22 @@
-#!/usr/bin/env node
-
-import chalk from 'chalk'
 import StdOutUtil from '../utils/StdOutUtil'
 import StorageHelper from '../utils/StorageHelper'
-import { IMachine } from '../models/storage/StoredObjects'
+import Command, { IParams, ICommandLineOptions } from './Command';
 
-function _displayMachine(machine: IMachine) {
-    console.log(
-        '>> ' +
-            chalk.greenBright(machine.name) +
-            ' at ' +
-            chalk.cyan(machine.baseUrl)
-    )
+export default class List extends Command {
+    protected command = 'list'
+
+    protected aliases = ['ls']
+
+    protected description = 'List all CapRover machines currently logged in.'
+    
+    protected async preAction(cmdLineoptions: ICommandLineOptions): Promise<ICommandLineOptions> {
+        StdOutUtil.printMessage('Logged in CapRover Machines:\n')
+        return cmdLineoptions
+    }
+    
+    protected async action(params: IParams): Promise<void> {
+        const machines = StorageHelper.get().getMachines()
+        machines.forEach(StdOutUtil.displayColoredMachine)
+        if (machines.length) StdOutUtil.printMessage('')
+    }
 }
-
-function list() {
-    StdOutUtil.printMessage('\nLogged in CapRover Machines:\n')
-
-    StorageHelper.get()
-        .getMachines()
-        .map(machine => {
-            _displayMachine(machine)
-        })
-
-    StdOutUtil.printMessage('')
-}
-
-export default list

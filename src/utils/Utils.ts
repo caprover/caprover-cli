@@ -1,4 +1,13 @@
-export default {
+import * as url from 'url'
+import Constants from './Constants'
+
+const ADMIN_DOMAIN = Constants.ADMIN_DOMAIN
+
+const util = {
+    extendCommonKeys<T extends {[key: string]: string}>(keys: T): typeof Constants.COMMON_KEYS & T {
+        return Object.assign({}, Constants.COMMON_KEYS, keys)
+    },
+
     copyObject<T>(obj: T): T {
         return JSON.parse(JSON.stringify(obj)) as T
     },
@@ -22,27 +31,34 @@ export default {
         return new RegExp(pattern, 'g')
     },
 
-    cleanUpUrl(urlInput: string) {
-        if (!urlInput || !urlInput.length) return null
-
-        let cleanedUrl = urlInput
-
-        if (cleanedUrl.indexOf('#') >= 0)
-            cleanedUrl = cleanedUrl.substr(0, cleanedUrl.indexOf('#'))
-
-        const hasSlashAtTheEnd =
-            cleanedUrl.substr(cleanedUrl.length - 1, 1) === '/'
-
-        if (hasSlashAtTheEnd) {
-            // Remove the slash at the end
-            cleanedUrl = cleanedUrl.substr(0, cleanedUrl.length - 1)
+    cleanDomain(urlInput: string): string | undefined {
+        if (!urlInput || !urlInput.length) return undefined
+        try {
+            let u = url.parse(urlInput)
+            if (!u.protocol) u = url.parse(`//${urlInput}`, false, true)
+            return u.hostname
+        } catch (e) {
+            return undefined
         }
-
-        cleanedUrl = cleanedUrl
-            .replace('http://', '')
-            .replace('https://', '')
-            .trim()
-
-        return cleanedUrl
     },
+
+    cleanAdminDomainUrl(urlInput: string, https?: boolean): string | undefined {
+        if (!urlInput || !urlInput.length) return undefined
+        const http = urlInput.toLowerCase().startsWith('http://') // If no protocol, defaults to https
+        let cleanedUrl = util.cleanDomain(urlInput)
+        if (!cleanedUrl) return undefined
+        if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`)) cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
+        return (https || (https === undefined && !http) ? 'https://' : 'http://') + cleanedUrl
+    },
+
+    isIpAddress(ipaddress: string): boolean {
+        return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)
+    },
+
+    isValidEmail(email: string): boolean {
+        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
 }
+
+export default util

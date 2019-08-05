@@ -1,151 +1,66 @@
-#!/usr/bin/env node
-
-import * as inquirer from 'inquirer'
 import StdOutUtil from '../utils/StdOutUtil'
-import StorageHelper from '../utils/StorageHelper'
 import Constants from '../utils/Constants'
 import Utils from '../utils/Utils'
 import CliHelper from '../utils/CliHelper'
-import { IHashMapGeneric } from '../models/IHashMapGeneric'
-import CliApiManager from '../api/CliApiManager'
-import { readFileSync } from 'fs'
-import { join } from 'path'
-import { pathExistsSync } from 'fs-extra'
-import * as yaml from 'js-yaml'
-import { ILoginParams } from '../models/IConfigParams'
+import { getErrorForDomain, getErrorForPassword, getErrorForMachineName } from '../utils/ValidationsHandler';
+import Command, { IOption, IParams, ICommandLineOptions } from './Command'
 
-const SAMPLE_DOMAIN = Constants.SAMPLE_DOMAIN
-const cleanUpUrl = Utils.cleanUpUrl
+const K = Utils.extendCommonKeys({
+    https: 'hasRootHttps'
+})
 
-function getErrorForDomain(value: string) {
-    if (value === SAMPLE_DOMAIN) {
-        return 'Enter a valid URL'
-    }
+export default class Login extends Command {
+    protected command = 'login'
 
-    if (!cleanUpUrl(value)) return 'This is an invalid URL: ' + value
+    protected description = 'Login to a CapRover machine. You can be logged in to multiple machines simultaneously.'
 
-    let found = undefined
-    StorageHelper.get()
-        .getMachines()
-        .map(machine => {
-            if (cleanUpUrl(machine.baseUrl) === cleanUpUrl(value)) {
-                found = machine.name
-            }
-        })
-
-    if (found) {
-        return `${value} already exist as ${found} in your currently logged in machines. If you want to replace the existing entry, you have to first use <logout> command, and then re-login.`
-    }
-
-    if (value && value.trim()) {
-        return true
-    }
-
-    return 'Please enter a valid address.'
-}
-
-function getErrorForName(value: string) {
-    value = value.trim()
-
-    if (StorageHelper.get().findMachine(value)) {
-        return `${value} already exist. If you want to replace the existing entry, you have to first use <logout> command, and then re-login.`
-    }
-
-    if (CliHelper.get().isNameValid(value)) {
-        return true
-    }
-
-    return 'Please enter a CapRover Name.'
-}
-
-async function login(options: any) {
-    StdOutUtil.printMessage('Login to a CapRover Machine')
-
-    const questions = [
+    protected options = (params?: IParams): IOption[] => [
+        this.getDefaultConfigFileOption(),
         {
+            name: K.https, // Backward compatibility with config hasRootHttps parameter, eventually to remove when releasing v2
+            hide: true,
+            when: false
+        },
+        {
+            name: K.url,
+            char: 'u',
+            env: 'CAPROVER_URL',
             type: 'input',
-            default: SAMPLE_DOMAIN,
-            name: 'caproverUrl',
-            message:
-                '\nEnter address of the CapRover machine. \nIt is captain.[your-captain-root-domain] :',
-            validate: (value: string) => {
-                return getErrorForDomain(value)
-            },
+            message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
+            default: params && Constants.SAMPLE_DOMAIN,
+            filter: (url: string) => Utils.cleanAdminDomainUrl(url, this.paramValue(params, K.https)) || url, // If not cleaned url, leave url to fail validation with correct error
+            validate: (url: string) => getErrorForDomain(url)
         },
         {
-            type: 'confirm',
-            name: 'hasRootHttps',
-            message: 'Is HTTPS activated for this CapRover machine?',
-            default: true,
-        },
-        {
+            name: K.pwd,
+            char: 'p',
+            env: 'CAPROVER_PASSWORD',
             type: 'password',
-            name: 'caproverPassword',
-            message: 'Enter your password:',
-            validate: (value: string) => {
-                if (value && value.trim()) {
-                    return true
-                }
-
-                return 'Please enter your password.'
-            },
+            message: 'CapRover machine password',
+            validate: (password: string) => getErrorForPassword(password)
         },
         {
+            name: K.name,
+            char: 'n',
+            env: 'CAPROVER_NAME',
             type: 'input',
-            name: 'caproverName',
-            message: 'Enter a name for this Captain machine:',
-            default: CliHelper.get().findDefaultCaptainName(),
-            validate: (value: string) => {
-                return getErrorForName(value)
-            },
-        },
-    ]
-    let answers: ILoginParams
-
-    if (options.configFile) {
-        const filePath = (options.configFile || '').startsWith('/')
-            ? options.configFile
-            : join(process.cwd(), options.configFile)
-        if (!pathExistsSync(filePath))
-            StdOutUtil.printError('File not found: ' + filePath, true)
-        let fileContent = readFileSync(filePath, 'utf8')
-
-        if (fileContent.startsWith('{') || fileContent.startsWith('[')) {
-            answers = JSON.parse(fileContent)
-        } else {
-            answers = yaml.safeLoad(fileContent)
+            message: 'CapRover machine name, with whom the login credentials are stored locally',
+            default: params && CliHelper.get().findDefaultCaptainName(),
+            filter: (name: string) => name.trim(),
+            validate: (name: string) => getErrorForMachineName(name)
         }
-    } else {
-        answers = await inquirer.prompt(questions)
+    ]
+
+    protected async preAction(cmdLineoptions: ICommandLineOptions): Promise<ICommandLineOptions> {
+        StdOutUtil.printMessage('Login to a CapRover machine...\n')
+        return cmdLineoptions
     }
 
-    const {
-        hasRootHttps,
-        caproverPassword,
-        caproverUrl,
-        caproverName,
-    } = answers
-    const handleHttp = hasRootHttps ? 'https://' : 'http://'
-    const baseUrl = `${handleHttp}${cleanUpUrl(caproverUrl)}`
-
-    try {
-        const tokenToIgnore = await CliApiManager.get({
+    protected async action(params: IParams): Promise<void> {
+        CliHelper.get().loginMachine({
             authToken: '',
-            baseUrl,
-            name: caproverName,
-        }).getAuthToken(caproverPassword)
-
-        StdOutUtil.printGreenMessage(`\nLogged in successfully to ${baseUrl}`)
-        StdOutUtil.printGreenMessage(
-            `Authorization token is now saved as ${caproverName} \n`
-        )
-    } catch (error) {
-        const errorMessage = error.message ? error.message : error
-
-        StdOutUtil.printError(
-            `Something bad happened. Cannot save "${caproverName}" \n${errorMessage}`
-        )
+            baseUrl: this.param(params, K.url)!.value,
+            name: this.param(params, K.name)!.value,
+        }, this.param(params, K.pwd)!.value)
     }
 }
-
-export default login

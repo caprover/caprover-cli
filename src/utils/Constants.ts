@@ -1,15 +1,24 @@
-const SAMPLE_DOMAIN = 'captain.captainroot.yourdomain.com'
+const ADMIN_DOMAIN = 'captain'
+const SAMPLE_DOMAIN = `${ADMIN_DOMAIN}.captainroot.yourdomain.com`
 const SAMPLE_IP = '123.123.123.123'
 const DEFAULT_PASSWORD = 'captain42'
-const DEFAULT_BRANCH_TO_PUSH = 'branchToPush'
-const DEFAULT_APP_NAME = 'appName'
-const EMPTY_STRING = ''
+const CANCEL_STRING = '-- CANCEL --'
+const SETUP_PORT = 3000
+const MIN_CHARS_FOR_PASSWORD = 8
 
 export default {
+    ADMIN_DOMAIN,
     SAMPLE_DOMAIN,
     SAMPLE_IP,
     DEFAULT_PASSWORD,
-    DEFAULT_BRANCH_TO_PUSH,
-    DEFAULT_APP_NAME,
-    EMPTY_STRING,
+    CANCEL_STRING,
+    SETUP_PORT,
+    MIN_CHARS_FOR_PASSWORD,
+    COMMON_KEYS: {
+        conf: 'configFile',
+        url: 'caproverUrl',
+        pwd: 'caproverPassword',
+        name: 'caproverName',
+        app: 'caproverApp'
+    }
 }

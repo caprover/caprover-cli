@@ -22,101 +22,30 @@ import StdOutUtil from '../utils/StdOutUtil'
 import * as program from 'commander'
 
 // Command actions
-import login from './login'
-import list from './list'
-import logout from './logout'
-import deploy from './deploy'
-import serversetup from './serversetup'
+import Command from './Command';
+import Login from './login'
+import List from './list'
+import Logout from './logout'
+import Deploy from './deploy'
+import ServerSetup from './serversetup'
 
 // Setup
 program.version(packagejson.version).description(packagejson.description)
 
 // Commands
-
-program
-    .command('login')
-    .description(
-        'Login to a CapRover machine. You can be logged in to multiple machines simultaneously.'
-    )
-    .option(
-        '-c, --configFile <value>',
-        'Specify path of the file where all server parameters are defined in a .yaml or .json file. This is only for automation purposes. See docs.'
-    )
-    .action((options: any) => {
-        login(options)
-    })
-
-program
-    .command('list')
-    .alias('ls')
-    .description('List all CapRover machines currently logged in.')
-    .action(() => {
-        list()
-    })
-
-program
-    .command('logout')
-    .description('Logout from a specific CapRover machine.')
-    .action(() => {
-        logout()
-    })
-
-program
-    .command('serversetup')
-    .description(
-        'Performs necessary actions and prepares your CapRover server.'
-    )
-    .option(
-        '-c, --configFile <value>',
-        'Specify path of the file where all server parameters are defined in a .yaml or .json file. This is only for automation purposes. See docs.'
-    )
-    .action((options: any) => {
-        serversetup(options)
-    })
-
-program
-    .command('deploy')
-    .description(
-        "Deploy your app (current directory) to a specific CapRover machine. You'll be prompted to choose your CapRover machine. " +
-            'For use in scripts, i.e. non-interactive mode, you can use --host --pass --appName along with --tarFile or -- branch flags.'
-    )
-    .option(
-        '-d, --default',
-        'Use previously entered values for the current directory, avoid asking.'
-    )
-    .option(
-        '-h, --host <value>',
-        'Specify th URL of the CapRover machine in command line'
-    )
-    .option(
-        '-a, --appName <value>',
-        'Specify Name of the app to be deployed in command line'
-    )
-    .option(
-        '-p, --pass <value>',
-        'Specify password for CapRover in command line'
-    )
-    .option('-b, --branch <value>', 'Specify branch name (default master)')
-    .option(
-        '-t, --tarFile <value>',
-        'Specify the tar file to be uploaded (rather than using git archive)'
-    )
-    .option(
-        '-i, --imageName <value>',
-        'Specify the imageName to be deployed. The image should either exist on server, or it has to be public, or on a private repository that CapRover has access to.'
-    )
-    .action((options: any) => {
-        deploy(options)
-    })
+const commands: Command[] = [
+    new ServerSetup(program),
+    new Login(program),
+    new List(program),
+    new Logout(program),
+    new Deploy(program)
+]
+commands.forEach(c => c.build())
 
 // Error on unknown commands
 program.on('command:*', () => {
     const wrongCommands = program.args.join(' ')
-
-    StdOutUtil.printError(
-        `\nInvalid command: ${wrongCommands}\nSee --help for a list of available commands.`,
-        true
-    )
+    StdOutUtil.printError(`Invalid command: ${wrongCommands}\nSee --help for a list of available commands.\n`, true)
 })
 
 program.parse(process.argv)
