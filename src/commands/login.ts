@@ -2,7 +2,7 @@ import StdOutUtil from '../utils/StdOutUtil'
 import Constants from '../utils/Constants'
 import Utils from '../utils/Utils'
 import CliHelper from '../utils/CliHelper'
-import { getErrorForDomain, getErrorForPassword, getErrorForMachineName } from '../utils/ValidationsHandler';
+import { getErrorForDomain, getErrorForPassword, getErrorForMachineName } from '../utils/ValidationsHandler'
 import Command, { IOption, IParams, ICommandLineOptions } from './Command'
 
 const K = Utils.extendCommonKeys({

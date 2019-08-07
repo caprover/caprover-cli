@@ -1,7 +1,8 @@
-import ApiManager from './ApiManager'
-import { IHashMapGeneric } from '../models/IHashMapGeneric'
+import Constants from '../utils/Constants';
 import StorageHelper from '../utils/StorageHelper'
+import { IHashMapGeneric } from '../models/IHashMapGeneric'
 import { IMachine } from '../models/storage/StoredObjects'
+import ApiManager from './ApiManager'
 
 function hashCode(str: string) {
     var hash = 0,
@@ -23,7 +24,7 @@ export default class CliApiManager {
         const hashKey = 'v' + hashCode(capMachine.baseUrl)
         if (!CliApiManager.instances[hashKey])
             CliApiManager.instances[hashKey] = new ApiManager(
-                capMachine.baseUrl + '/api/v2',
+                capMachine.baseUrl + Constants.BASE_API_PATH,
                 function(token) {
                     capMachine.authToken = token
                     if (capMachine.name)
