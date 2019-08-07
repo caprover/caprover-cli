@@ -14,7 +14,7 @@ export interface IOptionAlias {
     hide?: boolean
 }
 
-export interface IOption extends inquirer.Question, IOptionAlias {
+export interface IOption extends inquirer.ListQuestionOptions, IOptionAlias {
     name: string,
     aliases?: IOptionAlias[]
     tap?: (param?: IParam) => void
