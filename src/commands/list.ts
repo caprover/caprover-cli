@@ -10,12 +10,14 @@ export default class List extends Command {
     protected aliases = ['ls']
 
     protected description = 'List all CapRover machines currently logged in.'
-    
-    protected async preAction(cmdLineoptions: ICommandLineOptions): Promise<ICommandLineOptions> {
+
+    protected async preAction(
+        cmdLineoptions: ICommandLineOptions
+    ): Promise<ICommandLineOptions> {
         StdOutUtil.printMessage('Logged in CapRover Machines:\n')
         return cmdLineoptions
     }
-    
+
     protected async action(params: IParams): Promise<void> {
         const machines = StorageHelper.get().getMachines()
         machines.forEach(StdOutUtil.displayColoredMachine)

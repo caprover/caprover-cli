@@ -1,4 +1,4 @@
-import Constants from '../utils/Constants';
+import Constants from '../utils/Constants'
 import StorageHelper from '../utils/StorageHelper'
 import { IHashMapGeneric } from '../models/IHashMapGeneric'
 import { IMachine } from '../models/storage/StoredObjects'

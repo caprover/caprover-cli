@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { IMachine } from "../models/storage/StoredObjects"
+import { IMachine } from '../models/storage/StoredObjects'
 
 class StdOutUtils {
     printMessage(message: string) {
@@ -38,9 +38,17 @@ class StdOutUtils {
 
     errorHandler(error: any) {
         if (error.captainStatus) {
-            this.printError(`\nError Code: ${error.captainStatus}  Message: ${error.captainMessage}\n`, true)
+            this.printError(
+                `\nError Code: ${error.captainStatus}  Message: ${error.captainMessage}\n`,
+                true
+            )
         } else if (error.status) {
-            this.printError(`\nError status: ${error.status}  Message: ${error.description || error.message}\n`, true)
+            this.printError(
+                `\nError status: ${
+                    error.status
+                }  Message: ${error.description || error.message}\n`,
+                true
+            )
         } else {
             this.printError(`\nError: ${error}\n`, true)
         }
@@ -52,9 +60,13 @@ class StdOutUtils {
 
     getColoredAppName = (name: string): string => chalk.magenta(name)
 
-    getColoredMachine = (machine: IMachine): string => `${this.getColoredMachineName(machine.name)} at ${this.getColoredMachineUrl(machine.baseUrl)}`
+    getColoredMachine = (machine: IMachine): string =>
+        `${this.getColoredMachineName(
+            machine.name
+        )} at ${this.getColoredMachineUrl(machine.baseUrl)}`
 
-    displayColoredMachine = (machine: IMachine) => console.log(`>> ${this.getColoredMachine(machine)}`)
+    displayColoredMachine = (machine: IMachine) =>
+        console.log(`>> ${this.getColoredMachine(machine)}`)
 }
 
 export default new StdOutUtils()

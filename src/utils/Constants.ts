@@ -23,6 +23,6 @@ export default {
         url: 'caproverUrl',
         pwd: 'caproverPassword',
         name: 'caproverName',
-        app: 'caproverApp'
-    }
+        app: 'caproverApp',
+    },
 }

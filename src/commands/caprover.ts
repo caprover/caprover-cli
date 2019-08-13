@@ -36,14 +36,17 @@ const commands: Command[] = [
     new List(program),
     new Logout(program),
     new Deploy(program),
-    new Api(program)
+    new Api(program),
 ]
 commands.forEach(c => c.build())
 
 // Error on unknown commands
 program.on('command:*', () => {
     const wrongCommands = program.args.join(' ')
-    StdOutUtil.printError(`Invalid command: ${wrongCommands}\nSee --help for a list of available commands.\n`, true)
+    StdOutUtil.printError(
+        `Invalid command: ${wrongCommands}\nSee --help for a list of available commands.\n`,
+        true
+    )
 })
 
 program.parse(process.argv)
