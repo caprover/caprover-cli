@@ -264,6 +264,8 @@ export default abstract class Command {
                         config = yaml.safeLoad(fileContent)
                     }
                 }
+
+                if (!config) throw new Error('Config file is empty!!')
             } catch (error) {
                 StdOutUtil.printError(
                     `Error reading config file: ${error.message || error}\n`,

@@ -196,7 +196,7 @@ export default class Api extends Command {
     protected async preAction(
         cmdLineoptions: ICommandLineOptions
     ): Promise<ICommandLineOptions> {
-        StdOutUtil.printMessage('Call generic CapRover API...\n')
+        StdOutUtil.printMessage('Call generic CapRover API [Experimental Feature]...\n')
         return cmdLineoptions
     }
 
