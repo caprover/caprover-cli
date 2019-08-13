@@ -17,7 +17,7 @@ export interface IOptionAlias {
 export interface IOption extends inquirer.ListQuestionOptions, IOptionAlias {
     name: string
     aliases?: IOptionAlias[]
-    tap?: (param?: IParam) => void
+    preProcessParam?: (param?: IParam) => void
 }
 
 export interface ICommandLineOptions {
@@ -53,6 +53,10 @@ function getValue<T>(
 
 const CONFIG_FILE_NAME: string = Constants.COMMON_KEYS.conf
 
+type IOptionAliasWithDetails = IOptionAlias & {
+    aliasTo: string
+}
+
 export default abstract class Command {
     protected abstract command: string
 
@@ -65,8 +69,6 @@ export default abstract class Command {
     protected options?: IOption[] | ((params?: IParams) => IOption[])
 
     protected configFileProvided = false
-
-    protected optionAliasMessage: string = 'same as'
 
     constructor(private program: CommanderStatic) {
         if (!program) throw 'program is null'
@@ -86,7 +88,7 @@ export default abstract class Command {
         alias?: IOptionAlias
     ): string {
         const msg = alias
-            ? `${this.optionAliasMessage} --${option.name}`
+            ? `same as --${option.name}`
             : getValue(option.message) || ''
         const env = alias ? alias.env : option.env
         return (msg + (env ? ` (env: ${env})` : ''))
@@ -101,7 +103,7 @@ export default abstract class Command {
         return getValue(this.options, params) || []
     }
 
-    protected param(
+    protected findParamValue(
         params: IParams | undefined,
         name: string
     ): IParam | undefined {
@@ -123,7 +125,7 @@ export default abstract class Command {
     }
 
     protected getDefaultConfigFileOption(
-        tap?: (param?: IParam) => void
+        preProcessParam?: (param?: IParam) => void
     ): IOption {
         return {
             name: CONFIG_FILE_NAME,
@@ -133,7 +135,7 @@ export default abstract class Command {
                 'path of the file where all parameters are defined in JSON or YAML format\n' +
                 "see others options to know config file parameters' names\n" +
                 'this is mainly for automation purposes, see docs',
-            tap,
+            preProcessParam: preProcessParam,
         }
     }
 
@@ -147,9 +149,7 @@ export default abstract class Command {
         if (this.usage) cmd.usage(this.usage)
 
         let options = this.getOptions().filter(opt => opt && opt.name)
-        const optionAliases: (IOptionAlias & {
-            aliasTo: string
-        })[] = options.reduce(
+        const optionAliases: IOptionAliasWithDetails[] = options.reduce(
             (acc, opt) => [
                 ...acc,
                 { ...opt, aliasTo: opt.name },
@@ -198,10 +198,13 @@ export default abstract class Command {
                     )
         })
 
-        cmd.action(async (cmdLineOptions: ICommandLineOptions) => {
+        const actionForCommand = async (
+            cmdLineOptions: ICommandLineOptions
+        ) => {
             cmdLineOptions = await this.preAction(cmdLineOptions)
             this.action(await this.getParams(cmdLineOptions, optionAliases))
-        })
+        }
+        cmd.action(actionForCommand)
     }
 
     protected async preAction(
@@ -213,7 +216,7 @@ export default abstract class Command {
 
     private async getParams(
         cmdLineOptions: ICommandLineOptions,
-        optionAliases: (IOptionAlias & { aliasTo: string })[]
+        optionAliases: IOptionAliasWithDetails[]
     ): Promise<IParams> {
         const params: IParams = {}
 
@@ -328,8 +331,8 @@ export default abstract class Command {
                     }
                 }
             }
-            if (option.tap) {
-                await option.tap(param)
+            if (option.preProcessParam) {
+                await option.preProcessParam(param)
             }
         }
         if (q) StdOutUtil.printMessage('')
@@ -337,5 +340,11 @@ export default abstract class Command {
         return params
     }
 
+    /**
+     *  This method gets called once all the required information has been collected, either manually
+     *  using the questions, or directly via the params and etc.
+     *
+     * @param params
+     */
     protected abstract async action(params: IParams): Promise<void>
 }

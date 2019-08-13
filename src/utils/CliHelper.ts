@@ -232,7 +232,7 @@ export default class CliHelper {
                 }
                 return true
             },
-            tap: async () => done && (await done(machine)),
+            preProcessParam: async () => done && (await done(machine)),
         }
     }
 }

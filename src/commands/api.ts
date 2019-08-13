@@ -65,7 +65,7 @@ export default class Api extends Command {
             env: 'CAPROVER_PASSWORD',
             type: 'password',
             message: 'CapRover machine password',
-            when: !!this.param(params, K.url),
+            when: !!this.findParamValue(params, K.url),
             validate: (password: string) => getErrorForPassword(password),
         },
         {
@@ -77,12 +77,12 @@ export default class Api extends Command {
                 : 'CapRover machine name, to load/store credentials',
             type: 'list',
             choices: this.machines,
-            when: !this.param(params, K.url),
+            when: !this.findParamValue(params, K.url),
             filter: (name: string) =>
-                !this.param(params, K.name)
+                !this.findParamValue(params, K.name)
                     ? userCancelOperation(!name, true) || name
                     : name.trim(),
-            validate: !this.param(params, K.url)
+            validate: !this.findParamValue(params, K.url)
                 ? (name: string) => getErrorForMachineName(name, true)
                 : undefined,
         },
@@ -127,7 +127,7 @@ export default class Api extends Command {
             default: params && 'GET',
             choices: CliHelper.get().getApiMethodsAsOptions(),
             filter: (method: string) =>
-                !this.param(params, K.method)
+                !this.findParamValue(params, K.method)
                     ? userCancelOperation(!method, true) || method
                     : method.trim(),
             validate: (method: string) =>
@@ -189,7 +189,7 @@ export default class Api extends Command {
                 this.paramFrom(params, K.name) === ParamType.Question ||
                 this.paramFrom(params, K.path) === ParamType.Question ||
                 this.paramFrom(params, K.data) === ParamType.Question,
-            tap: (param: IParam) => param && userCancelOperation(!param.value),
+            preProcessParam: (param: IParam) => param && userCancelOperation(!param.value),
         },
     ]
 
@@ -203,8 +203,8 @@ export default class Api extends Command {
     protected async action(params: IParams): Promise<void> {
         try {
             const resp = await CliApiManager.get(this.machine).callApi(
-                this.param(params, K.path)!.value,
-                this.param(params, K.method)!.value,
+                this.findParamValue(params, K.path)!.value,
+                this.findParamValue(params, K.method)!.value,
                 this.paramValue(params, K.data)
             )
             StdOutUtil.printGreenMessage(`API call completed successfully!\n`)

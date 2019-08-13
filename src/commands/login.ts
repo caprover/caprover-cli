@@ -74,10 +74,10 @@ export default class Login extends Command {
         CliHelper.get().loginMachine(
             {
                 authToken: '',
-                baseUrl: this.param(params, K.url)!.value,
-                name: this.param(params, K.name)!.value,
+                baseUrl: this.findParamValue(params, K.url)!.value,
+                name: this.findParamValue(params, K.name)!.value,
             },
-            this.param(params, K.pwd)!.value
+            this.findParamValue(params, K.pwd)!.value
         )
     }
 }

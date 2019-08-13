@@ -57,7 +57,7 @@ export default class ServerSetup extends Command {
                 (params ? '?' : ''), // Use function to not append ':' on question message generation
             default: params && true,
             when: !this.configFileProvided,
-            tap: (param?: IParam) => {
+            preProcessParam: (param?: IParam) => {
                 if (param && !param.value) {
                     StdOutUtil.printError(
                         '\nCannot setup CapRover if container is not started!\n'
@@ -84,9 +84,9 @@ export default class ServerSetup extends Command {
             default: params && Constants.SAMPLE_IP,
             filter: (ip: string) => ip.trim(),
             validate: (ip: string) => getErrorForIP(ip),
-            tap: async (param: IParam) => {
+            preProcessParam: async (param: IParam) => {
                 this.ip = param.value
-                if (!this.param(params, K.pwd)) {
+                if (!this.findParamValue(params, K.pwd)) {
                     // No password provided: try default password
                     this.machine.authToken = await this.getAuthTokenFromIp(true)
                 }
@@ -101,7 +101,7 @@ export default class ServerSetup extends Command {
             message: 'current CapRover password',
             when: () => !this.machine.authToken, // The default password didn't work
             validate: (password: string) => getErrorForPassword(password),
-            tap: async (param?: IParam) => {
+            preProcessParam: async (param?: IParam) => {
                 if (param) {
                     // Password provided
                     this.password = param.value
@@ -121,7 +121,7 @@ export default class ServerSetup extends Command {
                 domain
                     ? true
                     : 'Please enter a valid root domain, for example use "test.yourdomain.com" if you setup your DNS to point "*.test.yourdomain.com" to the ip address of your server.',
-            tap: async (param: IParam) =>
+            preProcessParam: async (param: IParam) =>
                 await this.updateRootDomain(param.value),
         },
         {
@@ -156,7 +156,7 @@ export default class ServerSetup extends Command {
                 '"valid" email address to get certificate and enable HTTPS',
             filter: (email: string) => email.trim(),
             validate: (email: string) => getErrorForEmail(email),
-            tap: (param: IParam) =>
+            preProcessParam: (param: IParam) =>
                 this.enableSslAndChangePassword(
                     param.value,
                     this.paramValue(params, K.newPwd)
@@ -173,7 +173,7 @@ export default class ServerSetup extends Command {
             default: params && CliHelper.get().findDefaultCaptainName(),
             filter: (name: string) => name.trim(),
             validate: (name: string) => getErrorForMachineName(name),
-            tap: (param?: IParam) => param && (this.machine.name = param.value),
+            preProcessParam: (param?: IParam) => param && (this.machine.name = param.value),
         },
     ]
 
@@ -185,9 +185,9 @@ export default class ServerSetup extends Command {
     }
 
     protected preQuestions(params: IParams) {
-        if (this.param(params, K.name)) {
+        if (this.findParamValue(params, K.name)) {
             const err = getErrorForMachineName(
-                this.param(params, K.name)!.value
+                this.findParamValue(params, K.name)!.value
             )
             if (err !== true)
                 StdOutUtil.printError(`${err || 'Error!'}\n`, true)

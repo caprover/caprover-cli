@@ -88,7 +88,7 @@ export default class Deploy extends Command {
             aliases: [{ name: 'pass' }],
             type: 'password',
             message: 'CapRover machine password',
-            when: !!this.param(params, K.url),
+            when: !!this.findParamValue(params, K.url),
             validate: (password: string) => getErrorForPassword(password),
         },
         {
@@ -100,12 +100,12 @@ export default class Deploy extends Command {
                 : 'CapRover machine name, to load/store credentials',
             type: 'list',
             choices: this.machines,
-            when: !this.param(params, K.url),
+            when: !this.findParamValue(params, K.url),
             filter: (name: string) =>
-                !this.param(params, K.name)
+                !this.findParamValue(params, K.name)
                     ? userCancelOperation(!name, true) || name
                     : name.trim(),
-            validate: !this.param(params, K.url)
+            validate: !this.findParamValue(params, K.url)
                 ? (name: string) => getErrorForMachineName(name, true)
                 : undefined,
         },
@@ -138,7 +138,7 @@ export default class Deploy extends Command {
             type: 'list',
             choices: () => CliHelper.get().getAppsAsOptions(this.apps),
             filter: (app: string) =>
-                !this.param(params, K.app)
+                !this.findParamValue(params, K.app)
                     ? userCancelOperation(!app, true) || app
                     : app.trim(),
             validate: (app: string) => getErrorForAppName(this.apps, app),
@@ -154,7 +154,7 @@ export default class Deploy extends Command {
                     : ''),
             type: 'input',
             default: params && 'master',
-            when: !this.param(params, K.tar) && !this.param(params, K.img),
+            when: !this.findParamValue(params, K.tar) && !this.findParamValue(params, K.img),
             validate: (branch: string) => getErrorForBranchName(branch),
         },
         {
@@ -179,7 +179,7 @@ export default class Deploy extends Command {
             name: 'confirmedToDeploy',
             type: 'confirm',
             message: () =>
-                (this.param(params, K.branch)
+                (this.findParamValue(params, K.branch)
                     ? 'note that uncommitted and gitignored files (if any) will not be pushed to server! A'
                     : 'a') + 're you sure you want to deploy?',
             default: true,
@@ -188,7 +188,7 @@ export default class Deploy extends Command {
                 this.paramFrom(params, K.name) === ParamType.Question ||
                 this.paramFrom(params, K.app) === ParamType.Question ||
                 this.paramFrom(params, K.branch) === ParamType.Question,
-            tap: (param: IParam) => param && userCancelOperation(!param.value),
+            preProcessParam: (param: IParam) => param && userCancelOperation(!param.value),
         },
     ]
 
@@ -243,9 +243,9 @@ export default class Deploy extends Command {
 
     protected preQuestions(params: IParams) {
         if (
-            (this.param(params, K.branch) ? 1 : 0) +
-                (this.param(params, K.tar) ? 1 : 0) +
-                (this.param(params, K.img) ? 1 : 0) >
+            (this.findParamValue(params, K.branch) ? 1 : 0) +
+                (this.findParamValue(params, K.tar) ? 1 : 0) +
+                (this.findParamValue(params, K.img) ? 1 : 0) >
             1
         ) {
             StdOutUtil.printError(
@@ -253,7 +253,7 @@ export default class Deploy extends Command {
                 true
             )
         }
-        if (!this.param(params, K.tar) && !this.param(params, K.img)) {
+        if (!this.findParamValue(params, K.tar) && !this.findParamValue(params, K.img)) {
             validateIsGitRepository()
             validateDefinitionFile()
         }
