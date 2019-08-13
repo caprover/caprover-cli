@@ -51,6 +51,8 @@ function getValue<T>(
     return value instanceof Function ? value(...args) : value
 }
 
+const CONFIG_FILE_NAME: string = Constants.COMMON_KEYS.conf
+
 export default abstract class Command {
     protected abstract command: string
 
@@ -61,8 +63,6 @@ export default abstract class Command {
     protected description?: string = undefined
 
     protected options?: IOption[] | ((params?: IParams) => IOption[])
-
-    protected configFileOptionName: string = Constants.COMMON_KEYS.conf
 
     protected configFileProvided = false
 
@@ -126,7 +126,7 @@ export default abstract class Command {
         tap?: (param?: IParam) => void
     ): IOption {
         return {
-            name: this.configFileOptionName,
+            name: CONFIG_FILE_NAME,
             char: 'c',
             env: 'CAPROVER_CONFIG_FILE',
             message:
@@ -233,16 +233,16 @@ export default abstract class Command {
             .filter(
                 opta =>
                     cmdLineOptions &&
-                    opta.aliasTo === this.configFileOptionName &&
+                    opta.aliasTo === CONFIG_FILE_NAME &&
                     opta.name in cmdLineOptions
             )
             .reduce((prev, opta) => <string>cmdLineOptions[opta.name], null)
-        if (params[this.configFileOptionName]) {
-            if (file === null) file = params[this.configFileOptionName].value
-            delete params[this.configFileOptionName]
+        if (params[CONFIG_FILE_NAME]) {
+            if (file === null) file = params[CONFIG_FILE_NAME].value
+            delete params[CONFIG_FILE_NAME]
         }
         optionAliases = optionAliases.filter(
-            opta => opta.aliasTo !== this.configFileOptionName
+            opta => opta.aliasTo !== CONFIG_FILE_NAME
         )
 
         if (file) {
@@ -314,7 +314,7 @@ export default abstract class Command {
                             true
                         )
                 }
-            } else if (name !== this.configFileOptionName) {
+            } else if (name !== CONFIG_FILE_NAME) {
                 // Questions for missing params
                 if (!isFunction(option.message)) option.message += ':'
                 const answer = await inquirer.prompt([option])
