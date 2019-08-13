@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { isAbsolute, join } from 'path'
 import { writeFileSync } from 'fs'
 import Constants from '../utils/Constants'

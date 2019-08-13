@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import Constants from '../utils/Constants'
 import Utils from '../utils/Utils'
 import StdOutUtil from '../utils/StdOutUtil'

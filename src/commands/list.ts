@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import StdOutUtil from '../utils/StdOutUtil'
 import StorageHelper from '../utils/StorageHelper'
 import Command, { IParams, ICommandLineOptions } from './Command'
