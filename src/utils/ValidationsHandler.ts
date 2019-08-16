@@ -160,7 +160,7 @@ export function getErrorForBranchName(value: string): true | string {
         ? execSync(`git rev-parse ${value} > NUL`)
         : execSync(`git rev-parse ${value} 2>/dev/null`)
     try {
-        if (execSync(`git rev-parse ${value} 2>/dev/null`)) return true
+        if (cmd) return true
     } catch (e) {}
     return `Cannot find hash of last commit on branch "${value}".`
 }
