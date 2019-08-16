@@ -6,6 +6,7 @@ import StorageHelper from './StorageHelper'
 import Constants from './Constants'
 import Utils from './Utils'
 import { IAppDef } from '../models/AppDef'
+const isWindows = process.platform === 'win32'
 
 export function validateIsGitRepository() {
     if (!fs.pathExistsSync('./.git')) {
@@ -155,8 +156,11 @@ export function getErrorForAppName(
 export function getErrorForBranchName(value: string): true | string {
     if (!value || !value.trim()) return 'Please enter branch name.'
     value = value.trim()
+    const cmd = isWindows
+        ? execSync(`git rev-parse ${value} > NUL`)
+        : execSync(`git rev-parse ${value} 2>/dev/null`)
     try {
-        if (execSync(`git rev-parse ${value} 2>/dev/null`)) return true
+        if (cmd) return true
     } catch (e) {}
     return `Cannot find hash of last commit on branch "${value}".`
 }
