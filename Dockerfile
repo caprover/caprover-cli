@@ -20,4 +20,4 @@ RUN mv caprover.js caprover
 
 
 
-CMD ["echo" , "'Usage: docker run -it caprover/cli-caprover caprover serversetup'"]
+CMD ["echo" , "'Usage: docker run -it caprover/cli-caprover:VERSION_HERE caprover serversetup'"]
