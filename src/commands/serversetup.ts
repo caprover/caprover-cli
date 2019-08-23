@@ -181,7 +181,7 @@ export default class ServerSetup extends Command {
         cmdLineoptions: ICommandLineOptions
     ): Promise<ICommandLineOptions> {
         StdOutUtil.printMessage('Setup CapRover machine on your server...\n')
-        return cmdLineoptions
+        return Promise.resolve(cmdLineoptions)
     }
 
     protected preQuestions(params: IParams) {

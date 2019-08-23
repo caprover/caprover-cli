@@ -27,7 +27,6 @@ export default class CliHelper {
                 short: '',
             },
             ...apps
-                .filter(app => !app.isAppBuilding)
                 .map(app => ({
                     name: `${app.appName}`,
                     value: `${app.appName}`,

@@ -58,7 +58,7 @@ export default class List extends Command {
         cmdLineoptions: ICommandLineOptions
     ): Promise<ICommandLineOptions> {
         StdOutUtil.printMessage('Logout from a CapRover machine...\n')
-        return cmdLineoptions
+        return Promise.resolve(cmdLineoptions)
     }
 
     protected async action(params: IParams): Promise<void> {

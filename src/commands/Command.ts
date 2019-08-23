@@ -204,18 +204,18 @@ export default abstract class Command {
                     `Positional parameter not supported: ${allParams[0]}\n`,
                     true
                 )
-            const cmdLineOptions: ICommandLineOptions = await this.preAction(
-                allParams[0]
-            )
-            this.action(await this.getParams(cmdLineOptions, optionAliases))
+            const cmdLineOptions = await this.preAction(allParams[0])
+
+            if (cmdLineOptions)
+                this.action(await this.getParams(cmdLineOptions, optionAliases))
         })
     }
 
     protected async preAction(
         cmdLineoptions: ICommandLineOptions
-    ): Promise<ICommandLineOptions> {
+    ): Promise<ICommandLineOptions | undefined> {
         if (this.description) StdOutUtil.printMessage(this.description + '\n')
-        return cmdLineoptions
+        return Promise.resolve(cmdLineoptions)
     }
 
     private async getParams(

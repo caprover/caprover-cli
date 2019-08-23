@@ -67,7 +67,7 @@ export default class Login extends Command {
         cmdLineoptions: ICommandLineOptions
     ): Promise<ICommandLineOptions> {
         StdOutUtil.printMessage('Login to a CapRover machine...\n')
-        return cmdLineoptions
+        return Promise.resolve(cmdLineoptions)
     }
 
     protected async action(params: IParams): Promise<void> {

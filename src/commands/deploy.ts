@@ -154,7 +154,9 @@ export default class Deploy extends Command {
                     : ''),
             type: 'input',
             default: params && 'master',
-            when: !this.findParamValue(params, K.tar) && !this.findParamValue(params, K.img),
+            when:
+                !this.findParamValue(params, K.tar) &&
+                !this.findParamValue(params, K.img),
             validate: (branch: string) => getErrorForBranchName(branch),
         },
         {
@@ -188,13 +190,14 @@ export default class Deploy extends Command {
                 this.paramFrom(params, K.name) === ParamType.Question ||
                 this.paramFrom(params, K.app) === ParamType.Question ||
                 this.paramFrom(params, K.branch) === ParamType.Question,
-            preProcessParam: (param: IParam) => param && userCancelOperation(!param.value),
+            preProcessParam: (param: IParam) =>
+                param && userCancelOperation(!param.value),
         },
     ]
 
     protected async preAction(
         cmdLineoptions: ICommandLineOptions
-    ): Promise<ICommandLineOptions> {
+    ): Promise<ICommandLineOptions | undefined> {
         StdOutUtil.printMessage('Preparing deployment to CapRover...\n')
 
         const possibleApp = StorageHelper.get()
@@ -218,7 +221,7 @@ export default class Deploy extends Command {
                     )
                 }
                 await this.deploy(deployParams)
-                process.exit(0)
+                return Promise.resolve(undefined)
             } else {
                 StdOutUtil.printError(
                     `Can't find previously saved deploy options from this directory, can't use --default.\n`,
@@ -238,7 +241,7 @@ export default class Deploy extends Command {
             )
         }
 
-        return cmdLineoptions
+        return Promise.resolve(cmdLineoptions)
     }
 
     protected preQuestions(params: IParams) {
@@ -253,7 +256,10 @@ export default class Deploy extends Command {
                 true
             )
         }
-        if (!this.findParamValue(params, K.tar) && !this.findParamValue(params, K.img)) {
+        if (
+            !this.findParamValue(params, K.tar) &&
+            !this.findParamValue(params, K.img)
+        ) {
             validateIsGitRepository()
             validateDefinitionFile()
         }
