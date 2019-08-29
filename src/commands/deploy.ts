@@ -224,8 +224,8 @@ export default class Deploy extends Command {
                 return Promise.resolve(undefined)
             } else {
                 StdOutUtil.printError(
-                    `Can't find previously saved deploy options from this directory, can't use --default.\n`,
-                    true
+                    `Can't find previously saved deploy options from this directory, can't use --default.\nFalling back to asking questions...\n\n`,
+                    false
                 )
             }
         } else if (
