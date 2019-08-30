@@ -223,10 +223,8 @@ export default class Deploy extends Command {
                 await this.deploy(deployParams)
                 return Promise.resolve(undefined)
             } else {
-                StdOutUtil.printError(
-                    `Can't find previously saved deploy options from this directory, can't use --default.\nFalling back to asking questions...\n\n`,
-                    false
-                )
+                StdOutUtil.printError(`Can't find previously saved deploy options from this directory, can't use --default.\n`)
+                StdOutUtil.printMessage('Falling back to asking questions...\n')
             }
         } else if (
             possibleApp &&
