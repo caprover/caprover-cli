@@ -29,6 +29,7 @@ export enum ParamType {
     CommandLine,
     Question,
     Env,
+    Default,
 }
 
 export interface IParam {
@@ -148,19 +149,7 @@ export default abstract class Command {
         if (this.description) cmd.description(this.description)
         if (this.usage) cmd.usage(this.usage)
 
-        let options = this.getOptions().filter(opt => opt && opt.name)
-        const optionAliases: IOptionAliasWithDetails[] = options.reduce(
-            (acc, opt) => [
-                ...acc,
-                { ...opt, aliasTo: opt.name },
-                ...(opt.aliases || [])
-                    .filter(alias => alias && alias.name)
-                    .map(alias => ({ ...alias, aliasTo: opt.name })),
-            ],
-            []
-        )
-
-        options = options.filter(opt => !opt.hide)
+        const options = this.getOptions().filter(opt => opt && opt.name && !opt.hide)
         const spaces = ' '.repeat(
             options.reduce(
                 (max, opt) =>
@@ -204,7 +193,17 @@ export default abstract class Command {
                     `Positional parameter not supported: ${allParams[0]}\n`,
                     true
                 )
+
             const cmdLineOptions = await this.preAction(allParams[0])
+            const optionAliases: IOptionAliasWithDetails[] = this.getOptions()
+                .filter(opt => opt && opt.name)
+                .reduce((acc, opt) => [
+                    ...acc,
+                    { ...opt, aliasTo: opt.name },
+                    ...(opt.aliases || [])
+                        .filter(alias => alias && alias.name)
+                        .map(alias => ({ ...alias, aliasTo: opt.name })),
+                ], [])
 
             if (cmdLineOptions)
                 this.action(await this.getParams(cmdLineOptions, optionAliases))
