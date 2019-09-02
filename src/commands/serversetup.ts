@@ -211,6 +211,10 @@ export default class ServerSetup extends Command {
                 StdOutUtil.printWarning(
                     '\nYou may have already setup the server! Use caprover login to log into an existing server.'
                 )
+            } else {
+                StdOutUtil.printWarning(
+                    '\nYou may have specified a wrong IP address or not already started CapRover container on your server!'
+                )
             }
             StdOutUtil.errorHandler(e)
             return ''
