@@ -116,6 +116,7 @@ export default class ServerSetup extends Command {
             aliases: [{ name: 'rootDomain', hide: true }],
             type: 'input',
             message: 'CapRover server root domain',
+            when: () => this.checkFreshInstallation(), // Server not already setupped
             filter: (domain: string) => Utils.cleanDomain(domain),
             validate: (domain: string) =>
                 domain
@@ -219,6 +220,24 @@ export default class ServerSetup extends Command {
             StdOutUtil.errorHandler(e)
             return ''
         }
+    }
+
+    private async checkFreshInstallation(): Promise<boolean> {
+        try {
+            const rootDomain: string = (await CliApiManager.get({
+                authToken: this.machine.authToken,
+                baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
+                name: '',
+            }).getCaptainInfo()).rootDomain
+            if (rootDomain)
+                StdOutUtil.printWarning(
+                    `\nYou may have already setup the server with root domain: ${rootDomain}! Use caprover login to log into an existing server.`,
+                    true
+                )
+        } catch (e) {
+            StdOutUtil.errorHandler(e)
+        }
+        return true
     }
 
     private async updateRootDomain(rootDomain: string) {
