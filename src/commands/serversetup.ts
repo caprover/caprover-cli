@@ -66,7 +66,7 @@ export default class ServerSetup extends Command {
                         'Start it by running the following line:'
                     )
                     StdOutUtil.printMessage(
-                        'mkdir /captain && docker run -p 80:80 -p 443:443 -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v /captain:/captain caprover/caprover'
+                        'docker run -p 80:80 -p 443:443 -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v /captain:/captain caprover/caprover'
                     )
                     StdOutUtil.printMessageAndExit(
                         '\nPlease read tutorial on CapRover.com to learn how to install CapRover on a server.\n'
@@ -241,14 +241,13 @@ export default class ServerSetup extends Command {
     }
 
     private async updateRootDomain(rootDomain: string) {
-        const adminDomain = Utils.cleanAdminDomainUrl(rootDomain, false)!
         try {
             await CliApiManager.get({
                 authToken: this.machine.authToken,
                 baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
                 name: '',
             }).updateRootDomain(rootDomain)
-            this.machine.baseUrl = adminDomain
+            this.machine.baseUrl = `http://${Constants.ADMIN_DOMAIN}.${rootDomain}`
         } catch (e) {
             if (e.captainStatus === ErrorFactory.VERIFICATION_FAILED) {
                 StdOutUtil.printError(
