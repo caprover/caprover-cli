@@ -2,38 +2,34 @@ import chalk from 'chalk'
 import { IMachine } from '../models/storage/StoredObjects'
 
 class StdOutUtils {
-    printMessage(message: string) {
+    printMessage(message: string, exit: boolean | number = false) {
         console.log(message)
+        if (exit !== false) process.exit(exit === true ? 0 : exit)
     }
 
-    printMessageAndExit(message: string) {
-        console.log(message)
-        process.exit(0)
-    }
-
-    printGreenMessage(message: string, exit = false) {
+    printGreenMessage(message: string, exit: boolean | number = false) {
         console.log(`${chalk.green(message)}`)
-        exit && process.exit(0)
+        if (exit !== false) process.exit(exit === true ? 0 : exit)
     }
 
-    printMagentaMessage(message: string, exit = false) {
+    printMagentaMessage(message: string, exit: boolean | number = false) {
         console.log(`${chalk.magenta(message)}`)
         exit && process.exit(0)
     }
 
-    printError(error: string, exit = false) {
+    printError(error: string, exit: boolean | number = false) {
         console.log(`${chalk.bold.red(error)}`)
-        exit && process.exit(0)
+        if (exit !== false) process.exit(exit === true ? 1 : exit)
     }
 
-    printWarning(warning: string, exit = false) {
+    printWarning(warning: string, exit: boolean | number = false) {
         console.log(`${chalk.yellow(warning)}`)
-        exit && process.exit(0)
+        if (exit !== false) process.exit(exit === true ? 1 : exit)
     }
 
-    printTip(tip: string, exit = false) {
+    printTip(tip: string, exit: boolean | number = false) {
         console.log(`${chalk.bold.green(tip)}`)
-        exit && process.exit(0)
+        if (exit !== false) process.exit(exit === true ? 0 : exit)
     }
 
     errorHandler(error: any) {

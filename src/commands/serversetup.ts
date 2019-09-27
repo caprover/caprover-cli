@@ -68,8 +68,9 @@ export default class ServerSetup extends Command {
                     StdOutUtil.printMessage(
                         'docker run -p 80:80 -p 443:443 -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v /captain:/captain caprover/caprover'
                     )
-                    StdOutUtil.printMessageAndExit(
-                        '\nPlease read tutorial on CapRover.com to learn how to install CapRover on a server.\n'
+                    StdOutUtil.printMessage(
+                        '\nPlease read tutorial on CapRover.com to learn how to install CapRover on a server.\n',
+                        true
                     )
                 }
             },

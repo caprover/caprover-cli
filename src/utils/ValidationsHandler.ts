@@ -175,10 +175,11 @@ export function getErrorForEmail(value: string): true | string {
 
 export function userCancelOperation(cancel: boolean, c?: boolean): boolean {
     if (cancel)
-        StdOutUtil.printMessageAndExit(
+        StdOutUtil.printMessage(
             (c ? '\n' : '') +
                 '\nOperation cancelled by the user!' +
-                (!c ? '\n' : '')
+                (!c ? '\n' : ''),
+            true
         )
     return false
 }
