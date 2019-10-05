@@ -87,7 +87,9 @@ export default class Api extends Command {
                 : undefined,
         },
         CliHelper.get().getEnsureAuthenticationOption(
-            params,
+            () => this.paramValue(params, K.url),
+            () => this.paramValue(params, K.pwd),
+            () => this.paramValue(params, K.name),
             async (machine: IMachine) => {
                 this.machine = machine
                 try {

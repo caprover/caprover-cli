@@ -178,7 +178,9 @@ export default class CliHelper {
     }
 
     getEnsureAuthenticationOption(
-        params?: IParams,
+        url?: string | (() => string | undefined),
+        password?: string | (() => string | undefined),
+        name?: string | (() => string | undefined),
         done?: (machine: IMachine) => void
     ): IOption {
         let machine: IMachine
@@ -189,27 +191,26 @@ export default class CliHelper {
             hide: true,
             when: async () => {
                 StdOutUtil.printMessage('Ensuring authentication...')
-                const url: string | undefined =
-                    params && params.caproverUrl && params.caproverUrl.value
-                const password: string | undefined =
-                    params &&
-                    params.caproverPassword &&
-                    params.caproverPassword.value
-                const name: string | undefined =
-                    params && params.caproverName && params.caproverName.value
+
+                const getVal = (value?: string | (() => string | undefined)): string | undefined => 
+                    value && value instanceof Function ? value() : value
+                const _url = getVal(url)
+                const _password = getVal(password)
+                const _name = getVal(name)
+
                 try {
                     machine = await CliHelper.get().ensureAuthentication(
-                        url,
-                        password,
-                        name
+                        _url,
+                        _password,
+                        _name
                     )
                     return !machine.authToken
                 } catch (e) {
                     StdOutUtil.printError(
                         `\nSomething bad happened during authentication to ${
-                            url
-                                ? StdOutUtil.getColoredMachineUrl(url)
-                                : StdOutUtil.getColoredMachineName(name || '')
+                            _url
+                                ? StdOutUtil.getColoredMachineUrl(_url)
+                                : StdOutUtil.getColoredMachineName(_name || '')
                         }.\n${e.message || e}`,
                         true
                     )

@@ -11,13 +11,15 @@ const isWindows = process.platform === 'win32'
 export function validateIsGitRepository() {
     if (!fs.pathExistsSync('./.git')) {
         StdOutUtil.printError(
-            'You are not in a git root directory: this command will only deploys the current directory.\n',
+            'You are not in a git root directory: this command will only deploys the current directory.\n' +
+            'Run "caprover deploy --help" to know more deployment options... (e.g. tar file or image name)\n',
             true
         )
     }
     if (!commandExistsSync('git')) {
         StdOutUtil.printError(
-            '"git" command not found: CapRover needs "git" to create tar file from your branch source files...\n',
+            '"git" command not found: CapRover needs "git" to create tar file from your branch source files.\n' +
+            'Run "caprover deploy --help" to know more deployment options... (e.g. tar file or image name)\n',
             true
         )
     }
@@ -156,10 +158,10 @@ export function getErrorForAppName(
 export function getErrorForBranchName(value: string): true | string {
     if (!value || !value.trim()) return 'Please enter branch name.'
     value = value.trim()
-    const cmd = isWindows
-        ? execSync(`git rev-parse ${value} > NUL`)
-        : execSync(`git rev-parse ${value} 2>/dev/null`)
     try {
+        const cmd = isWindows
+            ? execSync(`git rev-parse ${value} > NUL`)
+            : execSync(`git rev-parse ${value} 2>/dev/null`)
         if (cmd) return true
     } catch (e) {}
     return `Cannot find hash of last commit on branch "${value}".`
@@ -173,10 +175,11 @@ export function getErrorForEmail(value: string): true | string {
 
 export function userCancelOperation(cancel: boolean, c?: boolean): boolean {
     if (cancel)
-        StdOutUtil.printMessageAndExit(
+        StdOutUtil.printMessage(
             (c ? '\n' : '') +
                 '\nOperation cancelled by the user!' +
-                (!c ? '\n' : '')
+                (!c ? '\n' : ''),
+            true
         )
     return false
 }

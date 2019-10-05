@@ -66,10 +66,11 @@ export default class ServerSetup extends Command {
                         'Start it by running the following line:'
                     )
                     StdOutUtil.printMessage(
-                        'mkdir /captain && docker run -p 80:80 -p 443:443 -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v /captain:/captain caprover/caprover'
+                        'docker run -p 80:80 -p 443:443 -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v /captain:/captain caprover/caprover'
                     )
-                    StdOutUtil.printMessageAndExit(
-                        '\nPlease read tutorial on CapRover.com to learn how to install CapRover on a server.\n'
+                    StdOutUtil.printMessage(
+                        '\nPlease read tutorial on CapRover.com to learn how to install CapRover on a server.\n',
+                        true
                     )
                 }
             },
@@ -116,6 +117,7 @@ export default class ServerSetup extends Command {
             aliases: [{ name: 'rootDomain', hide: true }],
             type: 'input',
             message: 'CapRover server root domain',
+            when: () => this.checkFreshInstallation(), // Server not already setupped
             filter: (domain: string) => Utils.cleanDomain(domain),
             validate: (domain: string) =>
                 domain
@@ -211,21 +213,42 @@ export default class ServerSetup extends Command {
                 StdOutUtil.printWarning(
                     '\nYou may have already setup the server! Use caprover login to log into an existing server.'
                 )
+            } else {
+                StdOutUtil.printWarning(
+                    '\nYou may have specified a wrong IP address or not already started CapRover container on your server!'
+                )
             }
             StdOutUtil.errorHandler(e)
             return ''
         }
     }
 
+    private async checkFreshInstallation(): Promise<boolean> {
+        try {
+            const rootDomain: string = (await CliApiManager.get({
+                authToken: this.machine.authToken,
+                baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
+                name: '',
+            }).getCaptainInfo()).rootDomain
+            if (rootDomain)
+                StdOutUtil.printWarning(
+                    `\nYou may have already setup the server with root domain: ${rootDomain}! Use caprover login to log into an existing server.`,
+                    true
+                )
+        } catch (e) {
+            StdOutUtil.errorHandler(e)
+        }
+        return true
+    }
+
     private async updateRootDomain(rootDomain: string) {
-        const adminDomain = Utils.cleanAdminDomainUrl(rootDomain, false)!
         try {
             await CliApiManager.get({
                 authToken: this.machine.authToken,
                 baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
                 name: '',
             }).updateRootDomain(rootDomain)
-            this.machine.baseUrl = adminDomain
+            this.machine.baseUrl = `http://${Constants.ADMIN_DOMAIN}.${rootDomain}`
         } catch (e) {
             if (e.captainStatus === ErrorFactory.VERIFICATION_FAILED) {
                 StdOutUtil.printError(

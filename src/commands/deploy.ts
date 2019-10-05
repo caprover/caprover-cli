@@ -69,7 +69,7 @@ export default class Deploy extends Command {
                 'use previously entered values for the current directory, no others options are considered',
             when: false,
         },
-        this.getDefaultConfigFileOption(() => this.preQuestions(params!)),
+        this.getDefaultConfigFileOption(() => this.validateDeploySource(params!)),
         {
             name: K.url,
             char: 'u',
@@ -110,7 +110,9 @@ export default class Deploy extends Command {
                 : undefined,
         },
         CliHelper.get().getEnsureAuthenticationOption(
-            params,
+            () => this.paramValue(params, K.url),
+            () => this.paramValue(params, K.pwd),
+            () => this.paramValue(params, K.name),
             async (machine: IMachine) => {
                 this.machine = machine
                 try {
@@ -205,14 +207,7 @@ export default class Deploy extends Command {
             .find((dir: IDeployedDirectory) => dir.cwd === process.cwd())
         if (cmdLineoptions[K.default]) {
             if (possibleApp && possibleApp.machineNameToDeploy) {
-                const deployParams: IDeployParams = {
-                    captainMachine: StorageHelper.get().findMachine(
-                        possibleApp.machineNameToDeploy
-                    ),
-                    deploySource: possibleApp.deploySource,
-                    appName: possibleApp.appName,
-                }
-                if (!deployParams.captainMachine) {
+                if (!StorageHelper.get().findMachine(possibleApp.machineNameToDeploy)) {
                     StdOutUtil.printError(
                         `You have to first login to ${StdOutUtil.getColoredMachineName(
                             possibleApp.machineNameToDeploy
@@ -220,13 +215,60 @@ export default class Deploy extends Command {
                         true
                     )
                 }
-                await this.deploy(deployParams)
-                return Promise.resolve(undefined)
+                this.options = (params?: IParams) => [CliHelper.get().getEnsureAuthenticationOption(
+                    undefined,
+                    undefined,
+                    possibleApp.machineNameToDeploy,
+                    async (machine: IMachine) => {
+                        this.machine = machine
+                        try {
+                            this.apps =
+                                (await CliApiManager.get(machine).getAllApps())
+                                    .appDefinitions || []
+                        } catch (e) {
+                            StdOutUtil.printError(
+                                `\nSomething bad happened during deployment to ${StdOutUtil.getColoredMachineName(
+                                    machine.name
+                                )}.\n${e.message || e}`,
+                                true
+                            )
+                        }
+
+                        const appErr = getErrorForAppName(this.apps, possibleApp.appName)
+                        if (appErr !== true)
+                            StdOutUtil.printError(
+                                `\n${appErr || 'Error!'}\n`,
+                                true
+                            )
+
+                        if (params) {
+                            params[K.app] = {
+                                value: possibleApp.appName,
+                                from: ParamType.Default
+                            }
+                            if (possibleApp.deploySource.branchToPush)
+                                params[K.branch] = {
+                                    value: possibleApp.deploySource.branchToPush,
+                                    from: ParamType.Default
+                                }
+                            else if (possibleApp.deploySource.tarFilePath)
+                                params[K.tar] = {
+                                    value: possibleApp.deploySource.tarFilePath,
+                                    from: ParamType.Default
+                                }
+                            else
+                                params[K.img] = {
+                                    value: possibleApp.deploySource.imageName,
+                                    from: ParamType.Default
+                                }
+                            this.validateDeploySource(params)
+                        }
+                    }
+                )]
+                return Promise.resolve({})
             } else {
-                StdOutUtil.printError(
-                    `Can't find previously saved deploy options from this directory, can't use --default.\nFalling back to asking questions...\n\n`,
-                    false
-                )
+                StdOutUtil.printError(`Can't find previously saved deploy options from this directory, can't use --default.\n`)
+                StdOutUtil.printMessage('Falling back to asking questions...\n')
             }
         } else if (
             possibleApp &&
@@ -244,7 +286,7 @@ export default class Deploy extends Command {
         return Promise.resolve(cmdLineoptions)
     }
 
-    protected preQuestions(params: IParams) {
+    protected validateDeploySource(params: IParams) {
         if (
             (this.findParamValue(params, K.branch) ? 1 : 0) +
                 (this.findParamValue(params, K.tar) ? 1 : 0) +
