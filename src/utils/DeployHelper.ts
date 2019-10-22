@@ -7,6 +7,7 @@ import SpinnerHelper from '../utils/SpinnerHelper'
 import IBuildLogs from '../models/IBuildLogs'
 import { IMachine, IDeployParams } from '../models/storage/StoredObjects'
 import CliApiManager from '../api/CliApiManager'
+import { createTarArchivePath } from './TarDeploy'
 
 export default class DeployHelper {
     private lastLineNumberPrinted = -10000 // we want to show all lines to begin with!
@@ -76,7 +77,7 @@ export default class DeployHelper {
             } else {
                 await CliApiManager.get(machineToDeploy).uploadAppData(
                     appName,
-                    this.getFileStream(tarFileFullPath),
+                    this.getFileStream(await createTarArchivePath(tarFileFullPath)),
                     gitHash
                 )
             }
