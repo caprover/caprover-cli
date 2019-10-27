@@ -41,6 +41,7 @@ Commands:
   list|ls                      List all CapRover machines currently logged in.
   logout [options]             Logout from a CapRover machine and clear auth info.
   deploy [options]             Deploy your app to a specific CapRover machine. You'll be prompted for missing parameters.
+  config-deploy [options]      Deployment via CapRover config file. See: config-deploy.md for more information. To use this command, you have to be logged in to one machine via "caprover login".
   api [options]                Call a generic API on a specific CapRover machine. Use carefully only if you really know what you are doing!
 ```
 
