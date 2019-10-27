@@ -25,7 +25,7 @@ import Logout from './logout'
 import Deploy from './deploy'
 import ServerSetup from './serversetup'
 import Api from './api'
-import DeployTar from './deploy-tar'
+import DeployTar from './config-deploy'
 
 console.log('')
 console.log('')

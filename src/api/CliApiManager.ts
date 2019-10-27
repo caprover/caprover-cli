@@ -20,7 +20,7 @@ function hashCode(str: string) {
 export default class CliApiManager {
     static instances: IHashMapGeneric<ApiManager> = {}
 
-    static get(capMachine: IMachine) {
+    static get(capMachine: IMachine): ApiManager {
         const hashKey = 'v' + hashCode(capMachine.baseUrl)
         if (!CliApiManager.instances[hashKey])
             CliApiManager.instances[hashKey] = new ApiManager(

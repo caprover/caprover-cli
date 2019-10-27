@@ -14,7 +14,7 @@ export default class DeployHelper {
 
     constructor(private ssl?: boolean) {}
 
-    async startDeploy(deployParams: IDeployParams): Promise<boolean> {
+    async startDeploy(deployParams: IDeployParams, tarFileCreatedByCli = false): Promise<boolean> {
         const appName = deployParams.appName
         const branchToPush = deployParams.deploySource.branchToPush
         const tarFilePath = deployParams.deploySource.tarFilePath
@@ -43,11 +43,10 @@ export default class DeployHelper {
         }
 
         let gitHash = ''
-        let tarFileCreatedByCli = false
         const tarFileNameToDeploy = tarFilePath
             ? tarFilePath
             : 'temporary-captain-to-deploy.tar'
-        const tarFileFullPath = tarFileNameToDeploy.startsWith('/')
+        const tarFileFullPath = path.isAbsolute(tarFileNameToDeploy)
             ? tarFileNameToDeploy
             : path.join(process.cwd(), tarFileNameToDeploy)
 
@@ -77,12 +76,12 @@ export default class DeployHelper {
             } else {
                 await CliApiManager.get(machineToDeploy).uploadAppData(
                     appName,
-                    this.getFileStream(await createTarArchivePath(tarFileFullPath)),
+                    this.getFileStream(tarFileFullPath),
                     gitHash
                 )
             }
 
-            this.startFetchingBuildLogs(machineToDeploy, appName)
+            await this.startFetchingBuildLogs(machineToDeploy, appName)
             return true
         } catch (e) {
             throw e
