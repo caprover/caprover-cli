@@ -10,6 +10,8 @@ CapRover is a modern automated app deployment & web server manager.
 
 Fore more information see CapRover.com
 
+Always refer to the documentation bundled in CLI as it is the most updated one. You can view the help by `caprover --help` or `caprover deploy --help` or etc.
+
 ## Getting started
 
 This guide assumes that you have started CapRover on a linux server and setup your DNS (see [CapRover Setup](https://caprover.com/docs/get-started.html#caprover-setup)).
