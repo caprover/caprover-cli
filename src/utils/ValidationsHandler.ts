@@ -114,6 +114,14 @@ export function getErrorForPassword(
     return true
 }
 
+export function getErrorForTarPath(
+    value: string
+): true | string {
+    if (!value || !value.trim()) return 'Please enter a path.'
+    if (!fs.pathExistsSync(value)) return `Path "${value}" does not exist. Please enter a existing path.`
+    return true;
+}
+
 export function getErrorForMachineName(
     value: string,
     checkExisting?: boolean

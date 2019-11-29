@@ -7,13 +7,14 @@ import SpinnerHelper from '../utils/SpinnerHelper'
 import IBuildLogs from '../models/IBuildLogs'
 import { IMachine, IDeployParams } from '../models/storage/StoredObjects'
 import CliApiManager from '../api/CliApiManager'
+import { createTarArchivePath } from './TarDeploy'
 
 export default class DeployHelper {
     private lastLineNumberPrinted = -10000 // we want to show all lines to begin with!
 
     constructor(private ssl?: boolean) {}
 
-    async startDeploy(deployParams: IDeployParams): Promise<boolean> {
+    async startDeploy(deployParams: IDeployParams, tarFileCreatedByCli = false): Promise<boolean> {
         const appName = deployParams.appName
         const branchToPush = deployParams.deploySource.branchToPush
         const tarFilePath = deployParams.deploySource.tarFilePath
@@ -42,11 +43,10 @@ export default class DeployHelper {
         }
 
         let gitHash = ''
-        let tarFileCreatedByCli = false
         const tarFileNameToDeploy = tarFilePath
             ? tarFilePath
             : 'temporary-captain-to-deploy.tar'
-        const tarFileFullPath = tarFileNameToDeploy.startsWith('/')
+        const tarFileFullPath = path.isAbsolute(tarFileNameToDeploy)
             ? tarFileNameToDeploy
             : path.join(process.cwd(), tarFileNameToDeploy)
 
@@ -81,7 +81,7 @@ export default class DeployHelper {
                 )
             }
 
-            this.startFetchingBuildLogs(machineToDeploy, appName)
+            await this.startFetchingBuildLogs(machineToDeploy, appName)
             return true
         } catch (e) {
             throw e

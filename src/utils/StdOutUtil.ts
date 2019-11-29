@@ -50,6 +50,9 @@ class StdOutUtils {
         }
     }
 
+
+    getColoredWhite = (name: string): string => chalk.whiteBright(name)
+
     getColoredMachineName = (name: string): string => chalk.greenBright(name)
 
     getColoredMachineUrl = (url: string): string => chalk.bold.yellow(url)

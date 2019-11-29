@@ -107,11 +107,8 @@ export default class ApiManager {
             .then(http.fetch(http.POST, '/user/system/forcessl', { isEnabled }))
     }
 
-    getAllApps() {
-        const http = this.http
-
-        return Promise.resolve() //
-            .then(http.fetch(http.GET, '/user/apps/appDefinitions', {}))
+    async getAllApps(): Promise<any> {
+        return this.http.fetch(this.http.GET, '/user/apps/appDefinitions', {})();
     }
 
     fetchBuildLogs(appName: string): Promise<IBuildLogs> {

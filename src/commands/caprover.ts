@@ -25,6 +25,7 @@ import Logout from './logout'
 import Deploy from './deploy'
 import ServerSetup from './serversetup'
 import Api from './api'
+import DeployTar from './config-deploy'
 
 console.log('')
 console.log('')
@@ -44,6 +45,7 @@ const commands: Command[] = [
     new List(program),
     new Logout(program),
     new Deploy(program),
+    new DeployTar(program),
     new Api(program),
 ]
 commands.forEach(c => c.build())
