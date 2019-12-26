@@ -5,7 +5,7 @@ const ADMIN_DOMAIN = Constants.ADMIN_DOMAIN
 
 const util = {
     extendCommonKeys<T extends { [key: string]: string }>(
-        keys: T
+        keys: T,
     ): typeof Constants.COMMON_KEYS & T {
         return Object.assign({}, Constants.COMMON_KEYS, keys)
     },
@@ -15,11 +15,13 @@ const util = {
     },
 
     generateUuidV4() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(
-            c
-        ) {
-            var r = (Math.random() * 16) | 0,
-                v = c === 'x' ? r : (r & 0x3) | 0x8
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (
+            c,
+        ) => {
+            // tslint:disable-next-line: no-bitwise
+            const r = (Math.random() * 16) | 0
+            // tslint:disable-next-line: no-bitwise
+            const v = c === 'x' ? r : (r & 0x3) | 0x8
             return v.toString(16)
         })
     },
@@ -34,10 +36,10 @@ const util = {
     },
 
     cleanDomain(urlInput: string): string | undefined {
-        if (!urlInput || !urlInput.length) return undefined
+        if (!urlInput || !urlInput.length) { return undefined }
         try {
             let u = url.parse(urlInput)
-            if (!u.protocol) u = url.parse(`//${urlInput}`, false, true)
+            if (!u.protocol) { u = url.parse(`//${urlInput}`, false, true) }
             return u.hostname
         } catch (e) {
             return undefined
@@ -45,12 +47,13 @@ const util = {
     },
 
     cleanAdminDomainUrl(urlInput: string, https?: boolean): string | undefined {
-        if (!urlInput || !urlInput.length) return undefined
+        if (!urlInput || !urlInput.length) { return undefined }
         const http = urlInput.toLowerCase().startsWith('http://') // If no protocol, defaults to https
         let cleanedUrl = util.cleanDomain(urlInput)
-        if (!cleanedUrl) return undefined
-        if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`))
+        if (!cleanedUrl) { return undefined }
+        if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`)) {
             cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
+        }
         return (
             (https || (https === undefined && !http) ? 'https://' : 'http://') +
             cleanedUrl
@@ -59,7 +62,7 @@ const util = {
 
     isIpAddress(ipaddress: string): boolean {
         return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
-            ipaddress
+            ipaddress,
         )
     },
 

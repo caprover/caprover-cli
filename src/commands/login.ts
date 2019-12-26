@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
-import StdOutUtil from '../utils/StdOutUtil'
-import Constants from '../utils/Constants'
-import Utils from '../utils/Utils'
 import CliHelper from '../utils/CliHelper'
+import Constants from '../utils/Constants'
+import StdOutUtil from '../utils/StdOutUtil'
+import Utils from '../utils/Utils'
 import {
     getErrorForDomain,
-    getErrorForPassword,
     getErrorForMachineName,
+    getErrorForPassword,
 } from '../utils/ValidationsHandler'
-import Command, { IOption, IParams, ICommandLineOptions } from './Command'
+import Command, { ICommandLineOptions, IOption, IParams } from './Command'
 
 const K = Utils.extendCommonKeys({
     https: 'hasRootHttps',
@@ -24,7 +24,8 @@ export default class Login extends Command {
     protected options = (params?: IParams): IOption[] => [
         this.getDefaultConfigFileOption(),
         {
-            name: K.https, // Backward compatibility with config hasRootHttps parameter, eventually to remove when releasing v2
+          // Backward compatibility with config hasRootHttps parameter, eventually to remove when releasing v2
+            name: K.https,
             hide: true,
             when: false,
         },
@@ -38,7 +39,7 @@ export default class Login extends Command {
             filter: (url: string) =>
                 Utils.cleanAdminDomainUrl(
                     url,
-                    this.paramValue(params, K.https)
+                    this.paramValue(params, K.https),
                 ) || url, // If not cleaned url, leave url to fail validation with correct error
             validate: (url: string) => getErrorForDomain(url),
         },
@@ -64,7 +65,7 @@ export default class Login extends Command {
     ]
 
     protected async preAction(
-        cmdLineoptions: ICommandLineOptions
+        cmdLineoptions: ICommandLineOptions,
     ): Promise<ICommandLineOptions> {
         StdOutUtil.printMessage('Login to a CapRover machine...\n')
         return Promise.resolve(cmdLineoptions)
@@ -77,7 +78,7 @@ export default class Login extends Command {
                 baseUrl: this.findParamValue(params, K.url)!.value,
                 name: this.findParamValue(params, K.name)!.value,
             },
-            this.findParamValue(params, K.pwd)!.value
+            this.findParamValue(params, K.pwd)!.value,
         )
     }
 }

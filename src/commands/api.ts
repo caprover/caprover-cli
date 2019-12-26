@@ -1,25 +1,25 @@
 #!/usr/bin/env node
 
-import { isAbsolute, join } from 'path'
 import { writeFileSync } from 'fs'
-import Constants from '../utils/Constants'
-import Utils from '../utils/Utils'
-import StdOutUtil from '../utils/StdOutUtil'
-import CliHelper from '../utils/CliHelper'
+import { isAbsolute, join } from 'path'
 import CliApiManager from '../api/CliApiManager'
+import { IMachine } from '../models/storage/StoredObjects'
+import CliHelper from '../utils/CliHelper'
+import Constants from '../utils/Constants'
+import StdOutUtil from '../utils/StdOutUtil'
+import Utils from '../utils/Utils'
 import {
     getErrorForDomain,
-    getErrorForPassword,
     getErrorForMachineName,
+    getErrorForPassword,
     userCancelOperation,
 } from '../utils/ValidationsHandler'
-import { IMachine } from '../models/storage/StoredObjects'
 import Command, {
-    IParams,
-    IOption,
-    ParamType,
     ICommandLineOptions,
+    IOption,
     IParam,
+    IParams,
+    ParamType,
 } from './Command'
 
 const K = Utils.extendCommonKeys({
@@ -56,7 +56,8 @@ export default class Api extends Command {
             type: 'input',
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
             when: false,
-            filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url, // If not cleaned url, leave url to fail validation with correct error
+            // If not cleaned url, leave url to fail validation with correct error
+            filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url,
             validate: (url: string) => getErrorForDomain(url, true),
         },
         {
@@ -97,12 +98,12 @@ export default class Api extends Command {
                 } catch (e) {
                     StdOutUtil.printError(
                         `\nSomething bad happened during calling API to ${StdOutUtil.getColoredMachineUrl(
-                            machine.baseUrl
+                            machine.baseUrl,
                         )}.\n${e.message || e}`,
-                        true
+                        true,
                     )
                 }
-            }
+            },
         ),
         {
             name: K.path,
@@ -147,19 +148,22 @@ export default class Api extends Command {
                     ? ''
                     : ' (or also JSON object from config file), for "GET" method they are interpreted as querystring values to be appended to the path'),
             type: 'input',
-            filter: data => {
-                if (data && typeof data === 'string')
+            filter: (data) => {
+                if (data && typeof data === 'string') {
                     try {
                         return JSON.parse(data)
-                    } catch {}
+                    } catch {
+                      // nothing to do
+                    }
+                }
                 return data
             },
-            validate: data => {
+            validate: (data) => {
                 if (data && typeof data === 'string') {
                     try {
                         JSON.parse(data)
                     } catch (e) {
-                        return <string>e
+                        return e as string
                     }
                 }
                 return true
@@ -174,10 +178,11 @@ export default class Api extends Command {
             type: 'input',
             default: 'true',
             filter: (out: string) => {
-                if (!out) return 'false'
+                if (!out) { return 'false' }
                 out = out.trim() || 'false'
-                if (out === 'true' || out === 'false' || isAbsolute(out))
+                if (out === 'true' || out === 'false' || isAbsolute(out)) {
                     return out
+                }
                 return join(process.cwd(), out)
             },
         },
@@ -196,7 +201,7 @@ export default class Api extends Command {
     ]
 
     protected async preAction(
-        cmdLineoptions: ICommandLineOptions
+        cmdLineoptions: ICommandLineOptions,
     ): Promise<ICommandLineOptions> {
         StdOutUtil.printMessage('Call generic CapRover API [Experimental Feature]...\n')
         return Promise.resolve(cmdLineoptions)
@@ -207,12 +212,12 @@ export default class Api extends Command {
             const resp = await CliApiManager.get(this.machine).callApi(
                 this.findParamValue(params, K.path)!.value,
                 this.findParamValue(params, K.method)!.value,
-                this.paramValue(params, K.data)
+                this.paramValue(params, K.data),
             )
             StdOutUtil.printGreenMessage(`API call completed successfully!\n`)
 
             const out = this.paramValue<string>(params, K.out)!
-            const data = JSON.stringify(resp, null, 2)
+            const data = JSON.stringify(resp, undefined, 2)
             if (out === 'true') {
                 StdOutUtil.printMessage(data + '\n')
             } else if (out !== 'false') {
@@ -220,19 +225,19 @@ export default class Api extends Command {
                     writeFileSync(out, data)
                 } catch (e) {
                     StdOutUtil.printWarning(
-                        `Error writing API response to file: "${out}".\n`
+                        `Error writing API response to file: "${out}".\n`,
                     )
                 }
             }
         } catch (error) {
             StdOutUtil.printError(
                 `\nSomething bad happened calling API ${StdOutUtil.getColoredMachineUrl(
-                    this.paramValue<string>(params, K.path)!
+                    this.paramValue<string>(params, K.path)!,
                 )} at ${
                     this.machine.name
                         ? StdOutUtil.getColoredMachineName(this.machine.name)
                         : StdOutUtil.getColoredMachineUrl(this.machine.baseUrl)
-                }.`
+                }.`,
             )
             StdOutUtil.errorHandler(error)
         }

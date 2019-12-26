@@ -1,34 +1,34 @@
 #!/usr/bin/env node
 
-import Constants from '../utils/Constants'
-import Utils from '../utils/Utils'
-import StdOutUtil from '../utils/StdOutUtil'
-import StorageHelper from '../utils/StorageHelper'
-import CliHelper from '../utils/CliHelper'
-import DeployHelper from '../utils/DeployHelper'
 import CliApiManager from '../api/CliApiManager'
-import {
-    validateIsGitRepository,
-    validateDefinitionFile,
-    getErrorForDomain,
-    getErrorForPassword,
-    getErrorForMachineName,
-    userCancelOperation,
-    getErrorForAppName,
-    getErrorForBranchName,
-} from '../utils/ValidationsHandler'
 import { IAppDef } from '../models/AppDef'
 import {
-    IMachine,
     IDeployedDirectory,
     IDeployParams,
+    IMachine,
 } from '../models/storage/StoredObjects'
+import CliHelper from '../utils/CliHelper'
+import Constants from '../utils/Constants'
+import DeployHelper from '../utils/DeployHelper'
+import StdOutUtil from '../utils/StdOutUtil'
+import StorageHelper from '../utils/StorageHelper'
+import Utils from '../utils/Utils'
+import {
+    getErrorForAppName,
+    getErrorForBranchName,
+    getErrorForDomain,
+    getErrorForMachineName,
+    getErrorForPassword,
+    userCancelOperation,
+    validateDefinitionFile,
+    validateIsGitRepository,
+} from '../utils/ValidationsHandler'
 import Command, {
-    IParams,
-    IOption,
-    ParamType,
     ICommandLineOptions,
+    IOption,
     IParam,
+    IParams,
+    ParamType,
 } from './Command'
 
 const K = Utils.extendCommonKeys({
@@ -78,7 +78,8 @@ export default class Deploy extends Command {
             type: 'input',
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
             when: false,
-            filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url, // If not cleaned url, leave url to fail validation with correct error
+            // If not cleaned url, leave url to fail validation with correct error
+            filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url,
             validate: (url: string) => getErrorForDomain(url, true),
         },
         {
@@ -122,12 +123,12 @@ export default class Deploy extends Command {
                 } catch (e) {
                     StdOutUtil.printError(
                         `\nSomething bad happened during deployment to ${StdOutUtil.getColoredMachineUrl(
-                            machine.baseUrl
+                            machine.baseUrl,
                         )}.\n${e.message || e}`,
-                        true
+                        true,
                     )
                 }
-            }
+            },
         ),
         {
             name: K.app,
@@ -198,7 +199,7 @@ export default class Deploy extends Command {
     ]
 
     protected async preAction(
-        cmdLineoptions: ICommandLineOptions
+        cmdLineoptions: ICommandLineOptions,
     ): Promise<ICommandLineOptions | undefined> {
         StdOutUtil.printMessage('Preparing deployment to CapRover...\n')
 
@@ -210,9 +211,9 @@ export default class Deploy extends Command {
                 if (!StorageHelper.get().findMachine(possibleApp.machineNameToDeploy)) {
                     StdOutUtil.printError(
                         `You have to first login to ${StdOutUtil.getColoredMachineName(
-                            possibleApp.machineNameToDeploy
+                            possibleApp.machineNameToDeploy,
                         )} CapRover machine to use previously saved deploy options from this directory with --default.\n`,
-                        true
+                        true,
                     )
                 }
                 this.options = (params?: IParams) => [CliHelper.get().getEnsureAuthenticationOption(
@@ -228,42 +229,46 @@ export default class Deploy extends Command {
                         } catch (e) {
                             StdOutUtil.printError(
                                 `\nSomething bad happened during deployment to ${StdOutUtil.getColoredMachineName(
-                                    machine.name
+                                    machine.name,
                                 )}.\n${e.message || e}`,
-                                true
+                                true,
                             )
                         }
 
                         const appErr = getErrorForAppName(this.apps, possibleApp.appName)
-                        if (appErr !== true)
+                        if (appErr !== true) {
                             StdOutUtil.printError(
                                 `\n${appErr || 'Error!'}\n`,
-                                true
+                                true,
                             )
+                        }
 
                         if (params) {
                             params[K.app] = {
                                 value: possibleApp.appName,
-                                from: ParamType.Default
+                                from: ParamType.Default,
                             }
-                            if (possibleApp.deploySource.branchToPush)
+                            if (possibleApp.deploySource.branchToPush) {
                                 params[K.branch] = {
                                     value: possibleApp.deploySource.branchToPush,
-                                    from: ParamType.Default
+                                    from: ParamType.Default,
                                 }
-                            else if (possibleApp.deploySource.tarFilePath)
+                            }
+                            else if (possibleApp.deploySource.tarFilePath) {
                                 params[K.tar] = {
                                     value: possibleApp.deploySource.tarFilePath,
-                                    from: ParamType.Default
+                                    from: ParamType.Default,
                                 }
-                            else
+ }
+                            else {
                                 params[K.img] = {
                                     value: possibleApp.deploySource.imageName,
-                                    from: ParamType.Default
+                                    from: ParamType.Default,
                                 }
+ }
                             this.validateDeploySource(params)
                         }
-                    }
+                    },
                 )]
                 return Promise.resolve({})
             } else {
@@ -278,8 +283,8 @@ export default class Deploy extends Command {
             StdOutUtil.printTip('**** Protip ****')
             StdOutUtil.printMessage(
                 `You seem to have deployed ${StdOutUtil.getColoredMachineName(
-                    possibleApp.appName
-                )} from this directory in the past, use --default flag to avoid having to re-enter the information.\n`
+                    possibleApp.appName,
+                )} from this directory in the past, use --default flag to avoid having to re-enter the information.\n`,
             )
         }
 
@@ -295,7 +300,7 @@ export default class Deploy extends Command {
         ) {
             StdOutUtil.printError(
                 'Only one of branch, tarFile or imageName can be present in deploy.\n',
-                true
+                true,
             )
         }
         if (
@@ -319,8 +324,8 @@ export default class Deploy extends Command {
                 appName: this.paramValue(params, K.app),
             },
             this.apps.find(
-                app => app.appName === this.paramValue(params, K.app)
-            )
+                (app) => app.appName === this.paramValue(params, K.app),
+            ),
         )
     }
 
@@ -328,7 +333,7 @@ export default class Deploy extends Command {
         try {
             if (
                 await new DeployHelper(
-                    app && app.hasDefaultSubDomainSsl
+                    app && app.hasDefaultSubDomainSsl,
                 ).startDeploy(deployParams)
             ) {
                 StorageHelper.get().saveDeployedDirectory({
@@ -344,14 +349,14 @@ export default class Deploy extends Command {
             const errorMessage = error.message ? error.message : error
             StdOutUtil.printError(
                 `\nSomething bad happened: cannot deploy ${StdOutUtil.getColoredAppName(
-                    deployParams.appName || ''
+                    deployParams.appName || '',
                 )} at ${StdOutUtil.getColoredMachineName(
                     deployParams.captainMachine
                         ? deployParams.captainMachine.name ||
                               deployParams.captainMachine.baseUrl
-                        : ''
+                        : '',
                 )}.\n${errorMessage}\n`,
-                true
+                true,
             )
         }
     }

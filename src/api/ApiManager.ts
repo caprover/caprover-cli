@@ -1,13 +1,17 @@
-import HttpClient from './HttpClient'
-import Logger from '../utils/Logger'
-import { IRegistryInfo } from '../models/IRegistryInfo'
-import { ICaptainDefinition } from '../models/ICaptainDefinition'
-import { IVersionInfo } from '../models/IVersionInfo'
-import { IAppDef } from '../models/AppDef'
 import * as fs from 'fs-extra'
+import { IAppDef } from '../models/AppDef'
 import IBuildLogs from '../models/IBuildLogs'
+import { ICaptainDefinition } from '../models/ICaptainDefinition'
+import { IRegistryInfo } from '../models/IRegistryInfo'
+import { IVersionInfo } from '../models/IVersionInfo'
+import Logger from '../utils/Logger'
+import HttpClient from './HttpClient'
 
 export default class ApiManager {
+
+    public static isLoggedIn() {
+        return !!ApiManager.authToken
+    }
     private static lastKnownPassword: string = process.env
         .REACT_APP_DEFAULT_PASSWORD
         ? process.env.REACT_APP_DEFAULT_PASSWORD + ''
@@ -20,124 +24,124 @@ export default class ApiManager {
 
     constructor(
         baseUrl: string,
-        private authTokenSaver: (authToken: string) => Promise<void>
+        private authTokenSaver: (authToken: string) => Promise<void>,
     ) {
         const self = this
 
-        this.http = new HttpClient(baseUrl, ApiManager.authToken, function() {
+        this.http = new HttpClient(baseUrl, ApiManager.authToken, () => {
             return self.getAuthToken(ApiManager.lastKnownPassword)
         })
     }
 
-    callApi(
+    public callApi(
         path: string,
         method: 'GET' | 'POST' /*| 'POST_DATA' Not used */,
-        data: any
+        data: any,
     ) {
         const http = this.http
 
         return Promise.resolve().then(http.fetch(method, path, data))
     }
 
-    destroy() {
+    public destroy() {
         this.http.destroy()
     }
 
-    setAuthToken(authToken: string) {
+    public setAuthToken(authToken: string) {
         ApiManager.authToken = authToken
         this.http.setAuthToken(authToken)
     }
 
-    static isLoggedIn() {
-        return !!ApiManager.authToken
-    }
-
-    getAuthToken(password: string) {
+    public getAuthToken(password: string) {
         const http = this.http
         ApiManager.lastKnownPassword = password
         let authTokenFetched = ''
 
         const self = this
+        console.log(password)
+
         return Promise.resolve() //
             .then(http.fetch(http.POST, '/login', { password }))
-            .then(function(data) {
+            .then((data) => {
+                console.log(data)
+
                 authTokenFetched = data.token
                 self.setAuthToken(authTokenFetched)
                 return authTokenFetched
             })
             .then(self.authTokenSaver)
-            .then(function() {
+            .then(() => {
                 return authTokenFetched
             })
     }
 
-    getCaptainInfo() {
+    public getCaptainInfo() {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.GET, '/user/system/info', {}))
     }
 
-    updateRootDomain(rootDomain: string) {
+    public updateRootDomain(rootDomain: string) {
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/system/changerootdomain', {
                     rootDomain,
-                })
+                }),
             )
     }
 
-    enableRootSsl(emailAddress: string) {
+    public enableRootSsl(emailAddress: string) {
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/system/enablessl', {
                     emailAddress,
-                })
+                }),
             )
     }
 
-    forceSsl(isEnabled: boolean) {
+    public forceSsl(isEnabled: boolean) {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.POST, '/user/system/forcessl', { isEnabled }))
     }
 
-    getAllApps() {
+    public getAllApps() {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.GET, '/user/apps/appDefinitions', {}))
     }
 
-    fetchBuildLogs(appName: string): Promise<IBuildLogs> {
+    public fetchBuildLogs(appName: string): Promise<IBuildLogs> {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.GET, '/user/apps/appData/' + appName, {}))
     }
 
-    uploadAppData(appName: string, file: fs.ReadStream, gitHash: string) {
+    public uploadAppData(appName: string, file: fs.ReadStream, gitHash: string) {
         const http = this.http
         return Promise.resolve() //
             .then(
                 http.fetch(
                     http.POST_DATA,
                     '/user/apps/appData/' + appName + '?detached=1',
-                    { sourceFile: file, gitHash: gitHash }
-                )
+                    { sourceFile: file, gitHash },
+                ),
             )
     }
 
-    uploadCaptainDefinitionContent(
+    public uploadCaptainDefinitionContent(
         appName: string,
         captainDefinition: ICaptainDefinition,
         gitHash: string,
-        detached: boolean
+        detached: boolean,
     ) {
         const http = this.http
 
@@ -150,46 +154,46 @@ export default class ApiManager {
                         (detached ? '?detached=1' : ''),
                     {
                         captainDefinitionContent: JSON.stringify(
-                            captainDefinition
+                            captainDefinition,
                         ),
                         gitHash,
-                    }
-                )
+                    },
+                ),
             )
     }
 
-    updateConfigAndSave(appName: string, appDefinition: IAppDef) {
-        var instanceCount = appDefinition.instanceCount
-        var envVars = appDefinition.envVars
-        var notExposeAsWebApp = appDefinition.notExposeAsWebApp
-        var forceSsl = appDefinition.forceSsl
-        var volumes = appDefinition.volumes
-        var ports = appDefinition.ports
-        var nodeId = appDefinition.nodeId
-        var appPushWebhook = appDefinition.appPushWebhook
-        var customNginxConfig = appDefinition.customNginxConfig
-        var preDeployFunction = appDefinition.preDeployFunction
+    public updateConfigAndSave(appName: string, appDefinition: IAppDef) {
+        const instanceCount = appDefinition.instanceCount
+        const envVars = appDefinition.envVars
+        const notExposeAsWebApp = appDefinition.notExposeAsWebApp
+        const forceSsl = appDefinition.forceSsl
+        const volumes = appDefinition.volumes
+        const ports = appDefinition.ports
+        const nodeId = appDefinition.nodeId
+        const appPushWebhook = appDefinition.appPushWebhook
+        const customNginxConfig = appDefinition.customNginxConfig
+        const preDeployFunction = appDefinition.preDeployFunction
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/apps/appDefinitions/update', {
-                    appName: appName,
-                    instanceCount: instanceCount,
-                    notExposeAsWebApp: notExposeAsWebApp,
-                    forceSsl: forceSsl,
-                    volumes: volumes,
-                    ports: ports,
-                    customNginxConfig: customNginxConfig,
-                    appPushWebhook: appPushWebhook,
-                    nodeId: nodeId,
-                    preDeployFunction: preDeployFunction,
-                    envVars: envVars,
-                })
+                    appName,
+                    instanceCount,
+                    notExposeAsWebApp,
+                    forceSsl,
+                    volumes,
+                    ports,
+                    customNginxConfig,
+                    appPushWebhook,
+                    nodeId,
+                    preDeployFunction,
+                    envVars,
+                }),
             )
     }
 
-    registerNewApp(appName: string, hasPersistentData: boolean) {
+    public registerNewApp(appName: string, hasPersistentData: boolean) {
         const http = this.http
 
         return Promise.resolve() //
@@ -197,22 +201,22 @@ export default class ApiManager {
                 http.fetch(http.POST, '/user/apps/appDefinitions/register', {
                     appName,
                     hasPersistentData,
-                })
+                }),
             )
     }
 
-    deleteApp(appName: string) {
+    public deleteApp(appName: string) {
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/apps/appDefinitions/delete', {
                     appName,
-                })
+                }),
             )
     }
 
-    enableSslForBaseDomain(appName: string) {
+    public enableSslForBaseDomain(appName: string) {
         const http = this.http
 
         return Promise.resolve() //
@@ -222,12 +226,12 @@ export default class ApiManager {
                     '/user/apps/appDefinitions/enablebasedomainssl',
                     {
                         appName,
-                    }
-                )
+                    },
+                ),
             )
     }
 
-    attachNewCustomDomainToApp(appName: string, customDomain: string) {
+    public attachNewCustomDomainToApp(appName: string, customDomain: string) {
         const http = this.http
 
         return Promise.resolve() //
@@ -238,12 +242,12 @@ export default class ApiManager {
                     {
                         appName,
                         customDomain,
-                    }
-                )
+                    },
+                ),
             )
     }
 
-    enableSslForCustomDomain(appName: string, customDomain: string) {
+    public enableSslForCustomDomain(appName: string, customDomain: string) {
         const http = this.http
 
         return Promise.resolve() //
@@ -254,12 +258,12 @@ export default class ApiManager {
                     {
                         appName,
                         customDomain,
-                    }
-                )
+                    },
+                ),
             )
     }
 
-    removeCustomDomain(appName: string, customDomain: string) {
+    public removeCustomDomain(appName: string, customDomain: string) {
         const http = this.http
 
         return Promise.resolve() //
@@ -270,35 +274,35 @@ export default class ApiManager {
                     {
                         appName,
                         customDomain,
-                    }
-                )
+                    },
+                ),
             )
     }
 
-    getLoadBalancerInfo() {
+    public getLoadBalancerInfo() {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.GET, '/user/system/loadbalancerinfo', {}))
     }
 
-    getNetDataInfo() {
+    public getNetDataInfo() {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.GET, '/user/system/netdata', {}))
     }
 
-    updateNetDataInfo(netDataInfo: any) {
+    public updateNetDataInfo(netDataInfo: any) {
         const http = this.http
 
         return Promise.resolve() //
             .then(
-                http.fetch(http.POST, '/user/system/netdata', { netDataInfo })
+                http.fetch(http.POST, '/user/system/netdata', { netDataInfo }),
             )
     }
 
-    changePass(oldPassword: string, newPassword: string) {
+    public changePass(oldPassword: string, newPassword: string) {
         const http = this.http
 
         return Promise.resolve() //
@@ -306,36 +310,36 @@ export default class ApiManager {
                 http.fetch(http.POST, '/user/changepassword', {
                     oldPassword,
                     newPassword,
-                })
+                }),
             )
     }
 
-    getVersionInfo(): Promise<IVersionInfo> {
+    public getVersionInfo(): Promise<IVersionInfo> {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.GET, '/user/system/versioninfo', {}))
     }
 
-    performUpdate(latestVersion: string) {
+    public performUpdate(latestVersion: string) {
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/system/versioninfo', {
                     latestVersion,
-                })
+                }),
             )
     }
 
-    getNginxConfig() {
+    public getNginxConfig() {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.GET, '/user/system/nginxconfig', {}))
     }
 
-    setNginxConfig(customBase: string, customCaptain: string) {
+    public setNginxConfig(customBase: string, customCaptain: string) {
         const http = this.http
 
         return Promise.resolve() //
@@ -343,21 +347,21 @@ export default class ApiManager {
                 http.fetch(http.POST, '/user/system/nginxconfig', {
                     baseConfig: { customValue: customBase },
                     captainConfig: { customValue: customCaptain },
-                })
+                }),
             )
     }
 
-    getUnusedImages(mostRecentLimit: number) {
+    public getUnusedImages(mostRecentLimit: number) {
         const http = this.http
         return Promise.resolve() //
             .then(
                 http.fetch(http.GET, '/user/apps/appDefinitions/unusedImages', {
                     mostRecentLimit: mostRecentLimit + '',
-                })
+                }),
             )
     }
 
-    deleteImages(imageIds: string[]) {
+    public deleteImages(imageIds: string[]) {
         const http = this.http
 
         return Promise.resolve() //
@@ -367,19 +371,19 @@ export default class ApiManager {
                     '/user/apps/appDefinitions/deleteImages',
                     {
                         imageIds,
-                    }
-                )
+                    },
+                ),
             )
     }
 
-    getDockerRegistries() {
+    public getDockerRegistries() {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.GET, '/user/registries', {}))
     }
 
-    enableSelfHostedDockerRegistry() {
+    public enableSelfHostedDockerRegistry() {
         const http = this.http
 
         return Promise.resolve() //
@@ -387,12 +391,12 @@ export default class ApiManager {
                 http.fetch(
                     http.POST,
                     '/user/system/selfhostregistry/enableregistry',
-                    {}
-                )
+                    {},
+                ),
             )
     }
 
-    disableSelfHostedDockerRegistry() {
+    public disableSelfHostedDockerRegistry() {
         const http = this.http
 
         return Promise.resolve() //
@@ -400,67 +404,67 @@ export default class ApiManager {
                 http.fetch(
                     http.POST,
                     '/user/system/selfhostregistry/disableregistry',
-                    {}
-                )
+                    {},
+                ),
             )
     }
 
-    addDockerRegistry(dockerRegistry: IRegistryInfo) {
+    public addDockerRegistry(dockerRegistry: IRegistryInfo) {
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/registries/insert', {
                     ...dockerRegistry,
-                })
+                }),
             )
     }
 
-    updateDockerRegistry(dockerRegistry: IRegistryInfo) {
+    public updateDockerRegistry(dockerRegistry: IRegistryInfo) {
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/registries/update', {
                     ...dockerRegistry,
-                })
+                }),
             )
     }
 
-    deleteDockerRegistry(registryId: string) {
+    public deleteDockerRegistry(registryId: string) {
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/registries/delete', {
                     registryId,
-                })
+                }),
             )
     }
 
-    setDefaultPushDockerRegistry(registryId: string) {
+    public setDefaultPushDockerRegistry(registryId: string) {
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/registries/setpush', {
                     registryId,
-                })
+                }),
             )
     }
 
-    getAllNodes() {
+    public getAllNodes() {
         const http = this.http
 
         return Promise.resolve() //
             .then(http.fetch(http.GET, '/user/system/nodes', {}))
     }
 
-    addDockerNode(
+    public addDockerNode(
         nodeType: string,
         privateKey: string,
         remoteNodeIpAddress: string,
-        captainIpAddress: string
+        captainIpAddress: string,
     ) {
         const http = this.http
 
@@ -471,7 +475,7 @@ export default class ApiManager {
                     privateKey,
                     remoteNodeIpAddress,
                     captainIpAddress,
-                })
+                }),
             )
     }
 }

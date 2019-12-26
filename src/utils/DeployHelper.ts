@@ -1,19 +1,19 @@
+import { exec } from 'child_process'
 import * as fs from 'fs-extra'
 import * as path from 'path'
-import { exec } from 'child_process'
-const ProgressBar = require('progress')
-import StdOutUtil from '../utils/StdOutUtil'
-import SpinnerHelper from '../utils/SpinnerHelper'
-import IBuildLogs from '../models/IBuildLogs'
-import { IMachine, IDeployParams } from '../models/storage/StoredObjects'
+import * as ProgressBar from 'progress'
 import CliApiManager from '../api/CliApiManager'
+import IBuildLogs from '../models/IBuildLogs'
+import { IDeployParams, IMachine } from '../models/storage/StoredObjects'
+import SpinnerHelper from '../utils/SpinnerHelper'
+import StdOutUtil from '../utils/StdOutUtil'
 
 export default class DeployHelper {
     private lastLineNumberPrinted = -10000 // we want to show all lines to begin with!
 
     constructor(private ssl?: boolean) {}
 
-    async startDeploy(deployParams: IDeployParams): Promise<boolean> {
+    public async startDeploy(deployParams: IDeployParams): Promise<boolean> {
         const appName = deployParams.appName
         const branchToPush = deployParams.deploySource.branchToPush
         const tarFilePath = deployParams.deploySource.tarFilePath
@@ -23,7 +23,7 @@ export default class DeployHelper {
         if (!appName || !machineToDeploy) {
             StdOutUtil.printError(
                 "Can't deploy: missing CapRover machine or app name.\n",
-                true
+                true,
             )
             return false
         }
@@ -36,7 +36,7 @@ export default class DeployHelper {
         ) {
             StdOutUtil.printError(
                 "Can't deploy: only one of branch, tarFile or imageName can be present.\n",
-                true
+                true,
             )
             return false
         }
@@ -61,23 +61,23 @@ export default class DeployHelper {
                 machineToDeploy.name
                     ? StdOutUtil.getColoredMachineName(machineToDeploy.name)
                     : StdOutUtil.getColoredMachineUrl(machineToDeploy.baseUrl)
-            }...\n`
+            }...\n`,
         )
         try {
             if (imageName) {
                 await CliApiManager.get(
-                    machineToDeploy
+                    machineToDeploy,
                 ).uploadCaptainDefinitionContent(
                     appName,
-                    { schemaVersion: 2, imageName: imageName },
+                    { schemaVersion: 2, imageName },
                     '',
-                    true
+                    true,
                 )
             } else {
                 await CliApiManager.get(machineToDeploy).uploadAppData(
                     appName,
                     this.getFileStream(tarFileFullPath),
-                    gitHash
+                    gitHash,
                 )
             }
 
@@ -93,43 +93,46 @@ export default class DeployHelper {
     }
 
     private gitArchiveFile(zipFileFullPath: string, branchToPush: string) {
-        return new Promise<string>(function(resolve, reject) {
-            if (fs.pathExistsSync(zipFileFullPath))
-                fs.removeSync(zipFileFullPath) // Removes the temporary file created
+        return new Promise<string>((resolve, reject) => {
+            if (fs.pathExistsSync(zipFileFullPath)) {
+                fs.removeSync(zipFileFullPath)
+            } // Removes the temporary file created
 
             exec(
                 `git archive --format tar --output "${zipFileFullPath}" ${branchToPush}`,
-                (err, stdout, stderr) => {
+                (err) => {
                     if (err) {
                         StdOutUtil.printError(`TAR file failed.\n${err}\n`)
-                        if (fs.pathExistsSync(zipFileFullPath))
+                        if (fs.pathExistsSync(zipFileFullPath)) {
                             fs.removeSync(zipFileFullPath)
+                        }
                         reject(new Error('TAR file failed'))
                         return
                     }
 
                     exec(
                         `git rev-parse ${branchToPush}`,
-                        (err, stdout, stderr) => {
-                            const gitHash = (stdout || '').trim()
+                        (revErr, revStdout) => {
+                            const gitHash = (revStdout || '').trim()
 
-                            if (err || !/^[a-f0-9]{40}$/.test(gitHash)) {
+                            if (revErr || !/^[a-f0-9]{40}$/.test(gitHash)) {
                                 StdOutUtil.printError(
-                                    `Cannot find hash of last commit on branch "${branchToPush}": ${gitHash}\n${err}\n`
+                                    `Cannot find hash of last commit on branch "${branchToPush}": ${gitHash}\n${revErr}\n`,
                                 )
-                                if (fs.pathExistsSync(zipFileFullPath))
+                                if (fs.pathExistsSync(zipFileFullPath)) {
                                     fs.removeSync(zipFileFullPath)
+                                }
                                 reject(new Error('rev-parse failed'))
                                 return
                             }
 
                             StdOutUtil.printMessage(
-                                `Using last commit on "${branchToPush}": ${gitHash}\n`
+                                `Using last commit on "${branchToPush}": ${gitHash}\n`,
                             )
                             resolve(gitHash)
-                        }
+                        },
                     )
-                }
+                },
             )
         })
     }
@@ -140,14 +143,14 @@ export default class DeployHelper {
         const barOpts = { width: 20, total: fileSize, clear: false }
         const bar = new ProgressBar(
             'Uploading [:bar] :percent  (ETA :etas)',
-            barOpts
+            barOpts,
         )
 
-        fileStream.on('data', chunk => bar.tick(chunk.length))
+        fileStream.on('data', (chunk) => bar.tick(chunk.length))
         fileStream.on('end', () => {
             StdOutUtil.printGreenMessage(`Upload done.\n`)
             StdOutUtil.printMessage(
-                'This might take several minutes. PLEASE BE PATIENT...\n'
+                'This might take several minutes. PLEASE BE PATIENT...\n',
             )
             SpinnerHelper.start('Building your source code...\n')
             SpinnerHelper.setColor('yellow')
@@ -159,7 +162,7 @@ export default class DeployHelper {
     private async onLogRetrieved(
         data: IBuildLogs | undefined,
         machineToDeploy: IMachine,
-        appName: string
+        appName: string,
     ) {
         if (data) {
             const lines = data.logs.lines
@@ -187,50 +190,50 @@ export default class DeployHelper {
                 let appUrl = machineToDeploy.baseUrl
                     .replace('https://', 'http://')
                     .replace('//captain.', `//${appName}.`)
-                if (this.ssl) appUrl = appUrl.replace('http://', 'https://')
+                if (this.ssl) { appUrl = appUrl.replace('http://', 'https://') }
                 StdOutUtil.printGreenMessage(
                     `\nDeployed successfully ${StdOutUtil.getColoredAppName(
-                        appName
-                    )}`
+                        appName,
+                    )}`,
                 )
                 StdOutUtil.printGreenMessage(
                     `App is available at ${StdOutUtil.getColoredMachineUrl(
-                        appUrl
+                        appUrl,
                     )}\n`,
-                    true
+                    true,
                 )
             } else {
                 StdOutUtil.printError(
                     `\nSomething bad happened. Cannot deploy ${StdOutUtil.getColoredAppName(
-                        appName
+                        appName,
                     )} at ${StdOutUtil.getColoredMachineName(
-                        machineToDeploy.name || machineToDeploy.baseUrl
+                        machineToDeploy.name || machineToDeploy.baseUrl,
                     )}.\n`,
-                    true
+                    true,
                 )
             }
         } else {
             setTimeout(
                 () => this.startFetchingBuildLogs(machineToDeploy, appName),
-                2000
+                2000,
             )
         }
     }
 
     private async startFetchingBuildLogs(
         machineToDeploy: IMachine,
-        appName: string
+        appName: string,
     ) {
         try {
             const data = await CliApiManager.get(
-                machineToDeploy
+                machineToDeploy,
             ).fetchBuildLogs(appName)
             this.onLogRetrieved(data, machineToDeploy, appName)
         } catch (error) {
             StdOutUtil.printError(
                 `\nSomething bad happened while retrieving ${StdOutUtil.getColoredAppName(
-                    appName
-                )} app build logs.\n${error.message || error}\n`
+                    appName,
+                )} app build logs.\n${error.message || error}\n`,
             )
             this.onLogRetrieved(undefined, machineToDeploy, appName)
         }

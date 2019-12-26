@@ -1,25 +1,25 @@
-const ora = require('ora')
+import ora = require('ora')
 
 class SpinnerHelper {
     private spinner: any
 
-    start(message: string) {
+    public start(message: string) {
         this.spinner = ora(message).start()
     }
 
-    setColor(color: string) {
+    public setColor(color: string) {
         this.spinner.color = color
     }
 
-    stop() {
+    public stop() {
         this.spinner.stop()
     }
 
-    succeed() {
+    public succeed() {
         this.spinner.succeed()
     }
 
-    fail() {
+    public fail() {
         this.spinner.fail()
     }
 }

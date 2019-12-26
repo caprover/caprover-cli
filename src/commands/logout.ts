@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
-import StdOutUtil from '../utils/StdOutUtil'
-import Constants from '../utils/Constants'
 import CliHelper from '../utils/CliHelper'
+import Constants from '../utils/Constants'
+import StdOutUtil from '../utils/StdOutUtil'
 import {
     getErrorForMachineName,
     userCancelOperation,
 } from '../utils/ValidationsHandler'
 import Command, {
-    IParams,
-    IOption,
     ICommandLineOptions,
-    ParamType,
+    IOption,
     IParam,
+    IParams,
+    ParamType,
 } from './Command'
 
 const K = Constants.COMMON_KEYS
@@ -46,7 +46,8 @@ export default class List extends Command {
             name: 'confirmedToLogout',
             type: 'confirm',
             message: () =>
-                'are you sure you want to logout from this CapRover machine?', // Use function to not append ':' on question message generation
+                // Use function to not append ':' on question message generation
+                'are you sure you want to logout from this CapRover machine?',
             default: false,
             hide: true,
             when: () => this.paramFrom(params, K.name) === ParamType.Question,
@@ -55,7 +56,7 @@ export default class List extends Command {
     ]
 
     protected async preAction(
-        cmdLineoptions: ICommandLineOptions
+        cmdLineoptions: ICommandLineOptions,
     ): Promise<ICommandLineOptions> {
         StdOutUtil.printMessage('Logout from a CapRover machine...\n')
         return Promise.resolve(cmdLineoptions)

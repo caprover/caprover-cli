@@ -2,7 +2,7 @@
 
 import StdOutUtil from '../utils/StdOutUtil'
 import StorageHelper from '../utils/StorageHelper'
-import Command, { IParams, ICommandLineOptions } from './Command'
+import Command, { ICommandLineOptions, IParams } from './Command'
 
 export default class List extends Command {
     protected command = 'list'
@@ -12,7 +12,7 @@ export default class List extends Command {
     protected description = 'List all CapRover machines currently logged in.'
 
     protected async preAction(
-        cmdLineoptions: ICommandLineOptions
+        cmdLineoptions: ICommandLineOptions,
     ): Promise<ICommandLineOptions> {
         StdOutUtil.printMessage('Logged in CapRover Machines:\n')
         return Promise.resolve(cmdLineoptions)
@@ -21,6 +21,6 @@ export default class List extends Command {
     protected async action(params: IParams): Promise<void> {
         const machines = StorageHelper.get().getMachines()
         machines.forEach(StdOutUtil.displayColoredMachine)
-        if (machines.length) StdOutUtil.printMessage('')
+        if (machines.length) { StdOutUtil.printMessage('') }
     }
 }

@@ -10,19 +10,19 @@ const API_METHODS = ['GET', 'POST']
 
 export default {
     ADMIN_DOMAIN,
+    API_METHODS,
+    BASE_API_PATH,
+    CANCEL_STRING,
+    COMMON_KEYS: {
+      app: 'caproverApp',
+        conf: 'configFile',
+        name: 'caproverName',
+        pwd: 'caproverPassword',
+        url: 'caproverUrl',
+    },
+    DEFAULT_PASSWORD,
+    MIN_CHARS_FOR_PASSWORD,
     SAMPLE_DOMAIN,
     SAMPLE_IP,
-    DEFAULT_PASSWORD,
-    CANCEL_STRING,
     SETUP_PORT,
-    MIN_CHARS_FOR_PASSWORD,
-    BASE_API_PATH,
-    API_METHODS,
-    COMMON_KEYS: {
-        conf: 'configFile',
-        url: 'caproverUrl',
-        pwd: 'caproverPassword',
-        name: 'caproverName',
-        app: 'caproverApp',
-    },
 }

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// tslint:disable-next-line: no-var-requires
 const packagejson = require('../../package.json')
 import * as updateNotifier from 'update-notifier'
 
@@ -7,24 +8,24 @@ const versionOfNode = Number(process.version.split('.')[0])
 
 if (versionOfNode < 8) {
     console.log(
-        'Unsupported version of node. You need to update your local NodeJS version.'
+        'Unsupported version of node. You need to update your local NodeJS version.',
     )
     process.exit(1)
 }
 
 updateNotifier({ pkg: packagejson }).notify({ isGlobal: true })
 
-import StdOutUtil from '../utils/StdOutUtil'
 import * as program from 'commander'
+import StdOutUtil from '../utils/StdOutUtil'
 
 // Command actions
-import Command from './Command'
-import Login from './login'
-import List from './list'
-import Logout from './logout'
-import Deploy from './deploy'
-import ServerSetup from './serversetup'
 import Api from './api'
+import Command from './Command'
+import Deploy from './deploy'
+import List from './list'
+import Login from './login'
+import Logout from './logout'
+import ServerSetup from './serversetup'
 
 console.log('')
 console.log('')
@@ -46,14 +47,14 @@ const commands: Command[] = [
     new Deploy(program),
     new Api(program),
 ]
-commands.forEach(c => c.build())
+commands.forEach((c) => c.build())
 
 // Error on unknown commands
 program.on('command:*', () => {
     const wrongCommands = program.args.join(' ')
     StdOutUtil.printError(
         `Invalid command: ${wrongCommands}\nSee --help for a list of available commands.\n`,
-        true
+        true,
     )
 })
 

@@ -1,34 +1,34 @@
 #!/usr/bin/env node
 
-import Constants from '../utils/Constants'
-import StdOutUtil from '../utils/StdOutUtil'
-import Utils from '../utils/Utils'
+import CliApiManager from '../api/CliApiManager'
+import { IMachine } from '../models/storage/StoredObjects'
 import CliHelper from '../utils/CliHelper'
-import StorageHelper from '../utils/StorageHelper'
+import Constants from '../utils/Constants'
 import ErrorFactory from '../utils/ErrorFactory'
 import SpinnerHelper from '../utils/SpinnerHelper'
+import StdOutUtil from '../utils/StdOutUtil'
+import StorageHelper from '../utils/StorageHelper'
+import Utils from '../utils/Utils'
 import {
-    getErrorForIP,
-    getErrorForPassword,
     getErrorForEmail,
+    getErrorForIP,
     getErrorForMachineName,
+    getErrorForPassword,
 } from '../utils/ValidationsHandler'
-import { IMachine } from '../models/storage/StoredObjects'
-import CliApiManager from '../api/CliApiManager'
 import Command, {
-    IParams,
-    IOption,
     ICommandLineOptions,
+    IOption,
     IParam,
+    IParams,
     ParamType,
 } from './Command'
 
 const K = Utils.extendCommonKeys({
+    email: 'certificateEmail',
     ip: 'caproverIP',
-    root: 'caproverRootDomain',
     newPwd: 'newPassword',
     newPwdCheck: 'newPasswordCheck',
-    email: 'certificateEmail',
+    root: 'caproverRootDomain',
 })
 
 export default class ServerSetup extends Command {
@@ -48,32 +48,32 @@ export default class ServerSetup extends Command {
     protected options = (params?: IParams): IOption[] => [
         this.getDefaultConfigFileOption(() => this.preQuestions(params!)),
         {
-            name: 'assumeYes',
             char: 'y',
-            type: 'confirm',
-            message: () =>
-                (params ? 'have you' : 'assume you have') +
-                ' already started CapRover container on your server' +
-                (params ? '?' : ''), // Use function to not append ':' on question message generation
             default: params && true,
-            when: !this.configFileProvided,
+            message: () =>
+            (params ? 'have you' : 'assume you have') +
+            ' already started CapRover container on your server' +
+            (params ? '?' : ''), // Use function to not append ':' on question message generation
+            name: 'assumeYes',
             preProcessParam: (param?: IParam) => {
-                if (param && !param.value) {
+              if (param && !param.value) {
                     StdOutUtil.printError(
-                        '\nCannot setup CapRover if container is not started!\n'
+                      '\nCannot setup CapRover if container is not started!\n',
                     )
                     StdOutUtil.printWarning(
-                        'Start it by running the following line:'
+                        'Start it by running the following line:',
                     )
                     StdOutUtil.printMessage(
-                        'docker run -p 80:80 -p 443:443 -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v /captain:/captain caprover/caprover'
+                        'docker run -p 80:80 -p 443:443 -p 3000:3000 -v /var/run/docker.sock:/var/run/docker.sock -v /captain:/captain caprover/caprover',
                     )
                     StdOutUtil.printMessage(
                         '\nPlease read tutorial on CapRover.com to learn how to install CapRover on a server.\n',
-                        true
+                        true,
                     )
                 }
             },
+            type: 'confirm',
+            when: !this.configFileProvided,
         },
         {
             name: K.ip,
@@ -145,7 +145,7 @@ export default class ServerSetup extends Command {
             validate: (password: string) =>
                 getErrorForPassword(
                     password,
-                    this.paramValue<string>(params, K.newPwd)
+                    this.paramValue<string>(params, K.newPwd),
                 ),
         },
         {
@@ -161,7 +161,7 @@ export default class ServerSetup extends Command {
             preProcessParam: (param: IParam) =>
                 this.enableSslAndChangePassword(
                     param.value,
-                    this.paramValue(params, K.newPwd)
+                    this.paramValue(params, K.newPwd),
                 ),
         },
         {
@@ -180,7 +180,7 @@ export default class ServerSetup extends Command {
     ]
 
     protected async preAction(
-        cmdLineoptions: ICommandLineOptions
+        cmdLineoptions: ICommandLineOptions,
     ): Promise<ICommandLineOptions> {
         StdOutUtil.printMessage('Setup CapRover machine on your server...\n')
         return Promise.resolve(cmdLineoptions)
@@ -189,11 +189,22 @@ export default class ServerSetup extends Command {
     protected preQuestions(params: IParams) {
         if (this.findParamValue(params, K.name)) {
             const err = getErrorForMachineName(
-                this.findParamValue(params, K.name)!.value
+                this.findParamValue(params, K.name)!.value,
             )
-            if (err !== true)
+            if (err !== true) {
                 StdOutUtil.printError(`${err || 'Error!'}\n`, true)
+            }
         }
+    }
+
+    protected async action(params: IParams): Promise<void> {
+        StorageHelper.get().saveMachine(this.machine)
+        StdOutUtil.printGreenMessage(
+            `CapRover server setup completed: it is available as ${StdOutUtil.getColoredMachine(
+                this.machine,
+            )}\n`,
+        )
+        StdOutUtil.printMessage('For more details and docs see CapRover.com\n')
     }
 
     private async getAuthTokenFromIp(firstTry?: boolean): Promise<string> {
@@ -207,15 +218,16 @@ export default class ServerSetup extends Command {
             if (
                 firstTry &&
                 e.captainStatus === ErrorFactory.STATUS_WRONG_PASSWORD
-            )
+            ) {
                 return ''
+            }
             if ((e + '').indexOf('Found. Redirecting to https://') >= 0) {
                 StdOutUtil.printWarning(
-                    '\nYou may have already setup the server! Use caprover login to log into an existing server.'
+                    '\nYou may have already setup the server! Use caprover login to log into an existing server.',
                 )
             } else {
                 StdOutUtil.printWarning(
-                    '\nYou may have specified a wrong IP address or not already started CapRover container on your server!'
+                    '\nYou may have specified a wrong IP address or not already started CapRover container on your server!',
                 )
             }
             StdOutUtil.errorHandler(e)
@@ -230,11 +242,12 @@ export default class ServerSetup extends Command {
                 baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
                 name: '',
             }).getCaptainInfo()).rootDomain
-            if (rootDomain)
+            if (rootDomain) {
                 StdOutUtil.printWarning(
                     `\nYou may have already setup the server with root domain: ${rootDomain}! Use caprover login to log into an existing server.`,
-                    true
+                    true,
                 )
+            }
         } catch (e) {
             StdOutUtil.errorHandler(e)
         }
@@ -253,14 +266,14 @@ export default class ServerSetup extends Command {
             if (e.captainStatus === ErrorFactory.VERIFICATION_FAILED) {
                 StdOutUtil.printError(
                     `\nCannot verify that ${StdOutUtil.getColoredMachineUrl(
-                        rootDomain
-                    )} points to your server IP.`
+                        rootDomain,
+                    )} points to your server IP.`,
                 )
                 StdOutUtil.printError(
-                    `Are you sure that you setup your DNS to point "*.${rootDomain}" to ${this.ip}?`
+                    `Are you sure that you setup your DNS to point "*.${rootDomain}" to ${this.ip}?`,
                 )
                 StdOutUtil.printError(
-                    `Double check your DNS, if everything looks correct note that DNS changes take up to 24 hours to work properly. Check with your Domain Provider.`
+                    `Double check your DNS, if everything looks correct note that DNS changes take up to 24 hours to work properly. Check with your Domain Provider.`,
                 )
             }
             StdOutUtil.errorHandler(e)
@@ -269,7 +282,7 @@ export default class ServerSetup extends Command {
 
     private async enableSslAndChangePassword(
         email: string,
-        newPassword?: string
+        newPassword?: string,
     ) {
         let forcedSsl = false
         try {
@@ -278,7 +291,7 @@ export default class ServerSetup extends Command {
             await CliApiManager.get(this.machine).enableRootSsl(email)
             this.machine.baseUrl = Utils.cleanAdminDomainUrl(
                 this.machine.baseUrl,
-                true
+                true,
             )!
             await CliApiManager.get(this.machine).forceSsl(true)
             forcedSsl = true
@@ -286,11 +299,11 @@ export default class ServerSetup extends Command {
             if (newPassword !== undefined) {
                 await CliApiManager.get(this.machine).changePass(
                     this.password,
-                    newPassword
+                    newPassword,
                 )
                 this.password = newPassword
                 await CliApiManager.get(this.machine).getAuthToken(
-                    this.password
+                    this.password,
                 )
             }
 
@@ -298,29 +311,20 @@ export default class ServerSetup extends Command {
         } catch (e) {
             if (forcedSsl) {
                 StdOutUtil.printError(
-                    '\nServer is setup, but password was not changed due to an error. You cannot use serversetup again.'
+                    // tslint:disable-next-line: max-line-length
+                    '\nServer is setup, but password was not changed due to an error. You cannot use serversetup again.',
                 )
                 StdOutUtil.printError(
                     `Instead, go to ${StdOutUtil.getColoredMachineUrl(
-                        this.machine.baseUrl
-                    )} and change your password on settings page.`
+                        this.machine.baseUrl,
+                    )} and change your password on settings page.`,
                 )
                 StdOutUtil.printError(
-                    `Then use <caprover login> command to connect to your server.`
+                    `Then use <caprover login> command to connect to your server.`,
                 )
             }
             SpinnerHelper.fail()
             StdOutUtil.errorHandler(e)
         }
-    }
-
-    protected async action(params: IParams): Promise<void> {
-        StorageHelper.get().saveMachine(this.machine)
-        StdOutUtil.printGreenMessage(
-            `CapRover server setup completed: it is available as ${StdOutUtil.getColoredMachine(
-                this.machine
-            )}\n`
-        )
-        StdOutUtil.printMessage('For more details and docs see CapRover.com\n')
     }
 }

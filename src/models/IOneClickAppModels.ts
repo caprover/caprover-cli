@@ -15,7 +15,8 @@ export interface IOneClickVariable {
 
 export interface IDockerComposeService {
     image?: string
-    dockerFileLines?: string[] // This is our property, not DockerCompose. We use this instead of image if we need to extend the image.
+    // This is our property, not DockerCompose. We use this instead of image if we need to extend the image.
+    dockerFileLines?: string[]
     volumes?: string[]
     ports?: string[]
     environment?: IHashMapGeneric<string>
@@ -26,11 +27,11 @@ export interface IOneClickTemplate {
     captainVersion: number
     dockerCompose: {
         version: string
-        services: IHashMapGeneric<IDockerComposeService>
+        services: IHashMapGeneric<IDockerComposeService>,
     }
     instructions: {
         start: string
-        end: string
+        end: string,
     }
     variables: IOneClickVariable[]
 }

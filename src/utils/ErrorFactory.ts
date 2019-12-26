@@ -14,17 +14,15 @@ class ErrorFactory {
 
     public readonly UNKNOWN_ERROR = 1999
 
-    constructor() {}
-
-    createError(status: number, message: string) {
-        let e = new Error(message) as any
+    public createError(status: number, message: string) {
+        const e = new Error(message) as any
         e.captainStatus = status
         e.captainMessage = message
         return e
     }
 
-    eatUpPromiseRejection() {
-        return function(error: any) {
+    public eatUpPromiseRejection() {
+        return (error: any) => {
             // nom nom
         }
     }

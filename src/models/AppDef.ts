@@ -1,4 +1,4 @@
-//COPIED FROM BACKEND CODE
+// COPIED FROM BACKEND CODE
 interface IHashMapGeneric<T> {
     [id: string]: T
 }
@@ -24,6 +24,7 @@ interface IAppPort {
     publishMode?: 'ingress' | 'host'
 }
 
+// tslint:disable-next-line: interface-name
 export interface RepoInfo {
     repo: string
     branch: string
@@ -31,6 +32,7 @@ export interface RepoInfo {
     password: string
 }
 
+// tslint:disable-next-line: interface-name
 interface RepoInfoEncrypted {
     repo: string
     branch: string
@@ -75,7 +77,7 @@ export interface IAppDef extends IAppDefinitionBase {
     appPushWebhook?: {
         repoInfo: RepoInfo
         tokenVersion?: string // On FrontEnd, these values are null, until they are assigned.
-        pushWebhookToken?: string // On FrontEnd, these values are null, until they are assigned.
+        pushWebhookToken?: string, // On FrontEnd, these values are null, until they are assigned.
     }
     appName?: string
     isAppBuilding?: boolean
@@ -86,7 +88,7 @@ interface IAppDefSaved extends IAppDefinitionBase {
         | {
               tokenVersion: string
               repoInfo: RepoInfoEncrypted
-              pushWebhookToken: string
+              pushWebhookToken: string,
           }
         | undefined
 }

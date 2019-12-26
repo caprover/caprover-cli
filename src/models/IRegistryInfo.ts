@@ -4,8 +4,8 @@ export interface IRegistryApi {
 }
 
 export class IRegistryTypes {
-    static readonly LOCAL_REG = 'LOCAL_REG'
-    static readonly REMOTE_REG = 'REMOTE_REG'
+    public static readonly LOCAL_REG = 'LOCAL_REG'
+    public static readonly REMOTE_REG = 'REMOTE_REG'
 }
 
 type IRegistryType = 'LOCAL_REG' | 'REMOTE_REG'

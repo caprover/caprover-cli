@@ -3,6 +3,6 @@ export default interface IBuildLogs {
     isBuildFailed: boolean
     logs: {
         firstLineNumber: number
-        lines: string[]
+        lines: string[],
     }
 }
