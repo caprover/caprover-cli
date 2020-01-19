@@ -8,14 +8,22 @@
       "quotemark": [true, "single"],
       "member-access": [true, "no-public"],
       "ordered-imports": [false],
-      "max-line-length": [true, 150],
       "member-ordering": [false],
       "interface-name": [false],
       "arrow-parens": false,
       "object-literal-sort-keys": false,
       "only-arrow-functions": false,
       "semicolon":false,
-      "trailing-comma": [true, {"multiline": "never", "singleline": "never"}]
+      "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
+      "no-bitwise": false,
+      "no-console": [true, "error"],
+      "max-line-length": [
+        true,
+        {
+          "limit": 170,
+          "ignore-pattern": "^// {(.*?)}"
+        }
+      ]
     },
     "rulesDirectory": []
   }
