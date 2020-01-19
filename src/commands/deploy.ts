@@ -230,9 +230,11 @@ export default class Deploy extends Command {
                             this.machine = machine
                             try {
                                 this.apps =
-                                    (await CliApiManager.get(
-                                        machine
-                                    ).getAllApps()).appDefinitions || []
+                                    (
+                                        await CliApiManager.get(
+                                            machine
+                                        ).getAllApps()
+                                    ).appDefinitions || []
                             } catch (e) {
                                 StdOutUtil.printError(
                                     `\nSomething bad happened during deployment to ${StdOutUtil.getColoredMachineName(

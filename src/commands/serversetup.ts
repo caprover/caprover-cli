@@ -229,11 +229,13 @@ export default class ServerSetup extends Command {
 
     private async checkFreshInstallation(): Promise<boolean> {
         try {
-            const rootDomain: string = (await CliApiManager.get({
-                authToken: this.machine.authToken,
-                baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
-                name: ''
-            }).getCaptainInfo()).rootDomain
+            const rootDomain: string = (
+                await CliApiManager.get({
+                    authToken: this.machine.authToken,
+                    baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
+                    name: ''
+                }).getCaptainInfo()
+            ).rootDomain
             if (rootDomain) {
                 StdOutUtil.printWarning(
                     `\nYou may have already setup the server with root domain: ${rootDomain}! Use caprover login to log into an existing server.`,
