@@ -22,7 +22,9 @@ export default class HttpClient {
 
     createHeaders() {
         const headers: any = {}
-        if (this.authToken) { headers[TOKEN_HEADER] = this.authToken }
+        if (this.authToken) {
+            headers[TOKEN_HEADER] = this.authToken
+        }
         headers[NAMESPACE] = CAPTAIN
 
         // check user/appData or apiManager.uploadAppData before changing this signature.
@@ -87,7 +89,6 @@ export default class HttpClient {
                     return data
                 })
                 .then(function(data) {
-
                     // tslint:disable-next-line: max-line-length
                     // These two blocks are clearly memory leaks! But I don't have time to fix them now... I need to CANCEL the promise, but since I don't
                     // have CANCEL method on the native Promise, I return a promise that will never RETURN if the HttpClient is destroyed.
@@ -96,7 +97,9 @@ export default class HttpClient {
                     // network request returns back.
                     return new Promise(function(resolve, reject) {
                         // data.data here is the "data" field inside the API response! {status: 100, description: "Login succeeded", data: {…}}
-                        if (!self.isDestroyed) { return resolve(data.data) }
+                        if (!self.isDestroyed) {
+                            return resolve(data.data)
+                        }
                         Logger.dev('Destroyed then not called')
                     })
                 })
@@ -104,7 +107,9 @@ export default class HttpClient {
                     // Logger.log('');
                     // Logger.error(error.message || error);
                     return new Promise(function(resolve, reject) {
-                        if (!self.isDestroyed) { return reject(error) }
+                        if (!self.isDestroyed) {
+                            return reject(error)
+                        }
                         Logger.dev('Destroyed catch not called')
                     })
                 })
@@ -116,7 +121,9 @@ export default class HttpClient {
         endpoint: string,
         variables: any
     ) {
-        if (method === this.GET) { return this.getReq(endpoint, variables) }
+        if (method === this.GET) {
+            return this.getReq(endpoint, variables)
+        }
 
         if (method === this.POST || method === this.POST_DATA) {
             return this.postReq(endpoint, variables, method)

@@ -50,7 +50,8 @@ export default class List extends Command {
             default: false,
             hide: true,
             when: () => this.paramFrom(params, K.name) === ParamType.Question,
-            preProcessParam: (param: IParam) => param && userCancelOperation(!param.value)
+            preProcessParam: (param: IParam) =>
+                param && userCancelOperation(!param.value)
         }
     ]
 
@@ -62,6 +63,8 @@ export default class List extends Command {
     }
 
     protected async action(params: IParams): Promise<void> {
-        CliHelper.get().logoutMachine(this.findParamValue(params, K.name)!.value)
+        CliHelper.get().logoutMachine(
+            this.findParamValue(params, K.name)!.value
+        )
     }
 }

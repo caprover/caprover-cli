@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra'
 import { execSync } from 'child_process'
-import { sync as commandExistsSync } from 'command-exists';
+import { sync as commandExistsSync } from 'command-exists'
 import StdOutUtil from './StdOutUtil'
 import StorageHelper from './StorageHelper'
 import Constants from './Constants'
@@ -12,14 +12,14 @@ export function validateIsGitRepository() {
     if (!fs.pathExistsSync('./.git')) {
         StdOutUtil.printError(
             'You are not in a git root directory: this command will only deploys the current directory.\n' +
-            'Run "caprover deploy --help" to know more deployment options... (e.g. tar file or image name)\n',
+                'Run "caprover deploy --help" to know more deployment options... (e.g. tar file or image name)\n',
             true
         )
     }
     if (!commandExistsSync('git')) {
         StdOutUtil.printError(
             '"git" command not found: CapRover needs "git" to create tar file from your branch source files.\n' +
-            'Run "caprover deploy --help" to know more deployment options... (e.g. tar file or image name)\n',
+                'Run "caprover deploy --help" to know more deployment options... (e.g. tar file or image name)\n',
             true
         )
     }
@@ -66,8 +66,12 @@ export function isNameValid(value: string): boolean {
 
 export function getErrorForIP(value: string): true | string {
     value = value.trim()
-    if (value === Constants.SAMPLE_IP) { return 'Enter a valid IP.' }
-    if (!Utils.isIpAddress(value)) { return `This is an invalid IP: ${value}.` }
+    if (value === Constants.SAMPLE_IP) {
+        return 'Enter a valid IP.'
+    }
+    if (!Utils.isIpAddress(value)) {
+        return `This is an invalid IP: ${value}.`
+    }
     return true
 }
 
@@ -106,7 +110,9 @@ export function getErrorForPassword(
     value: string,
     constraint?: number | string
 ): true | string {
-    if (!value || !value.trim()) { return 'Please enter password.' }
+    if (!value || !value.trim()) {
+        return 'Please enter password.'
+    }
     if (typeof constraint === 'number' && value.length < constraint) {
         return `Password is too short, min ${constraint} characters.`
     }
@@ -158,13 +164,17 @@ export function getErrorForAppName(
 }
 
 export function getErrorForBranchName(value: string): true | string {
-    if (!value || !value.trim()) { return 'Please enter branch name.' }
+    if (!value || !value.trim()) {
+        return 'Please enter branch name.'
+    }
     value = value.trim()
     try {
         const cmd = isWindows
             ? execSync(`git rev-parse ${value} > NUL`)
             : execSync(`git rev-parse ${value} 2>/dev/null`)
-        if (cmd) { return true }
+        if (cmd) {
+            return true
+        }
     } catch (e) {
         // Do nothing
     }
@@ -172,8 +182,12 @@ export function getErrorForBranchName(value: string): true | string {
 }
 
 export function getErrorForEmail(value: string): true | string {
-    if (!value || !value.trim()) { return 'Please enter email.' }
-    if (!Utils.isValidEmail(value)) { return 'Please enter a valid email.' }
+    if (!value || !value.trim()) {
+        return 'Please enter email.'
+    }
+    if (!Utils.isValidEmail(value)) {
+        return 'Please enter a valid email.'
+    }
     return true
 }
 

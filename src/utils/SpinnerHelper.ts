@@ -1,4 +1,4 @@
-import ora from 'ora';
+import ora from 'ora'
 
 class SpinnerHelper {
     private spinner: any

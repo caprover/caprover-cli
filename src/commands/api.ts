@@ -177,7 +177,9 @@ export default class Api extends Command {
             type: 'input',
             default: 'true',
             filter: (out: string) => {
-                if (!out) { return 'false' }
+                if (!out) {
+                    return 'false'
+                }
                 out = out.trim() || 'false'
                 if (out === 'true' || out === 'false' || isAbsolute(out)) {
                     return out
@@ -195,14 +197,17 @@ export default class Api extends Command {
                 this.paramFrom(params, K.name) === ParamType.Question ||
                 this.paramFrom(params, K.path) === ParamType.Question ||
                 this.paramFrom(params, K.data) === ParamType.Question,
-            preProcessParam: (param: IParam) => param && userCancelOperation(!param.value)
+            preProcessParam: (param: IParam) =>
+                param && userCancelOperation(!param.value)
         }
     ]
 
     protected async preAction(
         cmdLineoptions: ICommandLineOptions
     ): Promise<ICommandLineOptions> {
-        StdOutUtil.printMessage('Call generic CapRover API [Experimental Feature]...\n')
+        StdOutUtil.printMessage(
+            'Call generic CapRover API [Experimental Feature]...\n'
+        )
         return Promise.resolve(cmdLineoptions)
     }
 

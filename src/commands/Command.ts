@@ -72,7 +72,9 @@ export default abstract class Command {
     protected configFileProvided = false
 
     constructor(private program: CommanderStatic) {
-        if (!program) { throw new Error('program is null') }
+        if (!program) {
+            throw new Error('program is null')
+        }
     }
 
     private getCmdLineFlags(alias: IOptionAlias, type?: string): string {
@@ -134,23 +136,31 @@ export default abstract class Command {
             env: 'CAPROVER_CONFIG_FILE',
             message:
                 'path of the file where all parameters are defined in JSON or YAML format\n' +
-                'see others options to know config file parameters\' names\n' +
+                "see others options to know config file parameters' names\n" +
                 'this is mainly for automation purposes, see docs',
             preProcessParam
         }
     }
 
     build() {
-        if (!this.command) { throw new Error('Empty command name') }
+        if (!this.command) {
+            throw new Error('Empty command name')
+        }
 
         const cmd = this.program.command(this.command)
         if (this.aliases && this.aliases.length) {
             this.aliases.forEach(alias => alias && cmd.alias(alias))
         }
-        if (this.description) { cmd.description(this.description) }
-        if (this.usage) { cmd.usage(this.usage) }
+        if (this.description) {
+            cmd.description(this.description)
+        }
+        if (this.usage) {
+            cmd.usage(this.usage)
+        }
 
-        const options = this.getOptions().filter(opt => opt && opt.name && !opt.hide)
+        const options = this.getOptions().filter(
+            opt => opt && opt.name && !opt.hide
+        )
         const spaces = ' '.repeat(
             options.reduce(
                 (max, opt) =>
@@ -200,13 +210,16 @@ export default abstract class Command {
             const cmdLineOptions = await this.preAction(allParams[0])
             const optionAliases: IOptionAliasWithDetails[] = this.getOptions()
                 .filter(opt => opt && opt.name)
-                .reduce((acc, opt) => [
-                    ...acc,
-                    { ...opt, aliasTo: opt.name },
-                    ...(opt.aliases || [])
-                        .filter(alias => alias && alias.name)
-                        .map(alias => ({ ...alias, aliasTo: opt.name }))
-                ], [])
+                .reduce(
+                    (acc, opt) => [
+                        ...acc,
+                        { ...opt, aliasTo: opt.name },
+                        ...(opt.aliases || [])
+                            .filter(alias => alias && alias.name)
+                            .map(alias => ({ ...alias, aliasTo: opt.name }))
+                    ],
+                    []
+                )
 
             if (cmdLineOptions) {
                 this.action(await this.getParams(cmdLineOptions, optionAliases))
@@ -217,7 +230,9 @@ export default abstract class Command {
     protected async preAction(
         cmdLineoptions: ICommandLineOptions
     ): Promise<ICommandLineOptions | undefined> {
-        if (this.description) { StdOutUtil.printMessage(this.description + '\n') }
+        if (this.description) {
+            StdOutUtil.printMessage(this.description + '\n')
+        }
         return Promise.resolve(cmdLineoptions)
     }
 
@@ -248,7 +263,9 @@ export default abstract class Command {
             )
             .reduce((prev, opta) => cmdLineOptions[opta.name] as string, null)
         if (params[CONFIG_FILE_NAME]) {
-            if (file === null) { file = params[CONFIG_FILE_NAME].value }
+            if (file === null) {
+                file = params[CONFIG_FILE_NAME].value
+            }
             delete params[CONFIG_FILE_NAME]
         }
         optionAliases = optionAliases.filter(
@@ -276,7 +293,9 @@ export default abstract class Command {
                     }
                 }
 
-                if (!config) { throw new Error('Config file is empty!!') }
+                if (!config) {
+                    throw new Error('Config file is empty!!')
+                }
             } catch (error) {
                 StdOutUtil.printError(
                     `Error reading config file: ${error.message || error}\n`,
@@ -330,7 +349,9 @@ export default abstract class Command {
                 }
             } else if (name !== CONFIG_FILE_NAME) {
                 // Questions for missing params
-                if (!isFunction(option.message)) { option.message += ':' }
+                if (!isFunction(option.message)) {
+                    option.message += ':'
+                }
                 const answer = await inquirer.prompt([option])
                 if (name in answer) {
                     q = true
@@ -344,7 +365,9 @@ export default abstract class Command {
                 await option.preProcessParam(param)
             }
         }
-        if (q) { StdOutUtil.printMessage('') }
+        if (q) {
+            StdOutUtil.printMessage('')
+        }
 
         return params
     }

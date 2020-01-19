@@ -52,7 +52,7 @@ export default class Deploy extends Command {
         '  Use one among --branch, --tarFile, --imageName'
 
     protected description =
-        'Deploy your app to a specific CapRover machine. You\'ll be prompted for missing parameters.'
+        "Deploy your app to a specific CapRover machine. You'll be prompted for missing parameters."
 
     private machines = CliHelper.get().getMachinesAsOptions()
 
@@ -69,7 +69,9 @@ export default class Deploy extends Command {
                 'use previously entered values for the current directory, no others options are considered',
             when: false
         },
-        this.getDefaultConfigFileOption(() => this.validateDeploySource(params!)),
+        this.getDefaultConfigFileOption(() =>
+            this.validateDeploySource(params!)
+        ),
         {
             name: K.url,
             char: 'u',
@@ -207,7 +209,11 @@ export default class Deploy extends Command {
             .find((dir: IDeployedDirectory) => dir.cwd === process.cwd())
         if (cmdLineoptions[K.default]) {
             if (possibleApp && possibleApp.machineNameToDeploy) {
-                if (!StorageHelper.get().findMachine(possibleApp.machineNameToDeploy)) {
+                if (
+                    !StorageHelper.get().findMachine(
+                        possibleApp.machineNameToDeploy
+                    )
+                ) {
                     StdOutUtil.printError(
                         `You have to first login to ${StdOutUtil.getColoredMachineName(
                             possibleApp.machineNameToDeploy
@@ -215,61 +221,76 @@ export default class Deploy extends Command {
                         true
                     )
                 }
-                this.options = (params?: IParams) => [CliHelper.get().getEnsureAuthenticationOption(
-                    undefined,
-                    undefined,
-                    possibleApp.machineNameToDeploy,
-                    async (machine: IMachine) => {
-                        this.machine = machine
-                        try {
-                            this.apps =
-                                (await CliApiManager.get(machine).getAllApps())
-                                    .appDefinitions || []
-                        } catch (e) {
-                            StdOutUtil.printError(
-                                `\nSomething bad happened during deployment to ${StdOutUtil.getColoredMachineName(
-                                    machine.name
-                                )}.\n${e.message || e}`,
-                                true
-                            )
-                        }
-
-                        const appErr = getErrorForAppName(this.apps, possibleApp.appName)
-                        if (appErr !== true) {
-                            StdOutUtil.printError(
-                                `\n${appErr || 'Error!'}\n`,
-                                true
-                            )
-                        }
-
-                        if (params) {
-                            params[K.app] = {
-                                value: possibleApp.appName,
-                                from: ParamType.Default
+                this.options = (params?: IParams) => [
+                    CliHelper.get().getEnsureAuthenticationOption(
+                        undefined,
+                        undefined,
+                        possibleApp.machineNameToDeploy,
+                        async (machine: IMachine) => {
+                            this.machine = machine
+                            try {
+                                this.apps =
+                                    (await CliApiManager.get(
+                                        machine
+                                    ).getAllApps()).appDefinitions || []
+                            } catch (e) {
+                                StdOutUtil.printError(
+                                    `\nSomething bad happened during deployment to ${StdOutUtil.getColoredMachineName(
+                                        machine.name
+                                    )}.\n${e.message || e}`,
+                                    true
+                                )
                             }
-                            if (possibleApp.deploySource.branchToPush) {
-                                params[K.branch] = {
-                                    value: possibleApp.deploySource.branchToPush,
-                                    from: ParamType.Default
-                                }
-                            } else if (possibleApp.deploySource.tarFilePath) {
-                                params[K.tar] = {
-                                    value: possibleApp.deploySource.tarFilePath,
-                                    from: ParamType.Default
-                                }
-                            } else {
-                                params[K.img] = {
-                                    value: possibleApp.deploySource.imageName,
-                                    from: ParamType.Default
-                                }
+
+                            const appErr = getErrorForAppName(
+                                this.apps,
+                                possibleApp.appName
+                            )
+                            if (appErr !== true) {
+                                StdOutUtil.printError(
+                                    `\n${appErr || 'Error!'}\n`,
+                                    true
+                                )
                             }
-                            this.validateDeploySource(params)
+
+                            if (params) {
+                                params[K.app] = {
+                                    value: possibleApp.appName,
+                                    from: ParamType.Default
+                                }
+                                if (possibleApp.deploySource.branchToPush) {
+                                    params[K.branch] = {
+                                        value:
+                                            possibleApp.deploySource
+                                                .branchToPush,
+                                        from: ParamType.Default
+                                    }
+                                } else if (
+                                    possibleApp.deploySource.tarFilePath
+                                ) {
+                                    params[K.tar] = {
+                                        value:
+                                            possibleApp.deploySource
+                                                .tarFilePath,
+                                        from: ParamType.Default
+                                    }
+                                } else {
+                                    params[K.img] = {
+                                        value:
+                                            possibleApp.deploySource.imageName,
+                                        from: ParamType.Default
+                                    }
+                                }
+                                this.validateDeploySource(params)
+                            }
                         }
-                    }
-                )]
+                    )
+                ]
                 return Promise.resolve({})
             } else {
-                StdOutUtil.printError(`Can't find previously saved deploy options from this directory, can't use --default.\n`)
+                StdOutUtil.printError(
+                    `Can't find previously saved deploy options from this directory, can't use --default.\n`
+                )
                 StdOutUtil.printMessage('Falling back to asking questions...\n')
             }
         } else if (
@@ -291,8 +312,8 @@ export default class Deploy extends Command {
     protected validateDeploySource(params: IParams) {
         if (
             (this.findParamValue(params, K.branch) ? 1 : 0) +
-            (this.findParamValue(params, K.tar) ? 1 : 0) +
-            (this.findParamValue(params, K.img) ? 1 : 0) >
+                (this.findParamValue(params, K.tar) ? 1 : 0) +
+                (this.findParamValue(params, K.img) ? 1 : 0) >
             1
         ) {
             StdOutUtil.printError(
@@ -350,7 +371,7 @@ export default class Deploy extends Command {
                 )} at ${StdOutUtil.getColoredMachineName(
                     deployParams.captainMachine
                         ? deployParams.captainMachine.name ||
-                        deployParams.captainMachine.baseUrl
+                              deployParams.captainMachine.baseUrl
                         : ''
                 )}.\n${errorMessage}\n`,
                 true

@@ -18,7 +18,7 @@ const util = {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(
             c
         ) {
-            const r = (Math.random() * 16) | 0;
+            const r = (Math.random() * 16) | 0
             const v = c === 'x' ? r : (r & 0x3) | 0x8
             return v.toString(16)
         })
@@ -34,10 +34,14 @@ const util = {
     },
 
     cleanDomain(urlInput: string): string | undefined {
-        if (!urlInput || !urlInput.length) { return undefined }
+        if (!urlInput || !urlInput.length) {
+            return undefined
+        }
         try {
             let u = url.parse(urlInput)
-            if (!u.protocol) { u = url.parse(`//${urlInput}`, false, true) }
+            if (!u.protocol) {
+                u = url.parse(`//${urlInput}`, false, true)
+            }
             return u.hostname
         } catch (e) {
             return undefined
@@ -45,10 +49,14 @@ const util = {
     },
 
     cleanAdminDomainUrl(urlInput: string, https?: boolean): string | undefined {
-        if (!urlInput || !urlInput.length) { return undefined }
+        if (!urlInput || !urlInput.length) {
+            return undefined
+        }
         const http = urlInput.toLowerCase().startsWith('http://') // If no protocol, defaults to https
         let cleanedUrl = util.cleanDomain(urlInput)
-        if (!cleanedUrl) { return undefined }
+        if (!cleanedUrl) {
+            return undefined
+        }
         if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`)) {
             cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
         }

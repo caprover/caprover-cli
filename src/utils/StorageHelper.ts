@@ -70,11 +70,13 @@ export default class StorageHelper {
     }
 
     saveDeployedDirectory(directoryToSaveOrUpdate: IDeployedDirectory) {
-        if (!directoryToSaveOrUpdate ||
+        if (
+            !directoryToSaveOrUpdate ||
             !directoryToSaveOrUpdate.appName ||
             !directoryToSaveOrUpdate.cwd ||
-            !directoryToSaveOrUpdate.machineNameToDeploy) {
-            return;
+            !directoryToSaveOrUpdate.machineNameToDeploy
+        ) {
+            return
         }
 
         const currDirs = this.getDeployedDirectories()

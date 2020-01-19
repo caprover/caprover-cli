@@ -22,7 +22,7 @@ export default class DeployHelper {
 
         if (!appName || !machineToDeploy) {
             StdOutUtil.printError(
-                'Can\'t deploy: missing CapRover machine or app name.\n',
+                "Can't deploy: missing CapRover machine or app name.\n",
                 true
             )
             return false
@@ -35,7 +35,7 @@ export default class DeployHelper {
             1
         ) {
             StdOutUtil.printError(
-                'Can\'t deploy: only one of branch, tarFile or imageName can be present.\n',
+                "Can't deploy: only one of branch, tarFile or imageName can be present.\n",
                 true
             )
             return false
@@ -100,7 +100,11 @@ export default class DeployHelper {
 
             exec(
                 `git archive --format tar --output "${zipFileFullPath}" ${branchToPush}`,
-                (error: ExecException | null, stdout1: string, stderr1: string) => {
+                (
+                    error: ExecException | null,
+                    stdout1: string,
+                    stderr1: string
+                ) => {
                     if (error) {
                         StdOutUtil.printError(`TAR file failed.\n${error}\n`)
                         if (fs.pathExistsSync(zipFileFullPath)) {
@@ -112,7 +116,11 @@ export default class DeployHelper {
 
                     exec(
                         `git rev-parse ${branchToPush}`,
-                        (err: ExecException | null, stdout2: string, stderr2: string) => {
+                        (
+                            err: ExecException | null,
+                            stdout2: string,
+                            stderr2: string
+                        ) => {
                             const gitHash = (stdout2 || '').trim()
 
                             if (err || !/^[a-f0-9]{40}$/.test(gitHash)) {
@@ -190,7 +198,9 @@ export default class DeployHelper {
                 let appUrl = machineToDeploy.baseUrl
                     .replace('https://', 'http://')
                     .replace('//captain.', `//${appName}.`)
-                if (this.ssl) { appUrl = appUrl.replace('http://', 'https://') }
+                if (this.ssl) {
+                    appUrl = appUrl.replace('http://', 'https://')
+                }
                 StdOutUtil.printGreenMessage(
                     `\nDeployed successfully ${StdOutUtil.getColoredAppName(
                         appName
