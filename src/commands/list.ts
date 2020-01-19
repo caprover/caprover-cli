@@ -21,6 +21,6 @@ export default class List extends Command {
     protected async action(params: IParams): Promise<void> {
         const machines = StorageHelper.get().getMachines()
         machines.forEach(StdOutUtil.displayColoredMachine)
-        if (machines.length) StdOutUtil.printMessage('')
+        if (machines.length) { StdOutUtil.printMessage('') }
     }
 }

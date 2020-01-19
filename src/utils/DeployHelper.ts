@@ -22,7 +22,7 @@ export default class DeployHelper {
 
         if (!appName || !machineToDeploy) {
             StdOutUtil.printError(
-                "Can't deploy: missing CapRover machine or app name.\n",
+                'Can\'t deploy: missing CapRover machine or app name.\n',
                 true
             )
             return false
@@ -35,7 +35,7 @@ export default class DeployHelper {
             1
         ) {
             StdOutUtil.printError(
-                "Can't deploy: only one of branch, tarFile or imageName can be present.\n",
+                'Can\'t deploy: only one of branch, tarFile or imageName can be present.\n',
                 true
             )
             return false
@@ -69,7 +69,7 @@ export default class DeployHelper {
                     machineToDeploy
                 ).uploadCaptainDefinitionContent(
                     appName,
-                    { schemaVersion: 2, imageName: imageName },
+                    { schemaVersion: 2, imageName },
                     '',
                     true
                 )
@@ -94,16 +94,18 @@ export default class DeployHelper {
 
     private gitArchiveFile(zipFileFullPath: string, branchToPush: string) {
         return new Promise<string>(function(resolve, reject) {
-            if (fs.pathExistsSync(zipFileFullPath))
-                fs.removeSync(zipFileFullPath) // Removes the temporary file created
+            if (fs.pathExistsSync(zipFileFullPath)) {
+                fs.removeSync(zipFileFullPath)
+            } // Removes the temporary file created
 
             exec(
                 `git archive --format tar --output "${zipFileFullPath}" ${branchToPush}`,
                 (err, stdout, stderr) => {
                     if (err) {
                         StdOutUtil.printError(`TAR file failed.\n${err}\n`)
-                        if (fs.pathExistsSync(zipFileFullPath))
+                        if (fs.pathExistsSync(zipFileFullPath)) {
                             fs.removeSync(zipFileFullPath)
+                        }
                         reject(new Error('TAR file failed'))
                         return
                     }
@@ -117,8 +119,9 @@ export default class DeployHelper {
                                 StdOutUtil.printError(
                                     `Cannot find hash of last commit on branch "${branchToPush}": ${gitHash}\n${err}\n`
                                 )
-                                if (fs.pathExistsSync(zipFileFullPath))
+                                if (fs.pathExistsSync(zipFileFullPath)) {
                                     fs.removeSync(zipFileFullPath)
+                                }
                                 reject(new Error('rev-parse failed'))
                                 return
                             }
@@ -187,7 +190,7 @@ export default class DeployHelper {
                 let appUrl = machineToDeploy.baseUrl
                     .replace('https://', 'http://')
                     .replace('//captain.', `//${appName}.`)
-                if (this.ssl) appUrl = appUrl.replace('http://', 'https://')
+                if (this.ssl) { appUrl = appUrl.replace('http://', 'https://') }
                 StdOutUtil.printGreenMessage(
                     `\nDeployed successfully ${StdOutUtil.getColoredAppName(
                         appName

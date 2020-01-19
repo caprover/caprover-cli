@@ -4,7 +4,7 @@ import Constants from './Constants'
 import {
     getErrorForMachineName,
     getErrorForDomain,
-    getErrorForPassword,
+    getErrorForPassword
 } from './ValidationsHandler'
 import { IMachine } from '../models/storage/StoredObjects'
 import { IAppDef } from '../models/AppDef'
@@ -15,7 +15,7 @@ export default class CliHelper {
     static instance: CliHelper
 
     static get() {
-        if (!CliHelper.instance) CliHelper.instance = new CliHelper()
+        if (!CliHelper.instance) { CliHelper.instance = new CliHelper() }
         return CliHelper.instance
     }
 
@@ -24,14 +24,14 @@ export default class CliHelper {
             {
                 name: Constants.CANCEL_STRING,
                 value: '',
-                short: '',
+                short: ''
             },
             ...apps
                 .map(app => ({
                     name: `${app.appName}`,
                     value: `${app.appName}`,
-                    short: `${app.appName}`,
-                })),
+                    short: `${app.appName}`
+                }))
         ]
     }
 
@@ -40,15 +40,15 @@ export default class CliHelper {
             {
                 name: Constants.CANCEL_STRING,
                 value: '',
-                short: '',
+                short: ''
             },
             ...StorageHelper.get()
                 .getMachines()
                 .map(machine => ({
                     name: `${StdOutUtil.getColoredMachine(machine)}`,
                     value: `${machine.name}`,
-                    short: `${machine.name}`,
-                })),
+                    short: `${machine.name}`
+                }))
         ]
     }
 
@@ -57,13 +57,13 @@ export default class CliHelper {
             {
                 name: Constants.CANCEL_STRING,
                 value: '',
-                short: '',
+                short: ''
             },
             ...Constants.API_METHODS.map(method => ({
                 name: `${method}`,
                 value: `${method}`,
-                short: `${method}`,
-            })),
+                short: `${method}`
+            }))
         ]
     }
 
@@ -109,8 +109,9 @@ export default class CliHelper {
         const machines = StorageHelper.get()
             .getMachines()
             .map(machine => machine.name)
-        while (machines.includes(this.getCaptainFullName(currentSuffix)))
+        while (machines.includes(this.getCaptainFullName(currentSuffix))) {
             currentSuffix++
+        }
         return this.getCaptainFullName(currentSuffix)
     }
 
@@ -156,7 +157,7 @@ export default class CliHelper {
         } else if (machineName) {
             // Auth to stored machine name
             const machine = StorageHelper.get().findMachine(machineName) // Get stored machine
-            if (!machine) throw `Can't find stored machine "${machineName}"` // No stored machine: throw
+            if (!machine) { throw new Error(`Can't find stored machine "${machineName}"`) } // No stored machine: throw
             try {
                 await CliApiManager.get(machine).getAllApps() // Get data with stored token
             } catch (e) {
@@ -174,7 +175,7 @@ export default class CliHelper {
             }
             return machine
         }
-        throw 'Too few arguments, no url or machine name'
+        throw new Error('Too few arguments, no url or machine name')
     }
 
     getEnsureAuthenticationOption(
@@ -192,7 +193,7 @@ export default class CliHelper {
             when: async () => {
                 StdOutUtil.printMessage('Ensuring authentication...')
 
-                const getVal = (value?: string | (() => string | undefined)): string | undefined => 
+                const getVal = (value?: string | (() => string | undefined)): string | undefined =>
                     value && value instanceof Function ? value() : value
                 const _url = getVal(url)
                 const _password = getVal(password)
@@ -219,7 +220,7 @@ export default class CliHelper {
             },
             validate: async (password: string) => {
                 const err = getErrorForPassword(password)
-                if (err !== true) return err
+                if (err !== true) { return err }
                 try {
                     await CliApiManager.get(machine).getAuthToken(password) // Do auth
                 } catch (e) {
@@ -232,7 +233,7 @@ export default class CliHelper {
                 }
                 return true
             },
-            preProcessParam: async () => done && (await done(machine)),
+            preProcessParam: async () => done && (await done(machine))
         }
     }
 }

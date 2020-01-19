@@ -11,7 +11,7 @@ import {
     getErrorForIP,
     getErrorForPassword,
     getErrorForEmail,
-    getErrorForMachineName,
+    getErrorForMachineName
 } from '../utils/ValidationsHandler'
 import { IMachine } from '../models/storage/StoredObjects'
 import CliApiManager from '../api/CliApiManager'
@@ -20,7 +20,7 @@ import Command, {
     IOption,
     ICommandLineOptions,
     IParam,
-    ParamType,
+    ParamType
 } from './Command'
 
 const K = Utils.extendCommonKeys({
@@ -28,7 +28,7 @@ const K = Utils.extendCommonKeys({
     root: 'caproverRootDomain',
     newPwd: 'newPassword',
     newPwdCheck: 'newPasswordCheck',
-    email: 'certificateEmail',
+    email: 'certificateEmail'
 })
 
 export default class ServerSetup extends Command {
@@ -73,7 +73,7 @@ export default class ServerSetup extends Command {
                         true
                     )
                 }
-            },
+            }
         },
         {
             name: K.ip,
@@ -91,7 +91,7 @@ export default class ServerSetup extends Command {
                     // No password provided: try default password
                     this.machine.authToken = await this.getAuthTokenFromIp(true)
                 }
-            },
+            }
         },
         {
             name: K.pwd,
@@ -108,7 +108,7 @@ export default class ServerSetup extends Command {
                     this.password = param.value
                     this.machine.authToken = await this.getAuthTokenFromIp()
                 }
-            },
+            }
         },
         {
             name: K.root,
@@ -124,7 +124,7 @@ export default class ServerSetup extends Command {
                     ? true
                     : 'Please enter a valid root domain, for example use "test.yourdomain.com" if you setup your DNS to point "*.test.yourdomain.com" to the ip address of your server.',
             preProcessParam: async (param: IParam) =>
-                await this.updateRootDomain(param.value),
+                await this.updateRootDomain(param.value)
         },
         {
             name: K.newPwd,
@@ -134,7 +134,7 @@ export default class ServerSetup extends Command {
             message: `new CapRover password (min ${Constants.MIN_CHARS_FOR_PASSWORD} characters)`,
             when: () => this.password === Constants.DEFAULT_PASSWORD,
             validate: (password: string) =>
-                getErrorForPassword(password, Constants.MIN_CHARS_FOR_PASSWORD),
+                getErrorForPassword(password, Constants.MIN_CHARS_FOR_PASSWORD)
         },
         {
             name: K.newPwdCheck,
@@ -146,7 +146,7 @@ export default class ServerSetup extends Command {
                 getErrorForPassword(
                     password,
                     this.paramValue<string>(params, K.newPwd)
-                ),
+                )
         },
         {
             name: K.email,
@@ -162,7 +162,7 @@ export default class ServerSetup extends Command {
                 this.enableSslAndChangePassword(
                     param.value,
                     this.paramValue(params, K.newPwd)
-                ),
+                )
         },
         {
             name: K.name,
@@ -175,8 +175,8 @@ export default class ServerSetup extends Command {
             default: params && CliHelper.get().findDefaultCaptainName(),
             filter: (name: string) => name.trim(),
             validate: (name: string) => getErrorForMachineName(name),
-            preProcessParam: (param?: IParam) => param && (this.machine.name = param.value),
-        },
+            preProcessParam: (param?: IParam) => param && (this.machine.name = param.value)
+        }
     ]
 
     protected async preAction(
@@ -191,8 +191,9 @@ export default class ServerSetup extends Command {
             const err = getErrorForMachineName(
                 this.findParamValue(params, K.name)!.value
             )
-            if (err !== true)
+            if (err !== true) {
                 StdOutUtil.printError(`${err || 'Error!'}\n`, true)
+            }
         }
     }
 
@@ -201,14 +202,15 @@ export default class ServerSetup extends Command {
             return await CliApiManager.get({
                 authToken: '',
                 baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
-                name: '',
+                name: ''
             }).getAuthToken(this.password)
         } catch (e) {
             if (
                 firstTry &&
                 e.captainStatus === ErrorFactory.STATUS_WRONG_PASSWORD
-            )
+            ) {
                 return ''
+            }
             if ((e + '').indexOf('Found. Redirecting to https://') >= 0) {
                 StdOutUtil.printWarning(
                     '\nYou may have already setup the server! Use caprover login to log into an existing server.'
@@ -228,13 +230,14 @@ export default class ServerSetup extends Command {
             const rootDomain: string = (await CliApiManager.get({
                 authToken: this.machine.authToken,
                 baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
-                name: '',
+                name: ''
             }).getCaptainInfo()).rootDomain
-            if (rootDomain)
+            if (rootDomain) {
                 StdOutUtil.printWarning(
                     `\nYou may have already setup the server with root domain: ${rootDomain}! Use caprover login to log into an existing server.`,
                     true
                 )
+            }
         } catch (e) {
             StdOutUtil.errorHandler(e)
         }
@@ -246,7 +249,7 @@ export default class ServerSetup extends Command {
             await CliApiManager.get({
                 authToken: this.machine.authToken,
                 baseUrl: `http://${this.ip}:${Constants.SETUP_PORT}`,
-                name: '',
+                name: ''
             }).updateRootDomain(rootDomain)
             this.machine.baseUrl = `http://${Constants.ADMIN_DOMAIN}.${rootDomain}`
         } catch (e) {

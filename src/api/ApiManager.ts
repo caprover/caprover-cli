@@ -84,7 +84,7 @@ export default class ApiManager {
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/system/changerootdomain', {
-                    rootDomain,
+                    rootDomain
                 })
             )
     }
@@ -95,7 +95,7 @@ export default class ApiManager {
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/system/enablessl', {
-                    emailAddress,
+                    emailAddress
                 })
             )
     }
@@ -128,7 +128,7 @@ export default class ApiManager {
                 http.fetch(
                     http.POST_DATA,
                     '/user/apps/appData/' + appName + '?detached=1',
-                    { sourceFile: file, gitHash: gitHash }
+                    { sourceFile: file, gitHash }
                 )
             )
     }
@@ -152,39 +152,39 @@ export default class ApiManager {
                         captainDefinitionContent: JSON.stringify(
                             captainDefinition
                         ),
-                        gitHash,
+                        gitHash
                     }
                 )
             )
     }
 
     updateConfigAndSave(appName: string, appDefinition: IAppDef) {
-        var instanceCount = appDefinition.instanceCount
-        var envVars = appDefinition.envVars
-        var notExposeAsWebApp = appDefinition.notExposeAsWebApp
-        var forceSsl = appDefinition.forceSsl
-        var volumes = appDefinition.volumes
-        var ports = appDefinition.ports
-        var nodeId = appDefinition.nodeId
-        var appPushWebhook = appDefinition.appPushWebhook
-        var customNginxConfig = appDefinition.customNginxConfig
-        var preDeployFunction = appDefinition.preDeployFunction
+        const instanceCount = appDefinition.instanceCount
+        const envVars = appDefinition.envVars
+        const notExposeAsWebApp = appDefinition.notExposeAsWebApp
+        const forceSsl = appDefinition.forceSsl
+        const volumes = appDefinition.volumes
+        const ports = appDefinition.ports
+        const nodeId = appDefinition.nodeId
+        const appPushWebhook = appDefinition.appPushWebhook
+        const customNginxConfig = appDefinition.customNginxConfig
+        const preDeployFunction = appDefinition.preDeployFunction
         const http = this.http
 
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/apps/appDefinitions/update', {
-                    appName: appName,
-                    instanceCount: instanceCount,
-                    notExposeAsWebApp: notExposeAsWebApp,
-                    forceSsl: forceSsl,
-                    volumes: volumes,
-                    ports: ports,
-                    customNginxConfig: customNginxConfig,
-                    appPushWebhook: appPushWebhook,
-                    nodeId: nodeId,
-                    preDeployFunction: preDeployFunction,
-                    envVars: envVars,
+                    appName,
+                    instanceCount,
+                    notExposeAsWebApp,
+                    forceSsl,
+                    volumes,
+                    ports,
+                    customNginxConfig,
+                    appPushWebhook,
+                    nodeId,
+                    preDeployFunction,
+                    envVars
                 })
             )
     }
@@ -196,7 +196,7 @@ export default class ApiManager {
             .then(
                 http.fetch(http.POST, '/user/apps/appDefinitions/register', {
                     appName,
-                    hasPersistentData,
+                    hasPersistentData
                 })
             )
     }
@@ -207,7 +207,7 @@ export default class ApiManager {
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/apps/appDefinitions/delete', {
-                    appName,
+                    appName
                 })
             )
     }
@@ -221,7 +221,7 @@ export default class ApiManager {
                     http.POST,
                     '/user/apps/appDefinitions/enablebasedomainssl',
                     {
-                        appName,
+                        appName
                     }
                 )
             )
@@ -237,7 +237,7 @@ export default class ApiManager {
                     '/user/apps/appDefinitions/customdomain',
                     {
                         appName,
-                        customDomain,
+                        customDomain
                     }
                 )
             )
@@ -253,7 +253,7 @@ export default class ApiManager {
                     '/user/apps/appDefinitions/enablecustomdomainssl',
                     {
                         appName,
-                        customDomain,
+                        customDomain
                     }
                 )
             )
@@ -269,7 +269,7 @@ export default class ApiManager {
                     '/user/apps/appDefinitions/removecustomdomain',
                     {
                         appName,
-                        customDomain,
+                        customDomain
                     }
                 )
             )
@@ -305,7 +305,7 @@ export default class ApiManager {
             .then(
                 http.fetch(http.POST, '/user/changepassword', {
                     oldPassword,
-                    newPassword,
+                    newPassword
                 })
             )
     }
@@ -323,7 +323,7 @@ export default class ApiManager {
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/system/versioninfo', {
-                    latestVersion,
+                    latestVersion
                 })
             )
     }
@@ -342,7 +342,7 @@ export default class ApiManager {
             .then(
                 http.fetch(http.POST, '/user/system/nginxconfig', {
                     baseConfig: { customValue: customBase },
-                    captainConfig: { customValue: customCaptain },
+                    captainConfig: { customValue: customCaptain }
                 })
             )
     }
@@ -352,7 +352,7 @@ export default class ApiManager {
         return Promise.resolve() //
             .then(
                 http.fetch(http.GET, '/user/apps/appDefinitions/unusedImages', {
-                    mostRecentLimit: mostRecentLimit + '',
+                    mostRecentLimit: mostRecentLimit + ''
                 })
             )
     }
@@ -366,7 +366,7 @@ export default class ApiManager {
                     http.POST,
                     '/user/apps/appDefinitions/deleteImages',
                     {
-                        imageIds,
+                        imageIds
                     }
                 )
             )
@@ -411,7 +411,7 @@ export default class ApiManager {
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/registries/insert', {
-                    ...dockerRegistry,
+                    ...dockerRegistry
                 })
             )
     }
@@ -422,7 +422,7 @@ export default class ApiManager {
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/registries/update', {
-                    ...dockerRegistry,
+                    ...dockerRegistry
                 })
             )
     }
@@ -433,7 +433,7 @@ export default class ApiManager {
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/registries/delete', {
-                    registryId,
+                    registryId
                 })
             )
     }
@@ -444,7 +444,7 @@ export default class ApiManager {
         return Promise.resolve() //
             .then(
                 http.fetch(http.POST, '/user/registries/setpush', {
-                    registryId,
+                    registryId
                 })
             )
     }
@@ -470,7 +470,7 @@ export default class ApiManager {
                     nodeType,
                     privateKey,
                     remoteNodeIpAddress,
-                    captainIpAddress,
+                    captainIpAddress
                 })
             )
     }

@@ -44,7 +44,7 @@ const commands: Command[] = [
     new List(program),
     new Logout(program),
     new Deploy(program),
-    new Api(program),
+    new Api(program)
 ]
 commands.forEach(c => c.build())
 

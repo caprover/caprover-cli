@@ -1,7 +1,7 @@
 import {
     IMachine,
     IDeployedDirectory,
-    IOldSavedApp,
+    IOldSavedApp
 } from '../models/storage/StoredObjects'
 import * as ConfigStore from 'configstore'
 import Utils from './Utils'
@@ -13,8 +13,9 @@ export default class StorageHelper {
     static instance: StorageHelper
 
     static get() {
-        if (!StorageHelper.instance)
+        if (!StorageHelper.instance) {
             StorageHelper.instance = new StorageHelper()
+        }
         return StorageHelper.instance
     }
 
@@ -72,8 +73,9 @@ export default class StorageHelper {
         if (!directoryToSaveOrUpdate ||
             !directoryToSaveOrUpdate.appName ||
             !directoryToSaveOrUpdate.cwd ||
-            !directoryToSaveOrUpdate.machineNameToDeploy)
+            !directoryToSaveOrUpdate.machineNameToDeploy) {
             return;
+        }
 
         const currDirs = this.getDeployedDirectories()
         let updatedDir = false
