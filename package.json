@@ -5,7 +5,7 @@
   "main": "./built/commands/caprover.js",
   "scripts": {
     "tslint": "tslint -c tslint.json -p tsconfig.json",
-    "formatter": "npx prettier --check ./src/**/*.ts",
+    "formatter": "npx prettier --check ./src/**/*.ts || echo \"run npx prettier --write ./src/**/*.ts\"",
     "build": "npm run tslint && rm -rf ./built && npx tsc && chmod +x ./built -R"
   },
   "bin": {
