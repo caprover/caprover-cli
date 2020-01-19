@@ -15,27 +15,27 @@ import {
     getErrorForMachineName,
     userCancelOperation,
     getErrorForAppName,
-    getErrorForBranchName,
+    getErrorForBranchName
 } from '../utils/ValidationsHandler'
 import { IAppDef } from '../models/AppDef'
 import {
     IMachine,
     IDeployedDirectory,
-    IDeployParams,
+    IDeployParams
 } from '../models/storage/StoredObjects'
 import Command, {
     IParams,
     IOption,
     ParamType,
     ICommandLineOptions,
-    IParam,
+    IParam
 } from './Command'
 
 const K = Utils.extendCommonKeys({
     default: 'default',
     branch: 'branch',
     tar: 'tarFile',
-    img: 'imageName',
+    img: 'imageName'
 })
 
 export default class Deploy extends Command {
@@ -52,7 +52,7 @@ export default class Deploy extends Command {
         '  Use one among --branch, --tarFile, --imageName'
 
     protected description =
-        "Deploy your app to a specific CapRover machine. You'll be prompted for missing parameters."
+        'Deploy your app to a specific CapRover machine. You\'ll be prompted for missing parameters.'
 
     private machines = CliHelper.get().getMachinesAsOptions()
 
@@ -67,7 +67,7 @@ export default class Deploy extends Command {
             type: 'confirm',
             message:
                 'use previously entered values for the current directory, no others options are considered',
-            when: false,
+            when: false
         },
         this.getDefaultConfigFileOption(() => this.validateDeploySource(params!)),
         {
@@ -79,7 +79,7 @@ export default class Deploy extends Command {
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
             when: false,
             filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url, // If not cleaned url, leave url to fail validation with correct error
-            validate: (url: string) => getErrorForDomain(url, true),
+            validate: (url: string) => getErrorForDomain(url, true)
         },
         {
             name: K.pwd,
@@ -89,7 +89,7 @@ export default class Deploy extends Command {
             type: 'password',
             message: 'CapRover machine password',
             when: !!this.findParamValue(params, K.url),
-            validate: (password: string) => getErrorForPassword(password),
+            validate: (password: string) => getErrorForPassword(password)
         },
         {
             name: K.name,
@@ -107,7 +107,7 @@ export default class Deploy extends Command {
                     : name.trim(),
             validate: !this.findParamValue(params, K.url)
                 ? (name: string) => getErrorForMachineName(name, true)
-                : undefined,
+                : undefined
         },
         CliHelper.get().getEnsureAuthenticationOption(
             () => this.paramValue(params, K.url),
@@ -143,7 +143,7 @@ export default class Deploy extends Command {
                 !this.findParamValue(params, K.app)
                     ? userCancelOperation(!app, true) || app
                     : app.trim(),
-            validate: (app: string) => getErrorForAppName(this.apps, app),
+            validate: (app: string) => getErrorForAppName(this.apps, app)
         },
         {
             name: K.branch,
@@ -159,7 +159,7 @@ export default class Deploy extends Command {
             when:
                 !this.findParamValue(params, K.tar) &&
                 !this.findParamValue(params, K.img),
-            validate: (branch: string) => getErrorForBranchName(branch),
+            validate: (branch: string) => getErrorForBranchName(branch)
         },
         {
             name: K.tar,
@@ -168,7 +168,7 @@ export default class Deploy extends Command {
             message:
                 'tar file to be uploaded, must contain captain-definition file',
             type: 'input',
-            when: false,
+            when: false
         },
         {
             name: K.img,
@@ -177,7 +177,7 @@ export default class Deploy extends Command {
             message:
                 'image name to be deployed, it should either exist on server, or it has to be public, or on a private repository that CapRover has access to',
             type: 'input',
-            when: false,
+            when: false
         },
         {
             name: 'confirmedToDeploy',
@@ -193,8 +193,8 @@ export default class Deploy extends Command {
                 this.paramFrom(params, K.app) === ParamType.Question ||
                 this.paramFrom(params, K.branch) === ParamType.Question,
             preProcessParam: (param: IParam) =>
-                param && userCancelOperation(!param.value),
-        },
+                param && userCancelOperation(!param.value)
+        }
     ]
 
     protected async preAction(
@@ -235,32 +235,34 @@ export default class Deploy extends Command {
                         }
 
                         const appErr = getErrorForAppName(this.apps, possibleApp.appName)
-                        if (appErr !== true)
+                        if (appErr !== true) {
                             StdOutUtil.printError(
                                 `\n${appErr || 'Error!'}\n`,
                                 true
                             )
+                        }
 
                         if (params) {
                             params[K.app] = {
                                 value: possibleApp.appName,
                                 from: ParamType.Default
                             }
-                            if (possibleApp.deploySource.branchToPush)
+                            if (possibleApp.deploySource.branchToPush) {
                                 params[K.branch] = {
                                     value: possibleApp.deploySource.branchToPush,
                                     from: ParamType.Default
                                 }
-                            else if (possibleApp.deploySource.tarFilePath)
+                            } else if (possibleApp.deploySource.tarFilePath) {
                                 params[K.tar] = {
                                     value: possibleApp.deploySource.tarFilePath,
                                     from: ParamType.Default
                                 }
-                            else
+                            } else {
                                 params[K.img] = {
                                     value: possibleApp.deploySource.imageName,
                                     from: ParamType.Default
                                 }
+                            }
                             this.validateDeploySource(params)
                         }
                     }
@@ -289,8 +291,8 @@ export default class Deploy extends Command {
     protected validateDeploySource(params: IParams) {
         if (
             (this.findParamValue(params, K.branch) ? 1 : 0) +
-                (this.findParamValue(params, K.tar) ? 1 : 0) +
-                (this.findParamValue(params, K.img) ? 1 : 0) >
+            (this.findParamValue(params, K.tar) ? 1 : 0) +
+            (this.findParamValue(params, K.img) ? 1 : 0) >
             1
         ) {
             StdOutUtil.printError(
@@ -314,9 +316,9 @@ export default class Deploy extends Command {
                 deploySource: {
                     branchToPush: this.paramValue(params, K.branch),
                     tarFilePath: this.paramValue(params, K.tar),
-                    imageName: this.paramValue(params, K.img),
+                    imageName: this.paramValue(params, K.img)
                 },
-                appName: this.paramValue(params, K.app),
+                appName: this.paramValue(params, K.app)
             },
             this.apps.find(
                 app => app.appName === this.paramValue(params, K.app)
@@ -337,7 +339,7 @@ export default class Deploy extends Command {
                     deploySource: deployParams.deploySource,
                     machineNameToDeploy: deployParams.captainMachine
                         ? deployParams.captainMachine.name
-                        : '',
+                        : ''
                 })
             }
         } catch (error) {
@@ -348,7 +350,7 @@ export default class Deploy extends Command {
                 )} at ${StdOutUtil.getColoredMachineName(
                     deployParams.captainMachine
                         ? deployParams.captainMachine.name ||
-                              deployParams.captainMachine.baseUrl
+                        deployParams.captainMachine.baseUrl
                         : ''
                 )}.\n${errorMessage}\n`,
                 true

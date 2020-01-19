@@ -42,12 +42,6 @@
     ]
   },
   "dependencies": {
-    "@types/configstore": "^4.0.0",
-    "@types/fs-extra": "^8.0.0",
-    "@types/inquirer": "6.5.0",
-    "@types/js-yaml": "^3.12.1",
-    "@types/request-promise": "^4.1.44",
-    "@types/update-notifier": "^2.5.0",
     "chalk": "^2.4.2",
     "command-exists": "^1.2.8",
     "commander": "^2.20.0",
@@ -63,10 +57,21 @@
     "update-notifier": "^3.0.1"
   },
   "devDependencies": {
+    "@types/command-exists": "^1.2.0",
+    "@types/configstore": "^4.0.0",
+    "@types/fs-extra": "^8.0.0",
+    "@types/inquirer": "6.5.0",
+    "@types/js-yaml": "^3.12.1",
     "@types/node": "^12.7.2",
+    "@types/ora": "^3.2.0",
+    "@types/progress": "^2.0.3",
+    "@types/request-promise": "^4.1.44",
+    "@types/update-notifier": "^2.5.0",
     "eslint": "^6.2.2",
     "eslint-plugin-jest": "^22.15.2",
     "jest": "^24.9.0",
-    "prettier": "^1.18.2"
+    "prettier": "^1.18.2",
+    "tslint": "^5.20.1",
+    "typescript": "^3.5.3"
   }
 }

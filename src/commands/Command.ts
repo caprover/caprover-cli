@@ -29,7 +29,7 @@ export enum ParamType {
     CommandLine,
     Question,
     Env,
-    Default,
+    Default
 }
 
 export interface IParam {
@@ -72,7 +72,7 @@ export default abstract class Command {
     protected configFileProvided = false
 
     constructor(private program: CommanderStatic) {
-        if (!program) throw 'program is null'
+        if (!program) { throw new Error('program is null') }
     }
 
     private getCmdLineFlags(alias: IOptionAlias, type?: string): string {
@@ -134,20 +134,21 @@ export default abstract class Command {
             env: 'CAPROVER_CONFIG_FILE',
             message:
                 'path of the file where all parameters are defined in JSON or YAML format\n' +
-                "see others options to know config file parameters' names\n" +
+                'see others options to know config file parameters\' names\n' +
                 'this is mainly for automation purposes, see docs',
-            preProcessParam: preProcessParam,
+            preProcessParam
         }
     }
 
-    public build() {
-        if (!this.command) throw 'Empty command name'
+    build() {
+        if (!this.command) { throw new Error('Empty command name') }
 
         const cmd = this.program.command(this.command)
-        if (this.aliases && this.aliases.length)
+        if (this.aliases && this.aliases.length) {
             this.aliases.forEach(alias => alias && cmd.alias(alias))
-        if (this.description) cmd.description(this.description)
-        if (this.usage) cmd.usage(this.usage)
+        }
+        if (this.description) { cmd.description(this.description) }
+        if (this.usage) { cmd.usage(this.usage) }
 
         const options = this.getOptions().filter(opt => opt && opt.name && !opt.hide)
         const spaces = ' '.repeat(
@@ -176,7 +177,7 @@ export default abstract class Command {
                 this.getCmdLineDescription(opt, spaces),
                 getValue(opt.default)
             )
-            if (opt.aliases)
+            if (opt.aliases) {
                 opt.aliases
                     .filter(alias => alias && alias.name && !alias.hide)
                     .forEach(alias =>
@@ -185,14 +186,16 @@ export default abstract class Command {
                             this.getCmdLineDescription(opt, spaces, alias)
                         )
                     )
+            }
         })
 
         cmd.action(async (...allParams: any[]) => {
-            if (allParams.length > 1)
+            if (allParams.length > 1) {
                 StdOutUtil.printError(
                     `Positional parameter not supported: ${allParams[0]}\n`,
                     true
                 )
+            }
 
             const cmdLineOptions = await this.preAction(allParams[0])
             const optionAliases: IOptionAliasWithDetails[] = this.getOptions()
@@ -202,18 +205,19 @@ export default abstract class Command {
                     { ...opt, aliasTo: opt.name },
                     ...(opt.aliases || [])
                         .filter(alias => alias && alias.name)
-                        .map(alias => ({ ...alias, aliasTo: opt.name })),
+                        .map(alias => ({ ...alias, aliasTo: opt.name }))
                 ], [])
 
-            if (cmdLineOptions)
+            if (cmdLineOptions) {
                 this.action(await this.getParams(cmdLineOptions, optionAliases))
+            }
         })
     }
 
     protected async preAction(
         cmdLineoptions: ICommandLineOptions
     ): Promise<ICommandLineOptions | undefined> {
-        if (this.description) StdOutUtil.printMessage(this.description + '\n')
+        if (this.description) { StdOutUtil.printMessage(this.description + '\n') }
         return Promise.resolve(cmdLineoptions)
     }
 
@@ -230,7 +234,7 @@ export default abstract class Command {
                 opta =>
                     (params[opta.aliasTo] = {
                         value: process.env[opta.env!],
-                        from: ParamType.Env,
+                        from: ParamType.Env
                     })
             )
 
@@ -242,9 +246,9 @@ export default abstract class Command {
                     opta.aliasTo === CONFIG_FILE_NAME &&
                     opta.name in cmdLineOptions
             )
-            .reduce((prev, opta) => <string>cmdLineOptions[opta.name], null)
+            .reduce((prev, opta) => cmdLineOptions[opta.name] as string, null)
         if (params[CONFIG_FILE_NAME]) {
-            if (file === null) file = params[CONFIG_FILE_NAME].value
+            if (file === null) { file = params[CONFIG_FILE_NAME].value }
             delete params[CONFIG_FILE_NAME]
         }
         optionAliases = optionAliases.filter(
@@ -254,8 +258,9 @@ export default abstract class Command {
         if (file) {
             // Read params from config file
             const filePath = isAbsolute(file) ? file : join(process.cwd(), file)
-            if (!pathExistsSync(filePath))
+            if (!pathExistsSync(filePath)) {
                 StdOutUtil.printError(`File not found: ${filePath}\n`, true)
+            }
 
             let config: any
             try {
@@ -271,7 +276,7 @@ export default abstract class Command {
                     }
                 }
 
-                if (!config) throw new Error('Config file is empty!!')
+                if (!config) { throw new Error('Config file is empty!!') }
             } catch (error) {
                 StdOutUtil.printError(
                     `Error reading config file: ${error.message || error}\n`,
@@ -286,7 +291,7 @@ export default abstract class Command {
                     opta =>
                         (params[opta.aliasTo] = {
                             value: config[opta.name],
-                            from: ParamType.Config,
+                            from: ParamType.Config
                         })
                 )
         }
@@ -299,7 +304,7 @@ export default abstract class Command {
                     opta =>
                         (params[opta.aliasTo] = {
                             value: cmdLineOptions[opta.name],
-                            from: ParamType.CommandLine,
+                            from: ParamType.CommandLine
                         })
                 )
         }
@@ -316,21 +321,22 @@ export default abstract class Command {
                 }
                 if (option.validate) {
                     const err = await option.validate(param.value)
-                    if (err !== true)
+                    if (err !== true) {
                         StdOutUtil.printError(
                             `${q ? '\n' : ''}${err || 'Error!'}\n`,
                             true
                         )
+                    }
                 }
             } else if (name !== CONFIG_FILE_NAME) {
                 // Questions for missing params
-                if (!isFunction(option.message)) option.message += ':'
+                if (!isFunction(option.message)) { option.message += ':' }
                 const answer = await inquirer.prompt([option])
                 if (name in answer) {
                     q = true
                     param = params[name] = {
                         value: answer[name],
-                        from: ParamType.Question,
+                        from: ParamType.Question
                     }
                 }
             }
@@ -338,7 +344,7 @@ export default abstract class Command {
                 await option.preProcessParam(param)
             }
         }
-        if (q) StdOutUtil.printMessage('')
+        if (q) { StdOutUtil.printMessage('') }
 
         return params
     }

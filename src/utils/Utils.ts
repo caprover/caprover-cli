@@ -18,8 +18,8 @@ const util = {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(
             c
         ) {
-            var r = (Math.random() * 16) | 0,
-                v = c === 'x' ? r : (r & 0x3) | 0x8
+            const r = (Math.random() * 16) | 0;
+            const v = c === 'x' ? r : (r & 0x3) | 0x8
             return v.toString(16)
         })
     },
@@ -27,17 +27,17 @@ const util = {
     getAnsiColorRegex() {
         const pattern = [
             '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\\u0007)',
-            '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))',
+            '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'
         ].join('|')
 
         return new RegExp(pattern, 'g')
     },
 
     cleanDomain(urlInput: string): string | undefined {
-        if (!urlInput || !urlInput.length) return undefined
+        if (!urlInput || !urlInput.length) { return undefined }
         try {
             let u = url.parse(urlInput)
-            if (!u.protocol) u = url.parse(`//${urlInput}`, false, true)
+            if (!u.protocol) { u = url.parse(`//${urlInput}`, false, true) }
             return u.hostname
         } catch (e) {
             return undefined
@@ -45,12 +45,13 @@ const util = {
     },
 
     cleanAdminDomainUrl(urlInput: string, https?: boolean): string | undefined {
-        if (!urlInput || !urlInput.length) return undefined
+        if (!urlInput || !urlInput.length) { return undefined }
         const http = urlInput.toLowerCase().startsWith('http://') // If no protocol, defaults to https
         let cleanedUrl = util.cleanDomain(urlInput)
-        if (!cleanedUrl) return undefined
-        if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`))
+        if (!cleanedUrl) { return undefined }
+        if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`)) {
             cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
+        }
         return (
             (https || (https === undefined && !http) ? 'https://' : 'http://') +
             cleanedUrl
@@ -58,15 +59,17 @@ const util = {
     },
 
     isIpAddress(ipaddress: string): boolean {
+        // tslint:disable-next-line: max-line-length
         return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
             ipaddress
         )
     },
 
     isValidEmail(email: string): boolean {
+        // tslint:disable-next-line: max-line-length
         const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         return re.test(String(email).toLowerCase())
-    },
+    }
 }
 
 export default util

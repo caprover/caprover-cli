@@ -11,7 +11,7 @@ import {
     getErrorForDomain,
     getErrorForPassword,
     getErrorForMachineName,
-    userCancelOperation,
+    userCancelOperation
 } from '../utils/ValidationsHandler'
 import { IMachine } from '../models/storage/StoredObjects'
 import Command, {
@@ -19,14 +19,14 @@ import Command, {
     IOption,
     ParamType,
     ICommandLineOptions,
-    IParam,
+    IParam
 } from './Command'
 
 const K = Utils.extendCommonKeys({
     path: 'path',
     method: 'method',
     data: 'data',
-    out: 'output',
+    out: 'output'
 })
 
 export default class Api extends Command {
@@ -57,7 +57,7 @@ export default class Api extends Command {
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
             when: false,
             filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url, // If not cleaned url, leave url to fail validation with correct error
-            validate: (url: string) => getErrorForDomain(url, true),
+            validate: (url: string) => getErrorForDomain(url, true)
         },
         {
             name: K.pwd,
@@ -66,7 +66,7 @@ export default class Api extends Command {
             type: 'password',
             message: 'CapRover machine password',
             when: !!this.findParamValue(params, K.url),
-            validate: (password: string) => getErrorForPassword(password),
+            validate: (password: string) => getErrorForPassword(password)
         },
         {
             name: K.name,
@@ -84,7 +84,7 @@ export default class Api extends Command {
                     : name.trim(),
             validate: !this.findParamValue(params, K.url)
                 ? (name: string) => getErrorForMachineName(name, true)
-                : undefined,
+                : undefined
         },
         CliHelper.get().getEnsureAuthenticationOption(
             () => this.paramValue(params, K.url),
@@ -116,7 +116,7 @@ export default class Api extends Command {
             validate: (path: string) =>
                 path && path.startsWith('/')
                     ? true
-                    : 'Please enter a valid path.',
+                    : 'Please enter a valid path.'
         },
         {
             name: K.method,
@@ -135,7 +135,7 @@ export default class Api extends Command {
             validate: (method: string) =>
                 method && Constants.API_METHODS.includes(method)
                     ? true
-                    : `Please enter a valid method, one of: ${CliHelper.get().getApiMethodsDescription()}`,
+                    : `Please enter a valid method, one of: ${CliHelper.get().getApiMethodsDescription()}`
         },
         {
             name: K.data,
@@ -148,10 +148,13 @@ export default class Api extends Command {
                     : ' (or also JSON object from config file), for "GET" method they are interpreted as querystring values to be appended to the path'),
             type: 'input',
             filter: data => {
-                if (data && typeof data === 'string')
+                if (data && typeof data === 'string') {
                     try {
                         return JSON.parse(data)
-                    } catch {}
+                    } catch {
+                        // do nothing
+                    }
+                }
                 return data
             },
             validate: data => {
@@ -159,11 +162,11 @@ export default class Api extends Command {
                     try {
                         JSON.parse(data)
                     } catch (e) {
-                        return <string>e
+                        return e as string
                     }
                 }
                 return true
-            },
+            }
         },
         {
             name: K.out,
@@ -174,12 +177,13 @@ export default class Api extends Command {
             type: 'input',
             default: 'true',
             filter: (out: string) => {
-                if (!out) return 'false'
+                if (!out) { return 'false' }
                 out = out.trim() || 'false'
-                if (out === 'true' || out === 'false' || isAbsolute(out))
+                if (out === 'true' || out === 'false' || isAbsolute(out)) {
                     return out
+                }
                 return join(process.cwd(), out)
-            },
+            }
         },
         {
             name: 'confirmedToCall',
@@ -191,8 +195,8 @@ export default class Api extends Command {
                 this.paramFrom(params, K.name) === ParamType.Question ||
                 this.paramFrom(params, K.path) === ParamType.Question ||
                 this.paramFrom(params, K.data) === ParamType.Question,
-            preProcessParam: (param: IParam) => param && userCancelOperation(!param.value),
-        },
+            preProcessParam: (param: IParam) => param && userCancelOperation(!param.value)
+        }
     ]
 
     protected async preAction(

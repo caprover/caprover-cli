@@ -7,12 +7,12 @@ import CliHelper from '../utils/CliHelper'
 import {
     getErrorForDomain,
     getErrorForPassword,
-    getErrorForMachineName,
+    getErrorForMachineName
 } from '../utils/ValidationsHandler'
 import Command, { IOption, IParams, ICommandLineOptions } from './Command'
 
 const K = Utils.extendCommonKeys({
-    https: 'hasRootHttps',
+    https: 'hasRootHttps'
 })
 
 export default class Login extends Command {
@@ -26,7 +26,7 @@ export default class Login extends Command {
         {
             name: K.https, // Backward compatibility with config hasRootHttps parameter, eventually to remove when releasing v2
             hide: true,
-            when: false,
+            when: false
         },
         {
             name: K.url,
@@ -40,7 +40,7 @@ export default class Login extends Command {
                     url,
                     this.paramValue(params, K.https)
                 ) || url, // If not cleaned url, leave url to fail validation with correct error
-            validate: (url: string) => getErrorForDomain(url),
+            validate: (url: string) => getErrorForDomain(url)
         },
         {
             name: K.pwd,
@@ -48,7 +48,7 @@ export default class Login extends Command {
             env: 'CAPROVER_PASSWORD',
             type: 'password',
             message: 'CapRover machine password',
-            validate: (password: string) => getErrorForPassword(password),
+            validate: (password: string) => getErrorForPassword(password)
         },
         {
             name: K.name,
@@ -59,8 +59,8 @@ export default class Login extends Command {
                 'CapRover machine name, with whom the login credentials are stored locally',
             default: params && CliHelper.get().findDefaultCaptainName(),
             filter: (name: string) => name.trim(),
-            validate: (name: string) => getErrorForMachineName(name),
-        },
+            validate: (name: string) => getErrorForMachineName(name)
+        }
     ]
 
     protected async preAction(
@@ -75,7 +75,7 @@ export default class Login extends Command {
             {
                 authToken: '',
                 baseUrl: this.findParamValue(params, K.url)!.value,
-                name: this.findParamValue(params, K.name)!.value,
+                name: this.findParamValue(params, K.name)!.value
             },
             this.findParamValue(params, K.pwd)!.value
         )

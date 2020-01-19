@@ -2,15 +2,15 @@ import ErrorFactory from '../utils/ErrorFactory'
 import Logger from '../utils/Logger'
 import * as Request from 'request-promise'
 
-var TOKEN_HEADER = 'x-captain-auth'
-var NAMESPACE = 'x-namespace'
-var CAPTAIN = 'captain'
+const TOKEN_HEADER = 'x-captain-auth'
+const NAMESPACE = 'x-namespace'
+const CAPTAIN = 'captain'
 
 export default class HttpClient {
-    public readonly GET = 'GET'
-    public readonly POST = 'POST'
-    public readonly POST_DATA = 'POST_DATA'
-    public isDestroyed = false
+    readonly GET = 'GET'
+    readonly POST = 'POST'
+    readonly POST_DATA = 'POST_DATA'
+    isDestroyed = false
 
     constructor(
         private baseUrl: string,
@@ -21,8 +21,8 @@ export default class HttpClient {
     }
 
     createHeaders() {
-        let headers: any = {}
-        if (this.authToken) headers[TOKEN_HEADER] = this.authToken
+        const headers: any = {}
+        if (this.authToken) { headers[TOKEN_HEADER] = this.authToken }
         headers[NAMESPACE] = CAPTAIN
 
         // check user/appData or apiManager.uploadAppData before changing this signature.
@@ -46,8 +46,9 @@ export default class HttpClient {
         return function(): Promise<any> {
             return Promise.resolve() //
                 .then(function() {
-                    if (!process.env.REACT_APP_IS_DEBUG)
+                    if (!process.env.REACT_APP_IS_DEBUG) {
                         return Promise.resolve()
+                    }
                     return new Promise<void>(function(res) {
                         setTimeout(res, 500)
                     })
@@ -86,13 +87,16 @@ export default class HttpClient {
                     return data
                 })
                 .then(function(data) {
+
+                    // tslint:disable-next-line: max-line-length
                     // These two blocks are clearly memory leaks! But I don't have time to fix them now... I need to CANCEL the promise, but since I don't
                     // have CANCEL method on the native Promise, I return a promise that will never RETURN if the HttpClient is destroyed.
+                    // tslint:disable-next-line: max-line-length
                     // Will fix them later... but it shouldn't be a big deal anyways as it's only a problem when user navigates away from a page before the
                     // network request returns back.
                     return new Promise(function(resolve, reject) {
                         // data.data here is the "data" field inside the API response! {status: 100, description: "Login succeeded", data: {…}}
-                        if (!self.isDestroyed) return resolve(data.data)
+                        if (!self.isDestroyed) { return resolve(data.data) }
                         Logger.dev('Destroyed then not called')
                     })
                 })
@@ -100,7 +104,7 @@ export default class HttpClient {
                     // Logger.log('');
                     // Logger.error(error.message || error);
                     return new Promise(function(resolve, reject) {
-                        if (!self.isDestroyed) return reject(error)
+                        if (!self.isDestroyed) { return reject(error) }
                         Logger.dev('Destroyed catch not called')
                     })
                 })
@@ -112,10 +116,11 @@ export default class HttpClient {
         endpoint: string,
         variables: any
     ) {
-        if (method === this.GET) return this.getReq(endpoint, variables)
+        if (method === this.GET) { return this.getReq(endpoint, variables) }
 
-        if (method === this.POST || method === this.POST_DATA)
+        if (method === this.POST || method === this.POST_DATA) {
             return this.postReq(endpoint, variables, method)
+        }
 
         throw new Error('Unknown method: ' + method)
     }
@@ -125,7 +130,7 @@ export default class HttpClient {
 
         return Request.get(this.baseUrl + endpoint, {
             headers: self.createHeaders(),
-            qs: variables,
+            qs: variables
         }).then(function(data) {
             return data
         })
@@ -138,17 +143,18 @@ export default class HttpClient {
     ) {
         const self = this
 
-        if (method === this.POST_DATA)
+        if (method === this.POST_DATA) {
             return Request.post(this.baseUrl + endpoint, {
                 headers: self.createHeaders(),
-                formData: variables,
+                formData: variables
             }).then(function(data) {
                 return data
             })
+        }
 
         return Request.post(this.baseUrl + endpoint, {
             headers: self.createHeaders(),
-            form: variables,
+            form: variables
         }).then(function(data) {
             return data
         })

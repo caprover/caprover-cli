@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra'
 import * as path from 'path'
-import { exec } from 'child_process'
-const ProgressBar = require('progress')
+import { exec, ExecException } from 'child_process'
+import * as ProgressBar from 'progress'
 import StdOutUtil from '../utils/StdOutUtil'
 import SpinnerHelper from '../utils/SpinnerHelper'
 import IBuildLogs from '../models/IBuildLogs'
@@ -22,7 +22,7 @@ export default class DeployHelper {
 
         if (!appName || !machineToDeploy) {
             StdOutUtil.printError(
-                "Can't deploy: missing CapRover machine or app name.\n",
+                'Can\'t deploy: missing CapRover machine or app name.\n',
                 true
             )
             return false
@@ -35,7 +35,7 @@ export default class DeployHelper {
             1
         ) {
             StdOutUtil.printError(
-                "Can't deploy: only one of branch, tarFile or imageName can be present.\n",
+                'Can\'t deploy: only one of branch, tarFile or imageName can be present.\n',
                 true
             )
             return false
@@ -69,7 +69,7 @@ export default class DeployHelper {
                     machineToDeploy
                 ).uploadCaptainDefinitionContent(
                     appName,
-                    { schemaVersion: 2, imageName: imageName },
+                    { schemaVersion: 2, imageName },
                     '',
                     true
                 )
@@ -94,31 +94,34 @@ export default class DeployHelper {
 
     private gitArchiveFile(zipFileFullPath: string, branchToPush: string) {
         return new Promise<string>(function(resolve, reject) {
-            if (fs.pathExistsSync(zipFileFullPath))
-                fs.removeSync(zipFileFullPath) // Removes the temporary file created
+            if (fs.pathExistsSync(zipFileFullPath)) {
+                fs.removeSync(zipFileFullPath)
+            } // Removes the temporary file created
 
             exec(
                 `git archive --format tar --output "${zipFileFullPath}" ${branchToPush}`,
-                (err, stdout, stderr) => {
-                    if (err) {
-                        StdOutUtil.printError(`TAR file failed.\n${err}\n`)
-                        if (fs.pathExistsSync(zipFileFullPath))
+                (error: ExecException | null, stdout1: string, stderr1: string) => {
+                    if (error) {
+                        StdOutUtil.printError(`TAR file failed.\n${error}\n`)
+                        if (fs.pathExistsSync(zipFileFullPath)) {
                             fs.removeSync(zipFileFullPath)
+                        }
                         reject(new Error('TAR file failed'))
                         return
                     }
 
                     exec(
                         `git rev-parse ${branchToPush}`,
-                        (err, stdout, stderr) => {
-                            const gitHash = (stdout || '').trim()
+                        (err: ExecException | null, stdout2: string, stderr2: string) => {
+                            const gitHash = (stdout2 || '').trim()
 
                             if (err || !/^[a-f0-9]{40}$/.test(gitHash)) {
                                 StdOutUtil.printError(
                                     `Cannot find hash of last commit on branch "${branchToPush}": ${gitHash}\n${err}\n`
                                 )
-                                if (fs.pathExistsSync(zipFileFullPath))
+                                if (fs.pathExistsSync(zipFileFullPath)) {
                                     fs.removeSync(zipFileFullPath)
+                                }
                                 reject(new Error('rev-parse failed'))
                                 return
                             }
@@ -187,7 +190,7 @@ export default class DeployHelper {
                 let appUrl = machineToDeploy.baseUrl
                     .replace('https://', 'http://')
                     .replace('//captain.', `//${appName}.`)
-                if (this.ssl) appUrl = appUrl.replace('http://', 'https://')
+                if (this.ssl) { appUrl = appUrl.replace('http://', 'https://') }
                 StdOutUtil.printGreenMessage(
                     `\nDeployed successfully ${StdOutUtil.getColoredAppName(
                         appName

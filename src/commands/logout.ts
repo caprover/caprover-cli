@@ -5,14 +5,14 @@ import Constants from '../utils/Constants'
 import CliHelper from '../utils/CliHelper'
 import {
     getErrorForMachineName,
-    userCancelOperation,
+    userCancelOperation
 } from '../utils/ValidationsHandler'
 import Command, {
     IParams,
     IOption,
     ICommandLineOptions,
     ParamType,
-    IParam,
+    IParam
 } from './Command'
 
 const K = Constants.COMMON_KEYS
@@ -40,7 +40,7 @@ export default class List extends Command {
                 !this.findParamValue(params, K.name)
                     ? userCancelOperation(!name, true) || name
                     : name.trim(),
-            validate: (name: string) => getErrorForMachineName(name, true),
+            validate: (name: string) => getErrorForMachineName(name, true)
         },
         {
             name: 'confirmedToLogout',
@@ -50,8 +50,8 @@ export default class List extends Command {
             default: false,
             hide: true,
             when: () => this.paramFrom(params, K.name) === ParamType.Question,
-            preProcessParam: (param: IParam) => param && userCancelOperation(!param.value),
-        },
+            preProcessParam: (param: IParam) => param && userCancelOperation(!param.value)
+        }
     ]
 
     protected async preAction(
