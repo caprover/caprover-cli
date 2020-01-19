@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra'
 import { execSync } from 'child_process'
-const commandExistsSync = require('command-exists').sync
+import { sync as commandExistsSync } from 'command-exists';
 import StdOutUtil from './StdOutUtil'
 import StorageHelper from './StorageHelper'
 import Constants from './Constants'
@@ -165,7 +165,9 @@ export function getErrorForBranchName(value: string): true | string {
             ? execSync(`git rev-parse ${value} > NUL`)
             : execSync(`git rev-parse ${value} 2>/dev/null`)
         if (cmd) { return true }
-    } catch (e) {}
+    } catch (e) {
+        // Do nothing
+    }
     return `Cannot find hash of last commit on branch "${value}".`
 }
 

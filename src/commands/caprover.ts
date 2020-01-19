@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// tslint:disable-next-line: no-var-requires
 const packagejson = require('../../package.json')
 import * as updateNotifier from 'update-notifier'
 

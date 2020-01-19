@@ -151,7 +151,9 @@ export default class Api extends Command {
                 if (data && typeof data === 'string') {
                     try {
                         return JSON.parse(data)
-                    } catch {}
+                    } catch {
+                        // do nothing
+                    }
                 }
                 return data
             },

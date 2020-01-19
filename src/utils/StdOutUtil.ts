@@ -14,6 +14,7 @@ class StdOutUtils {
 
     printMagentaMessage(message: string, exit: boolean | number = false) {
         console.log(`${chalk.magenta(message)}`)
+        // tslint:disable-next-line: no-unused-expression
         exit && process.exit(0)
     }
 

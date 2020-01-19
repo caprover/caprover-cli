@@ -4,6 +4,7 @@ export default class Logger {
     }
 
     static error(s: any) {
+        // tslint:disable-next-line: no-console
         console.error(s)
     }
 

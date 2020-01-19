@@ -14,8 +14,6 @@ class ErrorFactory {
 
     readonly UNKNOWN_ERROR = 1999
 
-    constructor() {}
-
     createError(status: number, message: string) {
         const e = new Error(message) as any
         e.captainStatus = status

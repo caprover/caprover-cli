@@ -87,8 +87,11 @@ export default class HttpClient {
                     return data
                 })
                 .then(function(data) {
+
+                    // tslint:disable-next-line: max-line-length
                     // These two blocks are clearly memory leaks! But I don't have time to fix them now... I need to CANCEL the promise, but since I don't
                     // have CANCEL method on the native Promise, I return a promise that will never RETURN if the HttpClient is destroyed.
+                    // tslint:disable-next-line: max-line-length
                     // Will fix them later... but it shouldn't be a big deal anyways as it's only a problem when user navigates away from a page before the
                     // network request returns back.
                     return new Promise(function(resolve, reject) {

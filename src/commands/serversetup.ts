@@ -122,6 +122,7 @@ export default class ServerSetup extends Command {
             validate: (domain: string) =>
                 domain
                     ? true
+                    // tslint:disable-next-line: max-line-length
                     : 'Please enter a valid root domain, for example use "test.yourdomain.com" if you setup your DNS to point "*.test.yourdomain.com" to the ip address of your server.',
             preProcessParam: async (param: IParam) =>
                 await this.updateRootDomain(param.value)

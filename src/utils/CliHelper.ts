@@ -218,11 +218,11 @@ export default class CliHelper {
                 }
                 return true
             },
-            validate: async (password: string) => {
-                const err = getErrorForPassword(password)
+            validate: async (passwordToValidate: string) => {
+                const err = getErrorForPassword(passwordToValidate)
                 if (err !== true) { return err }
                 try {
-                    await CliApiManager.get(machine).getAuthToken(password) // Do auth
+                    await CliApiManager.get(machine).getAuthToken(passwordToValidate) // Do auth
                 } catch (e) {
                     StdOutUtil.printError(
                         `\nSomething bad happened during authentication to ${StdOutUtil.getColoredMachineUrl(

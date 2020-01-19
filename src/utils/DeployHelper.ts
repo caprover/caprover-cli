@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra'
 import * as path from 'path'
-import { exec } from 'child_process'
-const ProgressBar = require('progress')
+import { exec, ExecException } from 'child_process'
+import * as ProgressBar from 'progress'
 import StdOutUtil from '../utils/StdOutUtil'
 import SpinnerHelper from '../utils/SpinnerHelper'
 import IBuildLogs from '../models/IBuildLogs'
@@ -100,9 +100,9 @@ export default class DeployHelper {
 
             exec(
                 `git archive --format tar --output "${zipFileFullPath}" ${branchToPush}`,
-                (err, stdout, stderr) => {
-                    if (err) {
-                        StdOutUtil.printError(`TAR file failed.\n${err}\n`)
+                (error: ExecException | null, stdout1: string, stderr1: string) => {
+                    if (error) {
+                        StdOutUtil.printError(`TAR file failed.\n${error}\n`)
                         if (fs.pathExistsSync(zipFileFullPath)) {
                             fs.removeSync(zipFileFullPath)
                         }
@@ -112,8 +112,8 @@ export default class DeployHelper {
 
                     exec(
                         `git rev-parse ${branchToPush}`,
-                        (err, stdout, stderr) => {
-                            const gitHash = (stdout || '').trim()
+                        (err: ExecException | null, stdout2: string, stderr2: string) => {
+                            const gitHash = (stdout2 || '').trim()
 
                             if (err || !/^[a-f0-9]{40}$/.test(gitHash)) {
                                 StdOutUtil.printError(
