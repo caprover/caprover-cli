@@ -4,8 +4,8 @@
   "description": "CLI tool for CapRover. See CapRover.com for more details.",
   "main": "./built/commands/caprover.js",
   "scripts": {
-    "test": "jest",
-    "build": "rm -rf ./built && npx tsc && chmod +x ./built -R"
+    "tslint": "tslint -c tslint.json -p tsconfig.json",
+    "build": "npm run tslint && rm -rf ./built && npx tsc && chmod +x ./built -R"
   },
   "bin": {
     "caprover": "./built/commands/caprover.js",

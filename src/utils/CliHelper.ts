@@ -15,7 +15,9 @@ export default class CliHelper {
     static instance: CliHelper
 
     static get() {
-        if (!CliHelper.instance) { CliHelper.instance = new CliHelper() }
+        if (!CliHelper.instance) {
+            CliHelper.instance = new CliHelper()
+        }
         return CliHelper.instance
     }
 
@@ -26,12 +28,11 @@ export default class CliHelper {
                 value: '',
                 short: ''
             },
-            ...apps
-                .map(app => ({
-                    name: `${app.appName}`,
-                    value: `${app.appName}`,
-                    short: `${app.appName}`
-                }))
+            ...apps.map(app => ({
+                name: `${app.appName}`,
+                value: `${app.appName}`,
+                short: `${app.appName}`
+            }))
         ]
     }
 
@@ -157,7 +158,9 @@ export default class CliHelper {
         } else if (machineName) {
             // Auth to stored machine name
             const machine = StorageHelper.get().findMachine(machineName) // Get stored machine
-            if (!machine) { throw new Error(`Can't find stored machine "${machineName}"`) } // No stored machine: throw
+            if (!machine) {
+                throw new Error(`Can't find stored machine "${machineName}"`)
+            } // No stored machine: throw
             try {
                 await CliApiManager.get(machine).getAllApps() // Get data with stored token
             } catch (e) {
@@ -193,25 +196,31 @@ export default class CliHelper {
             when: async () => {
                 StdOutUtil.printMessage('Ensuring authentication...')
 
-                const getVal = (value?: string | (() => string | undefined)): string | undefined =>
-                    value && value instanceof Function ? value() : value
-                const _url = getVal(url)
-                const _password = getVal(password)
-                const _name = getVal(name)
+                type typeOfValue = string | (() => string | undefined)
+                type typeOfReturn = string | undefined
+
+                const getVal = (value?: typeOfValue): typeOfReturn => {
+                    return value && value instanceof Function ? value() : value
+                }
+                const urlExtracted = getVal(url)
+                const passwordExtracted = getVal(password)
+                const nameExtracted = getVal(name)
 
                 try {
                     machine = await CliHelper.get().ensureAuthentication(
-                        _url,
-                        _password,
-                        _name
+                        urlExtracted,
+                        passwordExtracted,
+                        nameExtracted
                     )
                     return !machine.authToken
                 } catch (e) {
                     StdOutUtil.printError(
                         `\nSomething bad happened during authentication to ${
-                            _url
-                                ? StdOutUtil.getColoredMachineUrl(_url)
-                                : StdOutUtil.getColoredMachineName(_name || '')
+                            urlExtracted
+                                ? StdOutUtil.getColoredMachineUrl(urlExtracted)
+                                : StdOutUtil.getColoredMachineName(
+                                      nameExtracted || ''
+                                  )
                         }.\n${e.message || e}`,
                         true
                     )
@@ -220,9 +229,13 @@ export default class CliHelper {
             },
             validate: async (passwordToValidate: string) => {
                 const err = getErrorForPassword(passwordToValidate)
-                if (err !== true) { return err }
+                if (err !== true) {
+                    return err
+                }
                 try {
-                    await CliApiManager.get(machine).getAuthToken(passwordToValidate) // Do auth
+                    await CliApiManager.get(machine).getAuthToken(
+                        passwordToValidate
+                    ) // Do auth
                 } catch (e) {
                     StdOutUtil.printError(
                         `\nSomething bad happened during authentication to ${StdOutUtil.getColoredMachineUrl(
