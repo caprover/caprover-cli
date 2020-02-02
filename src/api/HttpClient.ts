@@ -58,8 +58,7 @@ export default class HttpClient {
                 .then(function() {
                     return self.fetchInternal(method, endpoint, variables) //
                 })
-                .then(function(requestResponse) {
-                    const data = JSON.parse(requestResponse)
+                .then(function(data) {
                     if (
                         data.status === ErrorFactory.STATUS_AUTH_TOKEN_INVALID
                     ) {
@@ -137,7 +136,8 @@ export default class HttpClient {
 
         return Request.get(this.baseUrl + endpoint, {
             headers: self.createHeaders(),
-            qs: variables
+            qs: variables,
+            json: true
         }).then(function(data) {
             return data
         })
@@ -153,7 +153,8 @@ export default class HttpClient {
         if (method === this.POST_DATA) {
             return Request.post(this.baseUrl + endpoint, {
                 headers: self.createHeaders(),
-                formData: variables
+                formData: variables,
+                json: true
             }).then(function(data) {
                 return data
             })
@@ -161,7 +162,8 @@ export default class HttpClient {
 
         return Request.post(this.baseUrl + endpoint, {
             headers: self.createHeaders(),
-            form: variables
+            body: variables,
+            json: true
         }).then(function(data) {
             return data
         })

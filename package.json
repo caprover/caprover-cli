@@ -54,7 +54,7 @@
     "ora": "^3.4.0",
     "progress": "^2.0.3",
     "request": "^2.88.0",
-    "request-promise": "^4.2.4",
+    "request-promise": "^4.2.5",
     "typescript": "^3.5.3",
     "update-notifier": "^3.0.1"
   },
@@ -67,7 +67,7 @@
     "@types/node": "^12.7.2",
     "@types/ora": "^3.2.0",
     "@types/progress": "^2.0.3",
-    "@types/request-promise": "^4.1.44",
+    "@types/request-promise": "^4.1.45",
     "@types/update-notifier": "^2.5.0",
     "eslint": "^6.2.2",
     "eslint-plugin-jest": "^22.15.2",
