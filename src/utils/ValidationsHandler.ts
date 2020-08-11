@@ -11,7 +11,7 @@ const isWindows = process.platform === 'win32'
 export function validateIsGitRepository() {
     if (!fs.pathExistsSync('./.git')) {
         StdOutUtil.printError(
-            'You are not in a git root directory: this command will only deploys the current directory.\n' +
+            'You are not in a git root directory: this command will only deploy the current directory.\n' +
                 'Run "caprover deploy --help" to know more deployment options... (e.g. tar file or image name)\n',
             true
         )
