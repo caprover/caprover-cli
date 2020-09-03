@@ -161,8 +161,8 @@ caprover logout
 
 ### API
 
-Use this command to call a generic API on a CapRover machine, specifying API path, method (GET or POST), and data.  
-Run the following command and answer the questions:
+Use this command to call a generic API on a CapRover machine, specifying API path, method (GET or POST), and data. There is no official document for the API commands at this point as it is subject to change at any point. But you can use [ApiManager.ts](https://github.com/caprover/caprover-cli/blob/master/src/api/ApiManager.ts) as a starting point. 
+
 ```
 caprover api
 ```
