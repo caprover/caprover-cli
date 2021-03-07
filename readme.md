@@ -180,7 +180,7 @@ For automation purposes, you can provide necessary data before to be prompted fo
 ```
 And then running (using environment variable for config file value):
 ```
-CAPROVER_CONFIG_FILE='/path/to/config.json' caprover api
+CAPROVER_CONFIG_FILE='/path/to/config.json' caprover api -o output.json
 ```
 
 *Note*: use carefully only if you really know what you are doing!
