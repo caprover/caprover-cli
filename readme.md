@@ -81,7 +81,7 @@ For automation purposes, you can provide necessary data before to be prompted fo
   "caproverRootDomain": "root.domain.com",
   "newPassword": "rAnDoMpAsSwOrD",
   "certificateEmail": "email@gmail.com",
-  "caproverName": "my-machine-123-123-123-123",
+  "caproverName": "my-machine-123-123-123-123"
 }
 ```
 And then running:
