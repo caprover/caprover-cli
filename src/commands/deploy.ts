@@ -157,7 +157,7 @@ export default class Deploy extends Command {
                     ? ', current directory must be git root directory'
                     : ''),
             type: 'input',
-            default: params && 'master',
+            default: params && 'main',
             when:
                 !this.findParamValue(params, K.tar) &&
                 !this.findParamValue(params, K.img),
