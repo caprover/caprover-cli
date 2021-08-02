@@ -26,9 +26,14 @@ export default class ApiManager {
     ) {
         const self = this
 
-        this.http = new HttpClient(baseUrl, appToken, ApiManager.authToken, function() {
-            return self.getAuthToken(ApiManager.lastKnownPassword)
-        })
+        this.http = new HttpClient(
+            baseUrl,
+            appToken,
+            ApiManager.authToken,
+            function() {
+                return self.getAuthToken(ApiManager.lastKnownPassword)
+            }
+        )
     }
 
     callApi(
