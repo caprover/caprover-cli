@@ -35,6 +35,7 @@ const K = Utils.extendCommonKeys({
     default: 'default',
     branch: 'branch',
     tar: 'tarFile',
+    appToken: 'appToken',
     img: 'imageName'
 })
 
@@ -112,6 +113,7 @@ export default class Deploy extends Command {
                 : undefined
         },
         CliHelper.get().getEnsureAuthenticationOption(
+            this.paramValue(params, K.appToken) || '',
             () => this.paramValue(params, K.url),
             () => this.paramValue(params, K.pwd),
             () => this.paramValue(params, K.name),
@@ -224,6 +226,7 @@ export default class Deploy extends Command {
                 }
                 this.options = (params?: IParams) => [
                     CliHelper.get().getEnsureAuthenticationOption(
+                        '',
                         undefined,
                         undefined,
                         possibleApp.machineNameToDeploy,

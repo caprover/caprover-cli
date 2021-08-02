@@ -3,6 +3,7 @@ import Logger from '../utils/Logger'
 import * as Request from 'request-promise'
 
 const TOKEN_HEADER = 'x-captain-auth'
+const APP_TOKEN_HEADER = 'x-captain-app-token'
 const NAMESPACE = 'x-namespace'
 const CAPTAIN = 'captain'
 
@@ -14,6 +15,7 @@ export default class HttpClient {
 
     constructor(
         private baseUrl: string,
+        private appToken: string | undefined,
         private authToken: string,
         private onAuthFailure: () => Promise<any>
     ) {
@@ -25,6 +27,11 @@ export default class HttpClient {
         if (this.authToken) {
             headers[TOKEN_HEADER] = this.authToken
         }
+
+        if (this.appToken) {
+            headers[APP_TOKEN_HEADER] = this.appToken
+        }
+
         headers[NAMESPACE] = CAPTAIN
 
         // check user/appData or apiManager.uploadAppData before changing this signature.

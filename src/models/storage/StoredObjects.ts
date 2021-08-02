@@ -1,6 +1,7 @@
 export interface IMachine {
     authToken: string
     baseUrl: string
+    appToken?: string
     name: string
 }
 
