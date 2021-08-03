@@ -35,6 +35,7 @@ const K = Utils.extendCommonKeys({
     default: 'default',
     branch: 'branch',
     tar: 'tarFile',
+    appToken: 'appToken',
     img: 'imageName'
 })
 
@@ -90,7 +91,9 @@ export default class Deploy extends Command {
             aliases: [{ name: 'pass' }],
             type: 'password',
             message: 'CapRover machine password',
-            when: !!this.findParamValue(params, K.url),
+            when:
+                !!this.findParamValue(params, K.url) &&
+                !this.findParamValue(params, K.appToken),
             validate: (password: string) => getErrorForPassword(password)
         },
         {
@@ -112,12 +115,18 @@ export default class Deploy extends Command {
                 : undefined
         },
         CliHelper.get().getEnsureAuthenticationOption(
+            this.paramValue(params, K.appToken) || '',
             () => this.paramValue(params, K.url),
             () => this.paramValue(params, K.pwd),
             () => this.paramValue(params, K.name),
             async (machine: IMachine) => {
                 this.machine = machine
                 try {
+                    if (machine.appToken) {
+                        this.apps = []
+                        return
+                    }
+
                     this.apps =
                         (await CliApiManager.get(machine).getAllApps())
                             .appDefinitions || []
@@ -145,7 +154,10 @@ export default class Deploy extends Command {
                 !this.findParamValue(params, K.app)
                     ? userCancelOperation(!app, true) || app
                     : app.trim(),
-            validate: (app: string) => getErrorForAppName(this.apps, app)
+            validate: (app: string) =>
+                this.findParamValue(params, K.appToken)
+                    ? true
+                    : getErrorForAppName(this.apps, app)
         },
         {
             name: K.branch,
@@ -179,6 +191,14 @@ export default class Deploy extends Command {
             env: 'CAPROVER_IMAGE_NAME',
             message:
                 'image name to be deployed, it should either exist on server, or it has to be public, or on a private repository that CapRover has access to',
+            type: 'input',
+            when: false
+        },
+        {
+            name: K.appToken,
+            char: 't',
+            env: 'CAPROVER_APP_TOKEN',
+            message: 'app Token',
             type: 'input',
             when: false
         },
@@ -224,6 +244,7 @@ export default class Deploy extends Command {
                 }
                 this.options = (params?: IParams) => [
                     CliHelper.get().getEnsureAuthenticationOption(
+                        '',
                         undefined,
                         undefined,
                         possibleApp.machineNameToDeploy,

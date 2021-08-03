@@ -21,13 +21,19 @@ export default class ApiManager {
 
     constructor(
         baseUrl: string,
+        private appToken: string | undefined,
         private authTokenSaver: (authToken: string) => Promise<void>
     ) {
         const self = this
 
-        this.http = new HttpClient(baseUrl, ApiManager.authToken, function() {
-            return self.getAuthToken(ApiManager.lastKnownPassword)
-        })
+        this.http = new HttpClient(
+            baseUrl,
+            appToken,
+            ApiManager.authToken,
+            function() {
+                return self.getAuthToken(ApiManager.lastKnownPassword)
+            }
+        )
     }
 
     callApi(

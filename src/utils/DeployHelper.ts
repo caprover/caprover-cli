@@ -81,7 +81,9 @@ export default class DeployHelper {
                 )
             }
 
-            this.startFetchingBuildLogs(machineToDeploy, appName)
+            if (!machineToDeploy.appToken) {
+                this.startFetchingBuildLogs(machineToDeploy, appName)
+            }
             return true
         } catch (e) {
             throw e

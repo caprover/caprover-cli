@@ -182,6 +182,7 @@ export default class CliHelper {
     }
 
     getEnsureAuthenticationOption(
+        appToken: string,
         url?: string | (() => string | undefined),
         password?: string | (() => string | undefined),
         name?: string | (() => string | undefined),
@@ -205,6 +206,16 @@ export default class CliHelper {
                 const urlExtracted = getVal(url)
                 const passwordExtracted = getVal(password)
                 const nameExtracted = getVal(name)
+
+                if (!!appToken) {
+                    machine = {
+                        baseUrl: urlExtracted || '',
+                        authToken: '',
+                        appToken,
+                        name: nameExtracted || ''
+                    }
+                    return false
+                }
 
                 try {
                     machine = await CliHelper.get().ensureAuthentication(

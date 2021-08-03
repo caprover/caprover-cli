@@ -87,6 +87,7 @@ export default class Api extends Command {
                 : undefined
         },
         CliHelper.get().getEnsureAuthenticationOption(
+            '',
             () => this.paramValue(params, K.url),
             () => this.paramValue(params, K.pwd),
             () => this.paramValue(params, K.name),
