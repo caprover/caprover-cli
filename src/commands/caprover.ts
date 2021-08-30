@@ -29,13 +29,6 @@ import Api from './api'
 
 console.log('')
 console.log('')
-console.log('------------')
-console.log(
-    'CapRover CLI has recently been refactored. Please report potential bugs here: https://github.com/caprover/caprover-cli/issues'
-)
-console.log('------------')
-console.log('')
-console.log('')
 
 // Setup
 program.version(packagejson.version).description(packagejson.description)
