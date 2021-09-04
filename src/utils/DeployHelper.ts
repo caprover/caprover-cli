@@ -81,7 +81,15 @@ export default class DeployHelper {
                 )
             }
 
-            if (!machineToDeploy.appToken) {
+            StdOutUtil.printMessage('Building your source code...\n')
+
+            if (machineToDeploy.appToken) {
+                StdOutUtil.printMessage(
+                    `Deploying ${StdOutUtil.getColoredAppName(
+                        appName
+                    )} using app token is in progress. Build logs aren't retrieved when using app token.\nWait a few minutes until your app is built and deployed`
+                )
+            } else {
                 this.startFetchingBuildLogs(machineToDeploy, appName)
             }
             return true
@@ -162,8 +170,6 @@ export default class DeployHelper {
             StdOutUtil.printMessage(
                 'This might take several minutes. PLEASE BE PATIENT...\n'
             )
-            SpinnerHelper.start('Building your source code...\n')
-            SpinnerHelper.setColor('yellow')
         })
 
         return fileStream
