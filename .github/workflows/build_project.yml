@@ -1,4 +1,4 @@
-name: Run lint and build
+name: Run build
 
 on:
   push:

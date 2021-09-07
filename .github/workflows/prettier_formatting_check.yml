@@ -1,4 +1,4 @@
-name: Check Prettier Formatting
+name: Check Prettier Formatting and TSLint
 
 on:
   push:

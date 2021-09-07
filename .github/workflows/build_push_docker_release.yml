@@ -1,4 +1,4 @@
-name: Build and push the edge image
+name: Build and push the release image
 on:
   release:
     types: [published]
