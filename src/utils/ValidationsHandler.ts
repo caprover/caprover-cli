@@ -77,12 +77,17 @@ export function getErrorForIP(value: string): true | string {
 
 export function getErrorForDomain(
     value: string,
-    skipAlreadyStored?: boolean
+    skipAlreadyStored?: boolean,
+    captainSubDomain?: string
 ): true | string {
     if (value === Constants.SAMPLE_DOMAIN) {
         return 'Enter a valid URL.'
     }
-    const cleaned = Utils.cleanAdminDomainUrl(value)
+    const cleaned = Utils.cleanAdminDomainUrl(
+        value,
+        undefined,
+        captainSubDomain
+    )
     if (!cleaned) {
         return `This is an invalid URL: ${StdOutUtil.getColoredMachineUrl(
             value
@@ -93,7 +98,11 @@ export function getErrorForDomain(
             .getMachines()
             .find(
                 machine =>
-                    Utils.cleanAdminDomainUrl(machine.baseUrl) === cleaned
+                    Utils.cleanAdminDomainUrl(
+                        machine.baseUrl,
+                        undefined,
+                        captainSubDomain
+                    ) === cleaned
             )
         if (found) {
             return `${StdOutUtil.getColoredMachineUrl(

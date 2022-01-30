@@ -123,14 +123,15 @@ export default class CliHelper {
     async ensureAuthentication(
         url?: string,
         password?: string,
-        machineName?: string
+        machineName?: string,
+        captainSubDomain?: string
     ): Promise<IMachine> {
         if (url) {
             // Auth to url
             const machine: IMachine = { baseUrl: url, name: '', authToken: '' }
             if (machineName) {
                 // With machine name: also store credentials
-                let err = getErrorForDomain(url)
+                let err = getErrorForDomain(url, undefined, captainSubDomain)
                 if (err !== true) {
                     // Error for domain: can't store credentials
                     StdOutUtil.printWarning(
@@ -186,7 +187,8 @@ export default class CliHelper {
         url?: string | (() => string | undefined),
         password?: string | (() => string | undefined),
         name?: string | (() => string | undefined),
-        done?: (machine: IMachine) => void
+        done?: (machine: IMachine) => void,
+        captainSubDomain?: string
     ): IOption {
         let machine: IMachine
         return {
@@ -221,7 +223,8 @@ export default class CliHelper {
                     machine = await CliHelper.get().ensureAuthentication(
                         urlExtracted,
                         passwordExtracted,
-                        nameExtracted
+                        nameExtracted,
+                        captainSubDomain
                     )
                     return !machine.authToken
                 } catch (e) {

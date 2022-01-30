@@ -162,7 +162,8 @@ export default class ServerSetup extends Command {
             preProcessParam: (param: IParam) =>
                 this.enableSslAndChangePassword(
                     param.value,
-                    this.paramValue(params, K.newPwd)
+                    this.paramValue(params, K.newPwd),
+                    this.paramValue(params, K.captainSubDomain)
                 )
         },
         {
@@ -178,6 +179,14 @@ export default class ServerSetup extends Command {
             validate: (name: string) => getErrorForMachineName(name),
             preProcessParam: (param?: IParam) =>
                 param && (this.machine.name = param.value)
+        },
+        {
+            name: K.captainSubDomain,
+            char: 's',
+            env: 'CAPTAIN_SUB_DOMAIN',
+            message: 'captain sub-domain',
+            type: 'input',
+            when: false
         }
     ]
 
@@ -276,7 +285,8 @@ export default class ServerSetup extends Command {
 
     private async enableSslAndChangePassword(
         email: string,
-        newPassword?: string
+        newPassword?: string,
+        captainSubDomain?: string
     ) {
         let forcedSsl = false
         try {
@@ -285,7 +295,8 @@ export default class ServerSetup extends Command {
             await CliApiManager.get(this.machine).enableRootSsl(email)
             this.machine.baseUrl = Utils.cleanAdminDomainUrl(
                 this.machine.baseUrl,
-                true
+                true,
+                captainSubDomain
             )!
             await CliApiManager.get(this.machine).forceSsl(true)
             forcedSsl = true

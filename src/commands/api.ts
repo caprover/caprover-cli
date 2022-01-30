@@ -56,8 +56,18 @@ export default class Api extends Command {
             type: 'input',
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
             when: false,
-            filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url, // If not cleaned url, leave url to fail validation with correct error
-            validate: (url: string) => getErrorForDomain(url, true)
+            filter: (url: string) =>
+                Utils.cleanAdminDomainUrl(
+                    url,
+                    undefined,
+                    this.paramValue(params, K.captainSubDomain)
+                ) || url, // If not cleaned url, leave url to fail validation with correct error
+            validate: (url: string) =>
+                getErrorForDomain(
+                    url,
+                    true,
+                    this.paramValue(params, K.captainSubDomain)
+                )
         },
         {
             name: K.pwd,
@@ -103,7 +113,8 @@ export default class Api extends Command {
                         true
                     )
                 }
-            }
+            },
+            this.paramValue(params, K.captainSubDomain)
         ),
         {
             name: K.path,
@@ -200,6 +211,14 @@ export default class Api extends Command {
                 this.paramFrom(params, K.data) === ParamType.Question,
             preProcessParam: (param: IParam) =>
                 param && userCancelOperation(!param.value)
+        },
+        {
+            name: K.captainSubDomain,
+            char: 's',
+            env: 'CAPTAIN_SUB_DOMAIN',
+            message: 'captain sub-domain',
+            type: 'input',
+            when: false
         }
     ]
 

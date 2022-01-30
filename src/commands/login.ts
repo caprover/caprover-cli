@@ -38,9 +38,15 @@ export default class Login extends Command {
             filter: (url: string) =>
                 Utils.cleanAdminDomainUrl(
                     url,
-                    this.paramValue(params, K.https)
+                    this.paramValue(params, K.https),
+                    this.paramValue(params, K.captainSubDomain)
                 ) || url, // If not cleaned url, leave url to fail validation with correct error
-            validate: (url: string) => getErrorForDomain(url)
+            validate: (url: string) =>
+                getErrorForDomain(
+                    url,
+                    undefined,
+                    this.paramValue(params, K.captainSubDomain)
+                )
         },
         {
             name: K.pwd,
@@ -60,6 +66,14 @@ export default class Login extends Command {
             default: params && CliHelper.get().findDefaultCaptainName(),
             filter: (name: string) => name.trim(),
             validate: (name: string) => getErrorForMachineName(name)
+        },
+        {
+            name: K.captainSubDomain,
+            char: 's',
+            env: 'CAPTAIN_SUB_DOMAIN',
+            message: 'captain sub-domain',
+            type: 'input',
+            when: false
         }
     ]
 

@@ -36,7 +36,8 @@ const K = Utils.extendCommonKeys({
     branch: 'branch',
     tar: 'tarFile',
     appToken: 'appToken',
-    img: 'imageName'
+    img: 'imageName',
+    captainSubDomain: 'captainSubDomain'
 })
 
 export default class Deploy extends Command {
@@ -81,8 +82,18 @@ export default class Deploy extends Command {
             type: 'input',
             message: `CapRover machine URL address, it is "[http[s]://][${Constants.ADMIN_DOMAIN}.]your-captain-root.domain"`,
             when: false,
-            filter: (url: string) => Utils.cleanAdminDomainUrl(url) || url, // If not cleaned url, leave url to fail validation with correct error
-            validate: (url: string) => getErrorForDomain(url, true)
+            filter: (url: string) =>
+                Utils.cleanAdminDomainUrl(
+                    url,
+                    undefined,
+                    this.paramValue(params, K.captainSubDomain)
+                ) || url, // If not cleaned url, leave url to fail validation with correct error
+            validate: (url: string) =>
+                getErrorForDomain(
+                    url,
+                    true,
+                    this.paramValue(params, K.captainSubDomain)
+                )
         },
         {
             name: K.pwd,
@@ -138,7 +149,8 @@ export default class Deploy extends Command {
                         true
                     )
                 }
-            }
+            },
+            this.paramValue(params, K.captainSubDomain)
         ),
         {
             name: K.app,
@@ -199,6 +211,14 @@ export default class Deploy extends Command {
             char: 't',
             env: 'CAPROVER_APP_TOKEN',
             message: 'app Token',
+            type: 'input',
+            when: false
+        },
+        {
+            name: K.captainSubDomain,
+            char: 's',
+            env: 'CAPTAIN_SUB_DOMAIN',
+            message: 'captain sub-domain',
             type: 'input',
             when: false
         },
@@ -307,7 +327,8 @@ export default class Deploy extends Command {
                                 }
                                 this.validateDeploySource(params)
                             }
-                        }
+                        },
+                        this.paramValue(params, K.captainSubDomain)
                     )
                 ]
                 return Promise.resolve({})

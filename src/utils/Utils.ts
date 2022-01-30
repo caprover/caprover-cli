@@ -42,13 +42,17 @@ const util = {
             if (!u.protocol) {
                 u = url.parse(`//${urlInput}`, false, true)
             }
-            return u.hostname
+            return u.hostname ?? undefined
         } catch (e) {
             return undefined
         }
     },
 
-    cleanAdminDomainUrl(urlInput: string, https?: boolean): string | undefined {
+    cleanAdminDomainUrl(
+        urlInput: string,
+        https?: boolean,
+        captainSubDomain?: string
+    ): string | undefined {
         if (!urlInput || !urlInput.length) {
             return undefined
         }
@@ -57,8 +61,14 @@ const util = {
         if (!cleanedUrl) {
             return undefined
         }
-        if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`)) {
-            cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
+        if (!!captainSubDomain) {
+            if (!cleanedUrl.startsWith(`${captainSubDomain}.`)) {
+                cleanedUrl = `${captainSubDomain}.${cleanedUrl}`
+            }
+        } else {
+            if (!cleanedUrl.startsWith(`${ADMIN_DOMAIN}.`)) {
+                cleanedUrl = `${ADMIN_DOMAIN}.${cleanedUrl}`
+            }
         }
         return (
             (https || (https === undefined && !http) ? 'https://' : 'http://') +
