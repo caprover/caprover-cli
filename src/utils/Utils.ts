@@ -42,7 +42,7 @@ const util = {
             if (!u.protocol) {
                 u = url.parse(`//${urlInput}`, false, true)
             }
-            return u.hostname
+            return u.hostname || undefined
         } catch (e) {
             return undefined
         }

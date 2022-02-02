@@ -1,4 +1,4 @@
-const ADMIN_DOMAIN = 'captain'
+const ADMIN_DOMAIN = process.env.CAPROVER_ADMIN_DOMAIN_OVERRIDE || 'captain'
 const SAMPLE_DOMAIN = `${ADMIN_DOMAIN}.captainroot.yourdomain.com`
 const SAMPLE_IP = '123.123.123.123'
 const DEFAULT_PASSWORD = 'captain42'
