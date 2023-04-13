@@ -136,7 +136,7 @@ export function getErrorForMachineName(
     if (checkExisting && !exist) {
         return `${StdOutUtil.getColoredMachineName(
             value
-        )} CapRover machine not exist.`
+        )} CapRover machine does not exist.`
     }
     if (checkExisting || isNameValid(value)) {
         return true
@@ -153,7 +153,7 @@ export function getErrorForAppName(
     if (!app) {
         return `${StdOutUtil.getColoredAppName(
             value
-        )} app not exist on this CapRover machine.`
+        )} app does not exist on this CapRover machine.`
     }
     if (app.isAppBuilding) {
         return `${StdOutUtil.getColoredAppName(
