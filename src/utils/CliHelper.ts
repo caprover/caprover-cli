@@ -10,6 +10,7 @@ import { IMachine } from '../models/storage/StoredObjects'
 import { IAppDef } from '../models/AppDef'
 import CliApiManager from '../api/CliApiManager'
 import { IOption, IParams } from '../commands/Command'
+import ErrorFactory from './ErrorFactory'
 
 export default class CliHelper {
     static instance: CliHelper
@@ -87,6 +88,14 @@ export default class CliHelper {
                 )}.\n`
             )
         } catch (error) {
+            if (
+                error.captainStatus === ErrorFactory.STATUS_ERROR_OTP_REQUIRED
+            ) {
+                StdOutUtil.printWarning(
+                    'You must also pass CAPROVER_OTP_TOKEN environment variable, e.g. CAPROVER_OTP_TOKEN=123456; caprover login'
+                )
+                return
+            }
             const errorMessage = error.message ? error.message : error
             StdOutUtil.printError(
                 `Something bad happened: cannot save ${StdOutUtil.getColoredMachine(

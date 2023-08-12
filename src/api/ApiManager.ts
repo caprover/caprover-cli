@@ -66,7 +66,12 @@ export default class ApiManager {
 
         const self = this
         return Promise.resolve() //
-            .then(http.fetch(http.POST, '/login', { password }))
+            .then(
+                http.fetch(http.POST, '/login', {
+                    password,
+                    otpToken: process.env.CAPROVER_OTP_TOKEN
+                })
+            )
             .then(function(data) {
                 authTokenFetched = data.token
                 self.setAuthToken(authTokenFetched)
