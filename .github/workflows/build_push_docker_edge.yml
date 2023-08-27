@@ -9,10 +9,10 @@ jobs:
     run-pre-checks:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v1
-            - uses: actions/setup-node@v1
+            - uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
               with:
-                  node-version: 14
+                  node-version: 18
             - run: |
                   npm ci
                   npm run build
@@ -26,7 +26,7 @@ jobs:
               with:
                   username: ${{ secrets.REGISTRY_USERNAME }}
                   password: ${{ secrets.REGISTRY_PASSWORD }}
-            - uses: actions/checkout@v1
+            - uses: actions/checkout@v3
             - name: Build and Push Edge to DockerHub
               shell: bash
               run: ./.github/scripts/build_and_push_edge.sh
