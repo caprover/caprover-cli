@@ -38,7 +38,7 @@ export default class Api extends Command {
         '       api [-c file] [-n name] [-t path] [-m method] [-d dataJsonString]\n' +
         '       api [-c file] -u url [-p password] [-n name] [-t path] [-m method] [-d dataJsonString]\n' +
         '  Use --caproverName to use an already logged in CapRover machine\n' +
-        '  Use --caproverUrl and --caproverPassword to login on the fly to a CapRover machine, if also --caproverName is present, login credetials are stored locally'
+        '  Use --caproverUrl and --caproverPassword to login on the fly to a CapRover machine, if also --caproverName is present, login credentials are stored locally'
 
     protected description =
         'Call a generic API on a specific CapRover machine. Use carefully only if you really know what you are doing!'
