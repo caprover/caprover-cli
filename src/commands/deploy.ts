@@ -49,7 +49,7 @@ export default class Deploy extends Command {
         '       deploy [-c file] [-n name] [-a app] [-b branch | -t tarFile | -i image]\n' +
         '       deploy [-c file] -u url [-p password] [-n name] [-a app] [-b branch | -t tarFile | -i image]\n' +
         '  Use --caproverName to use an already logged in CapRover machine\n' +
-        '  Use --caproverUrl and --caproverPassword to login on the fly to a CapRover machine, if also --caproverName is present, login credetials are stored locally\n' +
+        '  Use --caproverUrl and --caproverPassword to login on the fly to a CapRover machine, if also --caproverName is present, login credentials are stored locally\n' +
         '  Use one among --branch, --tarFile, --imageName'
 
     protected description =
