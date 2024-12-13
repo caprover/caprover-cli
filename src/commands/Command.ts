@@ -2,7 +2,7 @@ import { isAbsolute, join } from 'path'
 import { pathExistsSync } from 'fs-extra'
 import { readFileSync } from 'fs'
 import * as yaml from 'js-yaml'
-import { CommanderStatic } from 'commander'
+import { Command as CommanderStatic } from 'commander'
 import * as inquirer from 'inquirer'
 import Constants from '../utils/Constants'
 import StdOutUtil from '../utils/StdOutUtil'
@@ -149,7 +149,7 @@ export default abstract class Command {
 
         const cmd = this.program.command(this.command)
         if (this.aliases && this.aliases.length) {
-            this.aliases.forEach(alias => alias && cmd.alias(alias))
+            this.aliases.forEach((alias) => alias && cmd.alias(alias))
         }
         if (this.description) {
             cmd.description(this.description)
@@ -159,7 +159,7 @@ export default abstract class Command {
         }
 
         const options = this.getOptions().filter(
-            opt => opt && opt.name && !opt.hide
+            (opt) => opt && opt.name && !opt.hide
         )
         const spaces = ' '.repeat(
             options.reduce(
@@ -168,7 +168,9 @@ export default abstract class Command {
                         max,
                         this.getCmdLineFlags(opt, opt.type).length,
                         (opt.aliases || [])
-                            .filter(alias => alias && alias.name && !alias.hide)
+                            .filter(
+                                (alias) => alias && alias.name && !alias.hide
+                            )
                             .reduce(
                                 (amax, a) =>
                                     Math.max(
@@ -181,7 +183,7 @@ export default abstract class Command {
                 0
             ) + 4
         )
-        options.forEach(opt => {
+        options.forEach((opt) => {
             cmd.option(
                 this.getCmdLineFlags(opt, opt.type),
                 this.getCmdLineDescription(opt, spaces),
@@ -189,8 +191,8 @@ export default abstract class Command {
             )
             if (opt.aliases) {
                 opt.aliases
-                    .filter(alias => alias && alias.name && !alias.hide)
-                    .forEach(alias =>
+                    .filter((alias) => alias && alias.name && !alias.hide)
+                    .forEach((alias) =>
                         cmd.option(
                             this.getCmdLineFlags(alias, opt.type),
                             this.getCmdLineDescription(opt, spaces, alias)
@@ -209,14 +211,14 @@ export default abstract class Command {
 
             const cmdLineOptions = await this.preAction(allParams[0])
             const optionAliases: IOptionAliasWithDetails[] = this.getOptions()
-                .filter(opt => opt && opt.name)
+                .filter((opt) => opt && opt.name)
                 .reduce(
                     (acc, opt) => [
                         ...acc,
                         { ...opt, aliasTo: opt.name },
                         ...(opt.aliases || [])
-                            .filter(alias => alias && alias.name)
-                            .map(alias => ({ ...alias, aliasTo: opt.name }))
+                            .filter((alias) => alias && alias.name)
+                            .map((alias) => ({ ...alias, aliasTo: opt.name }))
                     ],
                     []
                 )
@@ -244,9 +246,9 @@ export default abstract class Command {
 
         // Read params from env variables
         optionAliases
-            .filter(opta => opta.env && opta.env in process.env)
+            .filter((opta) => opta.env && opta.env in process.env)
             .forEach(
-                opta =>
+                (opta) =>
                     (params[opta.aliasTo] = {
                         value: process.env[opta.env!],
                         from: ParamType.Env
@@ -256,7 +258,7 @@ export default abstract class Command {
         // Get config file name from env variables or command line options
         let file: string | null = optionAliases
             .filter(
-                opta =>
+                (opta) =>
                     cmdLineOptions &&
                     opta.aliasTo === CONFIG_FILE_NAME &&
                     opta.name in cmdLineOptions
@@ -269,7 +271,7 @@ export default abstract class Command {
             delete params[CONFIG_FILE_NAME]
         }
         optionAliases = optionAliases.filter(
-            opta => opta.aliasTo !== CONFIG_FILE_NAME
+            (opta) => opta.aliasTo !== CONFIG_FILE_NAME
         )
 
         if (file) {
@@ -289,7 +291,7 @@ export default abstract class Command {
                     ) {
                         config = JSON.parse(fileContent)
                     } else {
-                        config = yaml.safeLoad(fileContent)
+                        config = yaml.load(fileContent)
                     }
                 }
 
@@ -305,9 +307,9 @@ export default abstract class Command {
 
             this.configFileProvided = true
             optionAliases
-                .filter(opta => opta.name in config)
+                .filter((opta) => opta.name in config)
                 .forEach(
-                    opta =>
+                    (opta) =>
                         (params[opta.aliasTo] = {
                             value: config[opta.name],
                             from: ParamType.Config
@@ -318,9 +320,9 @@ export default abstract class Command {
         if (cmdLineOptions) {
             // Overwrite params from command line options
             optionAliases
-                .filter(opta => opta.name in cmdLineOptions)
+                .filter((opta) => opta.name in cmdLineOptions)
                 .forEach(
-                    opta =>
+                    (opta) =>
                         (params[opta.aliasTo] = {
                             value: cmdLineOptions[opta.name],
                             from: ParamType.CommandLine
@@ -328,7 +330,7 @@ export default abstract class Command {
                 )
         }
 
-        const options = this.getOptions(params).filter(opt => opt && opt.name)
+        const options = this.getOptions(params).filter((opt) => opt && opt.name)
         let q = false
         for (const option of options) {
             const name = option.name!
@@ -378,5 +380,5 @@ export default abstract class Command {
      *
      * @param params
      */
-    protected abstract async action(params: IParams): Promise<void>
+    protected abstract action(params: IParams): Promise<void>
 }

@@ -164,7 +164,7 @@ export default class DeployHelper {
             barOpts
         )
 
-        fileStream.on('data', chunk => bar.tick(chunk.length))
+        fileStream.on('data', (chunk) => bar.tick(chunk.length))
         fileStream.on('end', () => {
             StdOutUtil.printGreenMessage(`Upload done.\n`)
             StdOutUtil.printMessage(
@@ -243,9 +243,8 @@ export default class DeployHelper {
         appName: string
     ) {
         try {
-            const data = await CliApiManager.get(
-                machineToDeploy
-            ).fetchBuildLogs(appName)
+            const data =
+                await CliApiManager.get(machineToDeploy).fetchBuildLogs(appName)
             this.onLogRetrieved(data, machineToDeploy, appName)
         } catch (error) {
             StdOutUtil.printError(

@@ -46,8 +46,9 @@ export function validateDefinitionFile() {
             )
         } catch (e) {
             StdOutUtil.printError(
-                `captain-definition file is not a valid JSON!\n${e.message ||
-                    e}\n`,
+                `captain-definition file is not a valid JSON!\n${
+                    e.message || e
+                }\n`,
                 true
             )
         }
@@ -92,7 +93,7 @@ export function getErrorForDomain(
         const found = StorageHelper.get()
             .getMachines()
             .find(
-                machine =>
+                (machine) =>
                     Utils.cleanAdminDomainUrl(machine.baseUrl) === cleaned
             )
         if (found) {
@@ -149,7 +150,7 @@ export function getErrorForAppName(
     value: string
 ): true | string {
     value = value.trim()
-    const app = apps.find(a => a.appName === value)
+    const app = apps.find((a) => a.appName === value)
     if (!app) {
         return `${StdOutUtil.getColoredAppName(
             value

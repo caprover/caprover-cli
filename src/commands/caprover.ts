@@ -2,7 +2,7 @@
 
 // tslint:disable-next-line: no-var-requires
 const packagejson = require('../../package.json')
-import * as updateNotifier from 'update-notifier'
+import updateNotifier from 'update-notifier'
 
 const versionOfNode = Number(process.version.split('.')[0])
 
@@ -16,7 +16,7 @@ if (versionOfNode < 8) {
 updateNotifier({ pkg: packagejson }).notify({ isGlobal: true })
 
 import StdOutUtil from '../utils/StdOutUtil'
-import * as program from 'commander'
+import { program } from 'commander'
 
 // Command actions
 import Command from './Command'
@@ -42,7 +42,7 @@ const commands: Command[] = [
     new Deploy(program),
     new Api(program)
 ]
-commands.forEach(c => c.build())
+commands.forEach((c) => c.build())
 
 // Error on unknown commands
 program.on('command:*', () => {

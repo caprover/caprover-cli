@@ -7,9 +7,14 @@
         "noImplicitAny": true,
         "sourceMap": true,
         "allowJs": true,
-        "target": "es6"
+        "target": "es6",
+        "skipLibCheck": true
+
     },
     "include": [
         "./src/**/*"
+    ],
+    "exclude": [
+        "node_modules"
     ]
 }
