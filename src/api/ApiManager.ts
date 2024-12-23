@@ -30,7 +30,7 @@ export default class ApiManager {
             baseUrl,
             appToken,
             ApiManager.authToken,
-            function() {
+            function () {
                 return self.getAuthToken(ApiManager.lastKnownPassword)
             }
         )
@@ -72,13 +72,13 @@ export default class ApiManager {
                     otpToken: process.env.CAPROVER_OTP_TOKEN
                 })
             )
-            .then(function(data) {
+            .then(function (data) {
                 authTokenFetched = data.token
                 self.setAuthToken(authTokenFetched)
                 return authTokenFetched
             })
             .then(self.authTokenSaver)
-            .then(function() {
+            .then(function () {
                 return authTokenFetched
             })
     }
