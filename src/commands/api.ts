@@ -148,7 +148,7 @@ export default class Api extends Command {
                     ? ''
                     : ' (or also JSON object from config file), for "GET" method they are interpreted as querystring values to be appended to the path'),
             type: 'input',
-            filter: data => {
+            filter: (data) => {
                 if (data && typeof data === 'string') {
                     try {
                         return JSON.parse(data)
@@ -158,7 +158,7 @@ export default class Api extends Command {
                 }
                 return data
             },
-            validate: data => {
+            validate: (data) => {
                 if (data && typeof data === 'string') {
                     try {
                         JSON.parse(data)

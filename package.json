@@ -7,7 +7,7 @@
     "tslint": "tslint -c tslint.json -p tsconfig.json",
     "formatter": "prettier --check ./src/**/*.ts",
     "formatter-write": "prettier --write ./src/**/*.ts",
-    "build": "npm run tslint && rm -rf ./built && npx tsc && chmod +x ./built -R"
+    "build": "npm run tslint && rm -rf ./built && npx tsc && chmod -R +x ./built "
   },
   "bin": {
     "caprover": "./built/commands/caprover.js",
@@ -34,6 +34,9 @@
     "Server",
     "Container"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "author": "Kasra Bigdeli",
   "license": "Apache-2.0",
   "lint-staged": {
@@ -44,36 +47,31 @@
     ]
   },
   "dependencies": {
-    "chalk": "^2.4.2",
-    "command-exists": "^1.2.8",
-    "commander": "^2.20.0",
-    "configstore": "^5.0.0",
-    "fs-extra": "^8.1.0",
+    "chalk": "^5.3.0",
+    "command-exists": "^1.2.9",
+    "commander": "^12.1.0",
+    "configstore": "^7.0.0",
+    "fs-extra": "^11.2.0",
     "inquirer": "^6.5.0",
-    "js-yaml": "^3.13.1",
-    "ora": "^3.4.0",
+    "js-yaml": "^4.1.0",
+    "ora": "^8.1.1",
     "progress": "^2.0.3",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.5",
-    "typescript": "^3.5.3",
-    "update-notifier": "^3.0.1"
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6",
+    "update-notifier": "^7.3.1"
   },
   "devDependencies": {
-    "@types/command-exists": "^1.2.0",
-    "@types/configstore": "^4.0.0",
-    "@types/fs-extra": "^8.0.0",
-    "@types/inquirer": "6.5.0",
-    "@types/js-yaml": "^3.12.1",
-    "@types/node": "^12.7.2",
-    "@types/ora": "^3.2.0",
-    "@types/progress": "^2.0.3",
-    "@types/request-promise": "^4.1.45",
-    "@types/update-notifier": "^2.5.0",
-    "eslint": "^6.2.2",
-    "eslint-plugin-jest": "^22.15.2",
-    "jest": "^24.9.0",
-    "prettier": "^1.19.1",
+    "@types/command-exists": "^1.2.3",
+    "@types/configstore": "^6.0.2",
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^6.5.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.1.0",
+    "@types/progress": "^2.0.7",
+    "@types/request-promise": "^4.1.51",
+    "@types/update-notifier": "^6.0.8",
+    "prettier": "^3.4.2",
     "tslint": "^5.20.1",
-    "typescript": "^3.5.3"
+    "typescript": "^5.7.2"
   }
 }

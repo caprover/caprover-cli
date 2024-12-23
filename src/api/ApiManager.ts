@@ -161,9 +161,8 @@ export default class ApiManager {
                         appName +
                         (detached ? '?detached=1' : ''),
                     {
-                        captainDefinitionContent: JSON.stringify(
-                            captainDefinition
-                        ),
+                        captainDefinitionContent:
+                            JSON.stringify(captainDefinition),
                         gitHash
                     }
                 )

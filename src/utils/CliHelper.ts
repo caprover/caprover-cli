@@ -29,7 +29,7 @@ export default class CliHelper {
                 value: '',
                 short: ''
             },
-            ...apps.map(app => ({
+            ...apps.map((app) => ({
                 name: `${app.appName}`,
                 value: `${app.appName}`,
                 short: `${app.appName}`
@@ -46,7 +46,7 @@ export default class CliHelper {
             },
             ...StorageHelper.get()
                 .getMachines()
-                .map(machine => ({
+                .map((machine) => ({
                     name: `${StdOutUtil.getColoredMachine(machine)}`,
                     value: `${machine.name}`,
                     short: `${machine.name}`
@@ -61,7 +61,7 @@ export default class CliHelper {
                 value: '',
                 short: ''
             },
-            ...Constants.API_METHODS.map(method => ({
+            ...Constants.API_METHODS.map((method) => ({
                 name: `${method}`,
                 value: `${method}`,
                 short: `${method}`
@@ -78,9 +78,8 @@ export default class CliHelper {
 
     async loginMachine(machine: IMachine, password: string) {
         try {
-            const tokenToIgnore = await CliApiManager.get(machine).getAuthToken(
-                password
-            )
+            const tokenToIgnore =
+                await CliApiManager.get(machine).getAuthToken(password)
             StdOutUtil.printGreenMessage(`Logged in successfully.`)
             StdOutUtil.printMessage(
                 `Authorization token is now saved as ${StdOutUtil.getColoredMachine(
@@ -118,7 +117,7 @@ export default class CliHelper {
         let currentSuffix = 1
         const machines = StorageHelper.get()
             .getMachines()
-            .map(machine => machine.name)
+            .map((machine) => machine.name)
         while (machines.includes(this.getCaptainFullName(currentSuffix))) {
             currentSuffix++
         }
@@ -143,16 +142,18 @@ export default class CliHelper {
                 if (err !== true) {
                     // Error for domain: can't store credentials
                     StdOutUtil.printWarning(
-                        `\nCan't store store login credentials: ${err ||
-                            'error!'}\n`
+                        `\nCan't store store login credentials: ${
+                            err || 'error!'
+                        }\n`
                     )
                 } else {
                     err = getErrorForMachineName(machineName)
                     if (err !== true) {
                         // Error for machine name: can't store credentials
                         StdOutUtil.printWarning(
-                            `\nCan't store store login credentials: ${err ||
-                                'error!'}\n`
+                            `\nCan't store store login credentials: ${
+                                err || 'error!'
+                            }\n`
                         )
                     } else {
                         machine.name = machineName

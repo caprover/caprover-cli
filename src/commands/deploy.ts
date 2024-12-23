@@ -284,24 +284,22 @@ export default class Deploy extends Command {
                                 }
                                 if (possibleApp.deploySource.branchToPush) {
                                     params[K.branch] = {
-                                        value:
-                                            possibleApp.deploySource
-                                                .branchToPush,
+                                        value: possibleApp.deploySource
+                                            .branchToPush,
                                         from: ParamType.Default
                                     }
                                 } else if (
                                     possibleApp.deploySource.tarFilePath
                                 ) {
                                     params[K.tar] = {
-                                        value:
-                                            possibleApp.deploySource
-                                                .tarFilePath,
+                                        value: possibleApp.deploySource
+                                            .tarFilePath,
                                         from: ParamType.Default
                                     }
                                 } else {
                                     params[K.img] = {
-                                        value:
-                                            possibleApp.deploySource.imageName,
+                                        value: possibleApp.deploySource
+                                            .imageName,
                                         from: ParamType.Default
                                     }
                                 }
@@ -366,7 +364,7 @@ export default class Deploy extends Command {
                 appName: this.paramValue(params, K.app)
             },
             this.apps.find(
-                app => app.appName === this.paramValue(params, K.app)
+                (app) => app.appName === this.paramValue(params, K.app)
             )
         )
     }

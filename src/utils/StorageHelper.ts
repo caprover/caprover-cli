@@ -1,9 +1,5 @@
-import {
-    IMachine,
-    IDeployedDirectory,
-    IOldSavedApp
-} from '../models/storage/StoredObjects'
-import * as ConfigStore from 'configstore'
+import { IMachine, IDeployedDirectory } from '../models/storage/StoredObjects'
+import ConfigStore from 'configstore'
 import Utils from './Utils'
 
 const CAP_MACHINES = 'CapMachines'
@@ -30,16 +26,16 @@ export default class StorageHelper {
     }
 
     findMachine(machineName: string) {
-        return this.getMachines().find(m => m.name === machineName)
+        return this.getMachines().find((m) => m.name === machineName)
     }
 
     removeMachine(machineName: string) {
         const machines = this.getMachines()
         const removedMachine = machines.filter(
-            machine => machine.name === machineName
+            (machine) => machine.name === machineName
         )[0]
         const newMachines = machines.filter(
-            machine => machine.name !== machineName
+            (machine) => machine.name !== machineName
         )
         this.data.set(CAP_MACHINES, newMachines)
 
