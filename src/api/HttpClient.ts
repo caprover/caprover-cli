@@ -52,29 +52,29 @@ export default class HttpClient {
         variables: any
     ) {
         const self = this
-        return function (): Promise<any> {
+        return function(): Promise<any> {
             return Promise.resolve() //
-                .then(function () {
+                .then(function() {
                     if (!process.env.REACT_APP_IS_DEBUG) {
                         return Promise.resolve()
                     }
-                    return new Promise<void>(function (res) {
+                    return new Promise<void>(function(res) {
                         setTimeout(res, 500)
                     })
                 })
-                .then(function () {
+                .then(function() {
                     return self.fetchInternal(method, endpoint, variables) //
                 })
-                .then(function (data) {
+                .then(function(data) {
                     if (
                         data.status === ErrorFactory.STATUS_AUTH_TOKEN_INVALID
                     ) {
                         return self
                             .onAuthFailure() //
-                            .then(function () {
+                            .then(function() {
                                 return self
                                     .fetchInternal(method, endpoint, variables)
-                                    .then(function (newRequestResponse) {
+                                    .then(function(newRequestResponse) {
                                         return newRequestResponse
                                     })
                             })
@@ -82,7 +82,7 @@ export default class HttpClient {
                         return data
                     }
                 })
-                .then(function (data) {
+                .then(function(data) {
                     if (
                         data.status !== ErrorFactory.OKAY &&
                         data.status !== ErrorFactory.OKAY_BUILD_STARTED
@@ -94,14 +94,14 @@ export default class HttpClient {
                     }
                     return data
                 })
-                .then(function (data) {
+                .then(function(data) {
                     // tslint:disable-next-line: max-line-length
                     // These two blocks are clearly memory leaks! But I don't have time to fix them now... I need to CANCEL the promise, but since I don't
                     // have CANCEL method on the native Promise, I return a promise that will never RETURN if the HttpClient is destroyed.
                     // tslint:disable-next-line: max-line-length
                     // Will fix them later... but it shouldn't be a big deal anyways as it's only a problem when user navigates away from a page before the
                     // network request returns back.
-                    return new Promise(function (resolve, reject) {
+                    return new Promise(function(resolve, reject) {
                         // data.data here is the "data" field inside the API response! {status: 100, description: "Login succeeded", data: {…}}
                         if (!self.isDestroyed) {
                             return resolve(data.data)
@@ -109,10 +109,10 @@ export default class HttpClient {
                         Logger.dev('Destroyed then not called')
                     })
                 })
-                .catch(function (error) {
+                .catch(function(error) {
                     // Logger.log('');
                     // Logger.error(error.message || error);
-                    return new Promise(function (resolve, reject) {
+                    return new Promise(function(resolve, reject) {
                         if (!self.isDestroyed) {
                             return reject(error)
                         }
@@ -145,7 +145,7 @@ export default class HttpClient {
             headers: self.createHeaders(),
             qs: variables,
             json: true
-        }).then(function (data) {
+        }).then(function(data) {
             return data
         })
     }
@@ -162,7 +162,7 @@ export default class HttpClient {
                 headers: self.createHeaders(),
                 formData: variables,
                 json: true
-            }).then(function (data) {
+            }).then(function(data) {
                 return data
             })
         }
@@ -171,7 +171,7 @@ export default class HttpClient {
             headers: self.createHeaders(),
             body: variables,
             json: true
-        }).then(function (data) {
+        }).then(function(data) {
             return data
         })
     }

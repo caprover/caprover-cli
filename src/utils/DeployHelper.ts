@@ -103,7 +103,7 @@ export default class DeployHelper {
     }
 
     private gitArchiveFile(zipFileFullPath: string, branchToPush: string) {
-        return new Promise<string>(function (resolve, reject) {
+        return new Promise<string>(function(resolve, reject) {
             if (fs.pathExistsSync(zipFileFullPath)) {
                 fs.removeSync(zipFileFullPath)
             } // Removes the temporary file created

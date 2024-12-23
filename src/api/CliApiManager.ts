@@ -28,7 +28,7 @@ export default class CliApiManager {
             CliApiManager.instances[hashKey] = new ApiManager(
                 capMachine.baseUrl + Constants.BASE_API_PATH,
                 capMachine.appToken,
-                function (token) {
+                function(token) {
                     capMachine.authToken = token
                     if (capMachine.name) {
                         StorageHelper.get().saveMachine(capMachine)

@@ -30,7 +30,7 @@ class ErrorFactory {
     }
 
     eatUpPromiseRejection() {
-        return function (error: any) {
+        return function(error: any) {
             // nom nom
         }
     }
