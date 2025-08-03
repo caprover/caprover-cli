@@ -1,0 +1,112 @@
+commands:
+  - names:
+      - serversetup
+      - setup
+    description: Performs necessary actions to prepare CapRover on your server.
+    options:
+      - keys:
+          - serverIp
+          - ip
+        description: The IP address of your server
+      - keys:
+          - oldCaproverPassword
+          - o
+        description: The current CapRover password. Not required if you did not set a password during installation.
+      - keys:
+          - email
+          - m
+        description: Your email address which will be used to register Let's Encrypt certificates.
+      - keys:
+          - caproverDomain
+          - domain
+          - d
+        description: CapRover server root domain. `<wildcard>.domain` MUST be pointed to the server IP.
+      - keys:
+          - newCaproverPassword
+          - newPassword
+          - p
+        description: The new CapRover password. You need to write this down somewhere.
+      - keys:
+          - caproverServerName
+          - caproverName
+          - serverName
+          - s
+        description: The name of the CapRover server to store locally.
+
+  - names:
+      - login
+    description: Login to an existing CapRover server (assumes you have already setup CapRover on your server and you can access it via domain—NOT just IP).
+    options:
+      - keys:
+          - caproverServerName
+          - caproverName
+          - serverName
+          - s
+        description: The name of the CapRover server to store locally.
+      - keys:
+          - caproverDomain
+          - host
+          - h
+        description: CapRover server fully qualified domain. e.g. `captain.server.domain.com`
+      - keys:
+          - password
+          - p
+        description: The CapRover password.
+
+  - names:
+      - deploy
+    description: Deploy your app to a specific CapRover machine.
+    options:
+      - keys:
+          - caproverDomain
+          - host
+          - h
+        description: CapRover server fully qualified domain. e.g. `captain.server.domain.com`
+      - keys:
+          - password
+          - p
+        description: The CapRover password.
+      - keys:
+          - caproverServerName
+          - caproverName
+          - serverName
+          - s
+        description: The name of the CapRover server to store locally.
+      - keys:
+          - appName
+          - app
+          - a
+        description: App name that you want to deploy.
+      - keys:
+          - branch
+          - b
+        description: Git branch to deploy (must be run from the repo root).
+      - keys:
+          - tarFile
+          - t
+        description: Path to a tarball containing your app and `captain-definition` file.
+      - keys:
+          - image
+          - i
+        description: Docker image to deploy (must exist on the server, be public, or in an accessible private repo).
+      - keys:
+          - appToken
+          - token
+          - t
+        description: App token for CI/CD integrations.
+
+  - names:
+      - logout
+    description: Logout from a CapRover server.
+    options:
+      - keys:
+          - caproverServerName
+          - caproverName
+          - serverName
+          - s
+        description: The name of the CapRover server to store locally.
+
+  - names:
+      - list
+      - ls
+    description: List all CapRover servers you have logged in to.

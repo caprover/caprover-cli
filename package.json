@@ -1,77 +1,26 @@
 {
-  "name": "caprover",
-  "version": "2.3.1",
-  "description": "CLI tool for CapRover. See CapRover.com for more details.",
-  "main": "./built/commands/caprover.js",
-  "scripts": {
-    "tslint": "tslint -c tslint.json -p tsconfig.json",
-    "formatter": "prettier --check ./src/**/*.ts",
-    "formatter-write": "prettier --write ./src/**/*.ts",
-    "build": "npm run tslint && rm -rf ./built && npx tsc && chmod -R +x ./built "
-  },
+  "name": "caprover-cli",
+  "version": "1.0.0",
+  "main": "dist/index.js",
   "bin": {
-    "caprover": "./built/commands/caprover.js",
-    "caprover-deploy": "./built/commands/deploy.js",
-    "caprover-list": "./built/commands/list.js",
-    "caprover-login": "./built/commands/login.js",
-    "caprover-logout": "./built/commands/logout.js",
-    "caprover-serversetup": "./built/commands/serversetup.js",
-    "caprover-api": "./built/commands/api.js"
+    "caprover-cli": "./dist/cli.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/caprover/caprover-cli"
-  },
-  "keywords": [
-    "Docker",
-    "Automated",
-    "Deployment",
-    "Heroku",
-    "Free",
-    "NodeJS",
-    "PHP",
-    "Nginx",
-    "Server",
-    "Container"
-  ],
-  "engines": {
-    "node": ">=20"
-  },
-  "author": "Kasra Bigdeli",
-  "license": "Apache-2.0",
-  "lint-staged": {
-    "./**/*.{js}": [
-      "co-eslint",
-      "co-prettier --write",
-      "git add"
-    ]
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "dev": "ts-node src/cli.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "chalk": "^5.3.0",
-    "command-exists": "^1.2.9",
-    "commander": "^12.1.0",
-    "configstore": "^7.0.0",
-    "fs-extra": "^11.2.0",
-    "inquirer": "^6.5.0",
-    "js-yaml": "^4.1.0",
-    "ora": "^8.1.1",
-    "progress": "^2.0.3",
-    "request": "^2.88.2",
-    "request-promise": "^4.2.6",
-    "update-notifier": "^7.3.1"
+    "commander": "^11.1.0",
+    "yaml": "^2.8.0"
   },
   "devDependencies": {
-    "@types/command-exists": "^1.2.3",
-    "@types/configstore": "^6.0.2",
-    "@types/fs-extra": "^11.0.4",
-    "@types/inquirer": "^6.5.0",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.1.0",
-    "@types/progress": "^2.0.7",
-    "@types/request-promise": "^4.1.51",
-    "@types/update-notifier": "^6.0.8",
-    "prettier": "^3.4.2",
-    "tslint": "^5.20.1",
-    "typescript": "^5.7.2"
-  }
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "A CLI application with cmd1 and cmd2 commands"
 }

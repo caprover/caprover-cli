@@ -5,6 +5,8 @@
 
 /node_modules
 /built
+/dist
+/coverage
 .idea
 npm-debug.log
 .DS_Store
