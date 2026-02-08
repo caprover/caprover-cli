@@ -38,7 +38,7 @@ export default class ApiManager {
 
     callApi(
         path: string,
-        method: 'GET' | 'POST' /*| 'POST_DATA' Not used */,
+        method: 'GET' | 'POST' | 'PATCH' /*| 'POST_DATA' Not used */,
         data: any
     ) {
         const http = this.http

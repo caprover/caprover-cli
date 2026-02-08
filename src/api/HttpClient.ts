@@ -11,6 +11,7 @@ export default class HttpClient {
     readonly GET = 'GET'
     readonly POST = 'POST'
     readonly POST_DATA = 'POST_DATA'
+    readonly PATCH = 'PATCH'
     isDestroyed = false
 
     constructor(
@@ -47,7 +48,7 @@ export default class HttpClient {
     }
 
     fetch(
-        method: 'GET' | 'POST' | 'POST_DATA',
+        method: 'GET' | 'POST' | 'POST_DATA' | 'PATCH',
         endpoint: string,
         variables: any
     ) {
@@ -123,7 +124,7 @@ export default class HttpClient {
     }
 
     fetchInternal(
-        method: 'GET' | 'POST' | 'POST_DATA',
+        method: 'GET' | 'POST' | 'POST_DATA' | 'PATCH',
         endpoint: string,
         variables: any
     ) {
@@ -133,6 +134,10 @@ export default class HttpClient {
 
         if (method === this.POST || method === this.POST_DATA) {
             return this.postReq(endpoint, variables, method)
+        }
+
+        if (method === this.PATCH) {
+            return this.patchReq(endpoint, variables)
         }
 
         throw new Error('Unknown method: ' + method)
@@ -168,6 +173,18 @@ export default class HttpClient {
         }
 
         return Request.post(this.baseUrl + endpoint, {
+            headers: self.createHeaders(),
+            body: variables,
+            json: true
+        }).then(function (data) {
+            return data
+        })
+    }
+
+    patchReq(endpoint: string, variables: any) {
+        const self = this
+
+        return Request.patch(this.baseUrl + endpoint, {
             headers: self.createHeaders(),
             body: variables,
             json: true
