@@ -191,7 +191,7 @@ export default class Api extends Command {
         {
             name: 'confirmedToCall',
             type: 'confirm',
-            message: 'are you sure you want to procede?',
+            message: 'are you sure you want to proceed?',
             default: true,
             hide: true,
             when: () =>
