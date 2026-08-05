@@ -1,5 +1,5 @@
 import { IMachine, IDeployedDirectory } from '../models/storage/StoredObjects'
-import ConfigStore from 'configstore'
+import ConfigStore = require('configstore')
 import Utils from './Utils'
 
 const CAP_MACHINES = 'CapMachines'
