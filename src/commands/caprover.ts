@@ -2,7 +2,7 @@
 
 // tslint:disable-next-line: no-var-requires
 const packagejson = require('../../package.json')
-import updateNotifier from 'update-notifier'
+import updateNotifier = require('update-notifier')
 
 const versionOfNode = Number(process.version.split('.')[0])
 
