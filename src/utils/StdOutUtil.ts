@@ -1,4 +1,4 @@
-import chalk from 'chalk'
+import chalk = require('chalk')
 import { IMachine } from '../models/storage/StoredObjects'
 
 class StdOutUtils {
