@@ -196,7 +196,6 @@ export default class Deploy extends Command {
         },
         {
             name: K.appToken,
-            char: 't',
             env: 'CAPROVER_APP_TOKEN',
             message: 'app Token',
             type: 'input',
