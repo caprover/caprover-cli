@@ -202,6 +202,8 @@ export default abstract class Command {
         })
 
         cmd.action(async (...allParams: any[]) => {
+            const commanderCommand = allParams.pop() as CommanderStatic
+
             if (allParams.length > 1) {
                 StdOutUtil.printError(
                     `Positional parameter not supported: ${allParams[0]}\n`,
@@ -209,7 +211,7 @@ export default abstract class Command {
                 )
             }
 
-            const cmdLineOptions = await this.preAction(allParams[0])
+            const cmdLineOptions = await this.preAction(commanderCommand.opts())
             const optionAliases: IOptionAliasWithDetails[] = this.getOptions()
                 .filter((opt) => opt && opt.name)
                 .reduce(
