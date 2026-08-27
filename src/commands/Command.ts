@@ -368,12 +368,23 @@ export default abstract class Command {
                 if (!isFunction(option.message)) {
                     option.message += ':'
                 }
-                const answer = await inquirer.prompt([option as any])
-                if (name in answer) {
-                    q = true
-                    param = params[name] = {
-                        value: answer[name],
-                        from: ParamType.Question
+                // Resolve "when" here rather than letting inquirer do it: inquirer
+                // builds a readline interface even for a prompt it then skips.
+                const shouldAsk = await Promise.resolve(
+                    isFunction(option.when)
+                        ? (option.when as (answers: any) => any)({})
+                        : option.when === undefined || option.when
+                )
+                if (shouldAsk) {
+                    const answer = await inquirer.prompt([
+                        { ...option, when: true } as any
+                    ])
+                    if (name in answer) {
+                        q = true
+                        param = params[name] = {
+                            value: answer[name],
+                            from: ParamType.Question
+                        }
                     }
                 }
             }
