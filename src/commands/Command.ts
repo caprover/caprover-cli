@@ -3,7 +3,7 @@ import { pathExistsSync } from 'fs-extra'
 import { readFileSync } from 'fs'
 import * as yaml from 'js-yaml'
 import { Command as CommanderStatic } from 'commander'
-import * as inquirer from 'inquirer'
+import inquirerModule = require('inquirer')
 import Constants from '../utils/Constants'
 import StdOutUtil from '../utils/StdOutUtil'
 
@@ -14,8 +14,18 @@ export interface IOptionAlias {
     hide?: boolean
 }
 
-export interface IOption extends inquirer.ListQuestionOptions, IOptionAlias {
+export interface IOption extends IOptionAlias {
     name: string
+    type?: string
+    message?: string | ((answers: any) => string)
+    default?: any
+    choices?: any
+    when?: boolean | ((answers: any) => boolean | Promise<boolean>)
+    filter?: (input: any, answers?: any) => any
+    validate?: (
+        input: any,
+        answers?: any
+    ) => boolean | string | Promise<boolean | string>
     aliases?: IOptionAlias[]
     preProcessParam?: (param?: IParam) => void
 }
@@ -51,6 +61,8 @@ function getValue<T>(
 ): T | undefined {
     return value instanceof Function ? value(...args) : value
 }
+
+const inquirer = inquirerModule.default
 
 const CONFIG_FILE_NAME: string = Constants.COMMON_KEYS.conf
 
@@ -356,7 +368,7 @@ export default abstract class Command {
                 if (!isFunction(option.message)) {
                     option.message += ':'
                 }
-                const answer = await inquirer.prompt([option])
+                const answer = await inquirer.prompt([option as any])
                 if (name in answer) {
                     q = true
                     param = params[name] = {
