@@ -1,4 +1,4 @@
-name: Build and push the release image
+name: Publish CLI release
 
 on:
     release:
