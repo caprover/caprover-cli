@@ -1,4 +1,4 @@
-FROM node:14-alpine
+FROM node:20-alpine
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh
 
@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 
 COPY . /usr/src/app
 
-RUN npm install && \
+RUN npm ci && \
      npm cache clean --force && \
      npm run build
 
