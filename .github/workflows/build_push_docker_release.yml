@@ -4,13 +4,12 @@ on:
     release:
         types: [published]
 
-permissions:
-    contents: read
-    id-token: write
-
 jobs:
     validate-and-publish-npm:
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            id-token: write
         steps:
             - uses: actions/checkout@v4
 
@@ -49,6 +48,8 @@ jobs:
     build-publish-docker-hub:
         needs: validate-and-publish-npm
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
         steps:
             - uses: azure/docker-login@v1
               with:
